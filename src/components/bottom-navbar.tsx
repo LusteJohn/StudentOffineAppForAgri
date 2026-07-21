@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 
 type BottomNavbarProps = {
-  activeTab: 'home' | 'profile';
+  activeTab: 'home' | 'profile' | 'module';
   userId: number;
 };
 
@@ -21,6 +21,12 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
     }
   };
 
+  const goModule = () => {
+    if (activeTab !== 'module') {
+      router.replace({ pathname: '/module', params: { userId: String(userId) } });
+    }
+  };
+
   return (
     <View style={styles.wrap}>
       <View style={styles.bar}>
@@ -32,6 +38,10 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
           <ThemedText style={[styles.tabLabel, activeTab === 'profile' && styles.activeTabLabel]}>
             Student Profile
           </ThemedText>
+        </Pressable>
+
+        <Pressable onPress={goModule} style={[styles.tabButton, activeTab === 'module' && styles.activeTabButton]}>
+          <ThemedText style={[styles.tabLabel, activeTab === 'module' && styles.activeTabLabel]}>Module</ThemedText>
         </Pressable>
       </View>
     </View>
@@ -51,8 +61,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.35)',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderColor: 'rgba(92, 107, 97, 0.16)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
     padding: 6,
     flexDirection: 'row',
     gap: 8,
@@ -66,11 +76,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   activeTabButton: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#55e10a',
   },
   tabLabel: {
     fontWeight: '700',
-    color: '#334155',
+    color: '#5c6b61',
   },
   activeTabLabel: {
     color: '#ffffff',

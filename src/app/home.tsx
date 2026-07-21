@@ -39,6 +39,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    backgroundColor: '#edf4ea',
   },
   scrollContent: {
     padding: 24,
@@ -51,7 +52,14 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 28,
     gap: 12,
-    backgroundColor: 'rgba(15, 23, 42, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
   },
   title: {
     marginTop: 2,
@@ -66,11 +74,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(15, 23, 42, 0.2)',
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    borderColor: 'rgba(92, 107, 97, 0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   secondaryButtonText: {
     fontWeight: '700',
-    color: '#0f172a',
+    color: '#102318',
   },
 });

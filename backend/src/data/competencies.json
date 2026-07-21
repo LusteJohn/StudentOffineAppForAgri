@@ -1,0 +1,38 @@
+[
+  {
+    "competency_id": 1,
+    "created_at": "2026-07-21T14:45:03.156Z",
+    "updated_at": "2026-07-21T14:45:03.157Z",
+    "competency_name": "Raise Organic Chicken",
+    "sector": "Agriculture, Forestry and Fishery",
+    "qualification": "Organic Agriculture Production NC II",
+    "status": "Active"
+  },
+  {
+    "competency_id": 2,
+    "created_at": "2026-07-21T14:45:03.167Z",
+    "updated_at": "2026-07-21T14:45:03.167Z",
+    "competency_name": "Produce Organic Vegetables",
+    "sector": "Agriculture, Forestry and Fishery",
+    "qualification": "Organic Agriculture Production NC II",
+    "status": "Active"
+  },
+  {
+    "competency_id": 3,
+    "created_at": "2026-07-21T14:45:03.176Z",
+    "updated_at": "2026-07-21T14:45:03.176Z",
+    "competency_name": "Produce Organic Fertilizer",
+    "sector": "Agriculture, Forestry and Fishery",
+    "qualification": "Organic Agriculture Production NC II",
+    "status": "Active"
+  },
+  {
+    "competency_id": 4,
+    "created_at": "2026-07-21T14:45:03.184Z",
+    "updated_at": "2026-07-21T14:45:03.184Z",
+    "competency_name": "Produce Organic Concoction and Extract",
+    "sector": "Agriculture, Forestry and Fishery",
+    "qualification": "Organic Agriculture Production NC II",
+    "status": "Active"
+  }
+]
