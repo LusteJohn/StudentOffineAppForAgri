@@ -90,19 +90,19 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.35)',
+    borderColor: 'rgba(148, 163, 184, 0.22)',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.68)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
   },
   button: {
     marginTop: 8,
     borderRadius: 16,
     paddingVertical: 15,
     alignItems: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#55e10a',
   },
   buttonDisabled: {
     opacity: 0.7,

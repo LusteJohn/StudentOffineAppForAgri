@@ -26,9 +26,21 @@ export type StudentProfile = {
   updated_at: string;
 };
 
+export type CompetencyRecord = {
+  competency_id: number;
+  competency_name: string;
+  sector: string;
+  qualification: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
+
+type StoredCompetency = CompetencyRecord;
 
 const DEFAULT_STUDENT_ACCOUNT: StoredStudentUser = {
   user_id: 1,
@@ -38,6 +50,33 @@ const DEFAULT_STUDENT_ACCOUNT: StoredStudentUser = {
   role: 'student',
   created_at: new Date().toISOString(),
 };
+
+const DEFAULT_COMPETENCIES: Omit<StoredCompetency, 'competency_id' | 'created_at' | 'updated_at'>[] = [
+  {
+    competency_name: 'Raise Organic Chicken',
+    sector: 'Agriculture, Forestry and Fishery',
+    qualification: 'Organic Agriculture Production NC II',
+    status: 'Active',
+  },
+  {
+    competency_name: 'Produce Organic Vegetables',
+    sector: 'Agriculture, Forestry and Fishery',
+    qualification: 'Organic Agriculture Production NC II',
+    status: 'Active',
+  },
+  {
+    competency_name: 'Produce Organic Fertilizer',
+    sector: 'Agriculture, Forestry and Fishery',
+    qualification: 'Organic Agriculture Production NC II',
+    status: 'Active',
+  },
+  {
+    competency_name: 'Produce Organic Concoction and Extract',
+    sector: 'Agriculture, Forestry and Fishery',
+    qualification: 'Organic Agriculture Production NC II',
+    status: 'Active',
+  },
+];
 
 const databasePromise = SQLite.openDatabaseAsync('student-offline-auth.db');
 let initializationPromise: Promise<void> | null = null;
@@ -79,6 +118,15 @@ async function ensureDatabase() {
           updated_at TEXT NOT NULL,
           FOREIGN KEY (user_id) REFERENCES users(user_id)
         );
+        CREATE TABLE IF NOT EXISTS competencies (
+          competency_id INTEGER PRIMARY KEY NOT NULL,
+          competency_name TEXT NOT NULL,
+          sector TEXT NOT NULL,
+          qualification TEXT NOT NULL,
+          status TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
       `);
 
       const existing = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM users');
@@ -94,6 +142,30 @@ async function ensureDatabase() {
             DEFAULT_STUDENT_ACCOUNT.created_at,
           ]
         );
+      }
+
+      const competencyCount = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM competencies');
+      if ((competencyCount?.count ?? 0) === 0) {
+        for (let index = 0; index < DEFAULT_COMPETENCIES.length; index += 1) {
+          const competency = DEFAULT_COMPETENCIES[index];
+          const competencyId = index + 1;
+          const now = new Date().toISOString();
+
+          await db.runAsync(
+            `INSERT INTO competencies
+              (competency_id, competency_name, sector, qualification, status, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              competencyId,
+              competency.competency_name,
+              competency.sector,
+              competency.qualification,
+              competency.status,
+              now,
+              now,
+            ]
+          );
+        }
       }
     })();
   }
@@ -297,4 +369,10 @@ export async function deleteStudentProfile(studentId: number) {
   const db = await databasePromise;
   const result = await db.runAsync('DELETE FROM student_info WHERE student_id = ?', [studentId]);
   return (result.changes ?? 0) > 0;
+}
+
+export async function listCompetencies() {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<CompetencyRecord>('SELECT * FROM competencies ORDER BY competency_id ASC');
 }

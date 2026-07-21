@@ -38,6 +38,18 @@ export default function LoginScreen() {
       eyebrow="Student access"
       title="Welcome back"
       subtitle="Log in with your saved student account to continue offline access.">
+      <View style={styles.roleTabs}>
+        <Pressable style={[styles.roleTab, styles.roleTabActive]}>
+          <ThemedText style={styles.roleTabActiveText}>Student</ThemedText>
+        </Pressable>
+        <Pressable style={styles.roleTab}>
+          <ThemedText style={styles.roleTabText}>Teacher</ThemedText>
+        </Pressable>
+        <Pressable style={styles.roleTab}>
+          <ThemedText style={styles.roleTabText}>Admin</ThemedText>
+        </Pressable>
+      </View>
+
       <View style={styles.field}>
         <TextInput
           autoCapitalize="none"
@@ -83,21 +95,48 @@ const styles = StyleSheet.create({
     marginTop: 12,
     gap: 12,
   },
+  roleTabs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 18,
+    padding: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  },
+  roleTab: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  roleTabActive: {
+    backgroundColor: '#60ef12',
+  },
+  roleTabText: {
+    color: '#334155',
+    fontWeight: '600',
+  },
+  roleTabActiveText: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
   input: {
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.35)',
+    borderColor: 'rgba(148, 163, 184, 0.22)',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.68)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
   },
   button: {
     marginTop: 8,
     borderRadius: 16,
     paddingVertical: 15,
     alignItems: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#55e10a',
   },
   buttonDisabled: {
     opacity: 0.7,
