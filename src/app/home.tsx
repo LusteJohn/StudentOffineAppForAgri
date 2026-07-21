@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { BottomNavbar } from '@/components/bottom-navbar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
@@ -24,22 +25,13 @@ export default function HomeScreen() {
             Open your dedicated profile page to add or edit student information.
           </ThemedText>
 
-          <Pressable
-            onPress={() =>
-              router.push({
-                pathname: '/student-profile',
-                params: { userId: String(activeUserId) },
-              })
-            }
-            style={styles.button}>
-            <ThemedText style={styles.buttonText}>Go to Student Profile</ThemedText>
-          </Pressable>
-
           <Pressable onPress={() => router.replace('/login')} style={styles.secondaryButton}>
             <ThemedText style={styles.secondaryButtonText}>Back to login</ThemedText>
           </Pressable>
         </View>
       </ScrollView>
+
+      <BottomNavbar activeTab="home" userId={activeUserId} />
     </ThemedView>
   );
 }
@@ -50,7 +42,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
-    paddingBottom: 36,
+    paddingBottom: 12,
   },
   card: {
     alignSelf: 'center',
@@ -68,24 +60,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
   },
-  button: {
-    marginTop: 8,
-    borderRadius: 16,
-    paddingVertical: 15,
-    alignItems: 'center',
-    backgroundColor: '#0f172a',
-  },
   secondaryButton: {
+    marginTop: 8,
     borderRadius: 16,
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(15, 23, 42, 0.2)',
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '700',
   },
   secondaryButtonText: {
     fontWeight: '700',
