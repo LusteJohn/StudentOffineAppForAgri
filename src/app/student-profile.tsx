@@ -2,9 +2,30 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { BottomNavbar } from '@/components/bottom-navbar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { createStudentProfile, getStudentProfileByUserId, StudentProfile, updateStudentProfile } from '@/lib/auth-api';
+
+function formatDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateOrToday(dateValue: string) {
+  const parsed = new Date(dateValue);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
+function getDaysInMonth(year: number, month: number) {
+  return new Date(year, month, 0).getDate();
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
 
 export default function StudentProfileScreen() {
   const params = useLocalSearchParams<{ userId?: string }>();
@@ -23,6 +44,10 @@ export default function StudentProfileScreen() {
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [birthdate, setBirthdate] = useState('');
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const [homeAddress, setHomeAddress] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
 
@@ -63,7 +88,8 @@ export default function StudentProfileScreen() {
       setFirstName('');
       setMiddleName('');
       setLastName('');
-      setBirthdate('');
+      const today = new Date();
+      setBirthdate(formatDate(today));
       setHomeAddress('');
       setGradeLevel('');
     }
@@ -75,6 +101,40 @@ export default function StudentProfileScreen() {
     if (!saving) {
       setModalVisible(false);
     }
+  };
+
+  const openDatePicker = () => {
+    const baseDate = parseDateOrToday(birthdate);
+    setSelectedYear(baseDate.getFullYear());
+    setSelectedMonth(baseDate.getMonth() + 1);
+    setSelectedDay(baseDate.getDate());
+    setDatePickerVisible(true);
+  };
+
+  const updateYear = (delta: number) => {
+    const nextYear = clamp(selectedYear + delta, 1950, new Date().getFullYear());
+    const maxDay = getDaysInMonth(nextYear, selectedMonth);
+    setSelectedYear(nextYear);
+    setSelectedDay((currentDay) => clamp(currentDay, 1, maxDay));
+  };
+
+  const updateMonth = (delta: number) => {
+    const nextMonth = clamp(selectedMonth + delta, 1, 12);
+    const maxDay = getDaysInMonth(selectedYear, nextMonth);
+    setSelectedMonth(nextMonth);
+    setSelectedDay((currentDay) => clamp(currentDay, 1, maxDay));
+  };
+
+  const updateDay = (delta: number) => {
+    const maxDay = getDaysInMonth(selectedYear, selectedMonth);
+    const nextDay = clamp(selectedDay + delta, 1, maxDay);
+    setSelectedDay(nextDay);
+  };
+
+  const applyPickedDate = () => {
+    const pickedDate = new Date(selectedYear, selectedMonth - 1, selectedDay);
+    setBirthdate(formatDate(pickedDate));
+    setDatePickerVisible(false);
   };
 
   const handleSaveProfile = async () => {
@@ -161,6 +221,8 @@ export default function StudentProfileScreen() {
         </View>
       </ScrollView>
 
+      <BottomNavbar activeTab="profile" userId={activeUserId} />
+
       <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={closeModal}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -187,13 +249,14 @@ export default function StudentProfileScreen() {
                 value={lastName}
                 onChangeText={setLastName}
               />
-              <TextInput
-                style={styles.input}
-                placeholder="Birthdate (YYYY-MM-DD)"
-                placeholderTextColor="#64748b"
-                value={birthdate}
-                onChangeText={setBirthdate}
-              />
+              <View style={styles.fieldBlock}>
+                <ThemedText themeColor="textSecondary" style={styles.fieldLabel}>
+                  Birthdate
+                </ThemedText>
+                <Pressable onPress={openDatePicker} style={styles.dateTrigger}>
+                  <ThemedText style={styles.dateTriggerText}>{birthdate || 'Select birthdate'}</ThemedText>
+                </Pressable>
+              </View>
               <TextInput
                 style={[styles.input, styles.multilineInput]}
                 multiline
@@ -222,6 +285,39 @@ export default function StudentProfileScreen() {
           </View>
         </View>
       </Modal>
+
+      <Modal animationType="fade" transparent visible={datePickerVisible} onRequestClose={() => setDatePickerVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.dateModalCard}>
+            <ThemedText type="subtitle">Select Birthdate</ThemedText>
+
+            <View style={styles.dateRow}>
+              <DateAdjuster label="Year" value={String(selectedYear)} onMinus={() => updateYear(-1)} onPlus={() => updateYear(1)} />
+              <DateAdjuster
+                label="Month"
+                value={String(selectedMonth).padStart(2, '0')}
+                onMinus={() => updateMonth(-1)}
+                onPlus={() => updateMonth(1)}
+              />
+              <DateAdjuster
+                label="Day"
+                value={String(selectedDay).padStart(2, '0')}
+                onMinus={() => updateDay(-1)}
+                onPlus={() => updateDay(1)}
+              />
+            </View>
+
+            <View style={styles.modalActions}>
+              <Pressable onPress={() => setDatePickerVisible(false)} style={styles.cancelButton}>
+                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
+              </Pressable>
+              <Pressable onPress={applyPickedDate} style={styles.saveButton}>
+                <ThemedText style={styles.saveButtonText}>Use Date</ThemedText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
@@ -237,13 +333,42 @@ function ProfileRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function DateAdjuster({
+  label,
+  value,
+  onMinus,
+  onPlus,
+}: {
+  label: string;
+  value: string;
+  onMinus: () => void;
+  onPlus: () => void;
+}) {
+  return (
+    <View style={styles.dateAdjuster}>
+      <ThemedText themeColor="textSecondary" style={styles.fieldLabel}>
+        {label}
+      </ThemedText>
+      <View style={styles.adjusterControls}>
+        <Pressable onPress={onMinus} style={styles.adjustButton}>
+          <ThemedText style={styles.adjustButtonText}>-</ThemedText>
+        </Pressable>
+        <ThemedText style={styles.adjustValue}>{value}</ThemedText>
+        <Pressable onPress={onPlus} style={styles.adjustButton}>
+          <ThemedText style={styles.adjustButtonText}>+</ThemedText>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
   scrollContent: {
     padding: 24,
-    paddingBottom: 36,
+    paddingBottom: 12,
   },
   card: {
     alignSelf: 'center',
@@ -325,6 +450,14 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: '#f8fafc',
   },
+  dateModalCard: {
+    width: '100%',
+    maxWidth: 500,
+    borderRadius: 20,
+    padding: 18,
+    gap: 12,
+    backgroundColor: '#f8fafc',
+  },
   modalScrollContent: {
     gap: 12,
   },
@@ -336,6 +469,64 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
     backgroundColor: '#ffffff',
+  },
+  fieldBlock: {
+    gap: 6,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  dateTrigger: {
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.35)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+  },
+  dateTriggerText: {
+    fontSize: 15,
+    color: '#0f172a',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  dateAdjuster: {
+    flex: 1,
+    gap: 8,
+  },
+  adjusterControls: {
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.35)',
+    borderRadius: 14,
+    backgroundColor: '#ffffff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  adjustButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.08)',
+  },
+  adjustButtonText: {
+    fontSize: 20,
+    color: '#0f172a',
+    lineHeight: 24,
+    fontWeight: '700',
+  },
+  adjustValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0f172a',
   },
   multilineInput: {
     minHeight: 76,
