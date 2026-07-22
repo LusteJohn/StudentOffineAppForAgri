@@ -1,5 +1,4 @@
-import { ReactNode } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ReactNode, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -7,7 +6,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 type AuthShellProps = {
   eyebrow: string;
-  title: string;
+  title: ReactNode;
   subtitle: string;
   children: ReactNode;
   footer?: ReactNode;
@@ -20,46 +19,98 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
       <View pointerEvents="none" style={styles.fieldGlow} />
       <View pointerEvents="none" style={styles.overlayWash} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <View style={styles.heroBlock}>
-          <View style={styles.logoFrame}>
-            <Image source={require('../../assets/images/expo-logo.png')} style={styles.logo} resizeMode="contain" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.select({ ios: 24, android: 0 })}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <View style={styles.heroBlock}>
+            <View style={styles.logoFrame}>
+              <Image source={require('../../assets/images/expo-logo.png')} style={styles.logo} resizeMode="contain" />
+            </View>
           </View>
-        </View>
 
-        <ThemedView type="backgroundElement" style={styles.card}>
-          <View style={styles.cardHeader}>
-            <ThemedText type="code" themeColor="textSecondary" style={styles.eyebrow}>
-              {eyebrow}
-            </ThemedText>
-            <ThemedText type="subtitle" style={styles.title}>
+          <ThemedView type="backgroundElement" style={styles.card}>
+            <View style={styles.cardHeader}>
+              <ThemedText type="code" themeColor="textSecondary" style={styles.eyebrow}>
+                {eyebrow}
+              </ThemedText>
               {title}
-            </ThemedText>
-            <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-              {subtitle}
-            </ThemedText>
-          </View>
+              <ThemedText themeColor="textSecondary" style={styles.subtitle}>
+                {subtitle}
+              </ThemedText>
+            </View>
 
-          {children}
+            {children}
 
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
-        </ThemedView>
-      </ScrollView>
+            {footer ? <View style={styles.footer}>{footer}</View> : null}
+          </ThemedView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
 
-export function AuthLink({ children, onPress }: { children: ReactNode; onPress: () => void }) {
+export function AuthLink({ children, onPress, textStyle }: { children: ReactNode; onPress: () => void; textStyle?: object }) {
   const theme = useTheme();
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.linkPressable, pressed && styles.pressed]}>
-      <ThemedText style={[styles.linkText, { color: theme.text }]}>{children}</ThemedText>
+      <ThemedText style={[styles.linkText, { color: theme.text }, textStyle]}>{children}</ThemedText>
     </Pressable>
   );
 }
 
+export function AuthNotification({ type, text }: { type: 'success' | 'error'; text: string }) {
+  return (
+    <View style={[styles.notification, type === 'success' ? styles.successNotification : styles.errorNotification]}>
+      <View style={[styles.notificationIndicator, type === 'success' ? styles.successIndicator : styles.errorIndicator]} />
+      <Text style={[styles.notificationText, type === 'success' ? styles.successNotificationText : styles.errorNotificationText]}>{text}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  notification: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+  },
+  errorNotification: {
+    backgroundColor: '#fef2f2',
+    borderColor: 'rgba(185, 28, 28, 0.18)',
+  },
+  successNotification: {
+    backgroundColor: '#ecfdf5',
+    borderColor: 'rgba(4, 120, 87, 0.18)',
+  },
+  notificationIndicator: {
+    width: 4,
+    height: 16,
+    borderRadius: 4,
+  },
+  errorIndicator: {
+    backgroundColor: '#b91c1c',
+  },
+  successIndicator: {
+    backgroundColor: '#047857',
+  },
+  notificationText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '600',
+  },
+  errorNotificationText: {
+    color: '#b91c1c',
+  },
+  successNotificationText: {
+    color: '#047857',
+  },
   screen: {
     flex: 1,
     overflow: 'hidden',
@@ -175,7 +226,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#ffffff',
+    color: '#000000',
     fontWeight: '700',
   },
   error: {

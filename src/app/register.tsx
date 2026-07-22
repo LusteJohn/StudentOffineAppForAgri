@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { AuthLink, AuthShell } from '@/components/auth-shell';
+import { AuthLink, AuthShell, AuthNotification } from '@/components/auth-shell';
 import { ThemedText } from '@/components/themed-text';
 import { registerStudent } from '@/lib/auth-api';
 
@@ -10,6 +10,7 @@ export default function RegisterScreen() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -37,7 +38,7 @@ export default function RegisterScreen() {
   return (
     <AuthShell
       eyebrow="New student account"
-      title="Create account"
+      title={<ThemedText type="subtitle" style={{ color: '#000000' }}>Create account</ThemedText>}
       subtitle="Register once and the account stays on this device for offline use.">
       <View style={styles.field}>
         <TextInput
@@ -57,19 +58,24 @@ export default function RegisterScreen() {
           value={email}
           onChangeText={setEmail}
         />
-        <TextInput
-          autoCapitalize="none"
-          placeholder="Password"
-          placeholderTextColor="#64748b"
-          secureTextEntry
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-        />
+        <View style={styles.passwordFieldWrap}>
+          <TextInput
+            autoCapitalize="none"
+            placeholder="Password"
+            placeholderTextColor="#64748b"
+            secureTextEntry={!isPasswordVisible}
+            style={[styles.input, { paddingRight: 44 }]}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <Pressable onPress={() => setIsPasswordVisible((prev) => !prev)} style={styles.passwordToggle}>
+            <Text style={styles.passwordToggleText}>{isPasswordVisible ? '🙈' : '👁️'}</Text>
+          </Pressable>
+        </View>
       </View>
 
-      {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
-      {message ? <ThemedText style={styles.success}>{message}</ThemedText> : null}
+      {error ? <AuthNotification type="error" text={error} /> : null}
+      {message ? <AuthNotification type="success" text={message} /> : null}
 
       <Pressable
         disabled={loading}
@@ -78,7 +84,7 @@ export default function RegisterScreen() {
         <ThemedText style={styles.buttonText}>{loading ? 'Creating...' : 'Register'}</ThemedText>
       </Pressable>
 
-      <AuthLink onPress={() => router.push('/login')}>Already have an account? Login</AuthLink>
+      <AuthLink onPress={() => router.push('/login')} textStyle={{ color: '#000000' }}>Already have an account? Login</AuthLink>
     </AuthShell>
   );
 }
@@ -96,6 +102,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    color: '#102318',
+  },
+  passwordFieldWrap: {
+    position: 'relative',
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  passwordToggleText: {
+    fontSize: 18,
+    lineHeight: 20,
   },
   button: {
     marginTop: 8,
@@ -108,16 +131,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#fff',
+    color: '#000000',
     fontWeight: '700',
-  },
-  error: {
-    color: '#b91c1c',
-    marginTop: 4,
-  },
-  success: {
-    color: '#047857',
-    marginTop: 4,
   },
   pressed: {
     opacity: 0.75,

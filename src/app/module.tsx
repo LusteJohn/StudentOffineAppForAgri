@@ -82,8 +82,8 @@ export default function ModuleScreen() {
           <ThemedText type="code" themeColor="textSecondary">
             Competency Management
           </ThemedText>
-          <ThemedText type="subtitle" style={styles.title}>
-            Track outcomes, maintain records, and manage categories
+          <ThemedText type="subtitle" style={{ color: '#000000' }}>
+            Track some available modules and lessons for each competency.
           </ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.subtitle}>
             Records from the offline competency database.
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
   },
   closeButtonText: {
-    color: '#fff',
+    color: '#ffffff',
     fontWeight: '700',
   },
 });

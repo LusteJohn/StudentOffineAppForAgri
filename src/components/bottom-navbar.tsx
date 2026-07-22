@@ -83,6 +83,6 @@ const styles = StyleSheet.create({
     color: '#5c6b61',
   },
   activeTabLabel: {
-    color: '#ffffff',
+    color: '#000000',
   },
 });

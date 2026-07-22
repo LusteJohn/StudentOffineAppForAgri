@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   buttonText: {
-    color: '#fff',
+    color: '#000',
     fontWeight: '700',
   },
   secondaryButtonText: {
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#000',
     fontWeight: '700',
   },
 });

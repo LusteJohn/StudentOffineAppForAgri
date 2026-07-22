@@ -14,6 +14,7 @@ export const Colors = {
     backgroundElement: '#ffffff',
     backgroundSelected: '#d9ecd0',
     textSecondary: '#5c6b61',
+    fontColor: 'black',
   },
   dark: {
     text: '#ffffff',
