@@ -36,6 +36,17 @@ export type CompetencyRecord = {
   updated_at: string;
 };
 
+export type ModuleRecord = {
+  module_id: number;
+  competency_id: number;
+  module_name: string;
+  description: string;
+  module_pdf: string;
+  thumbnail: string;
+  created_at: string;
+  updated_at: string;
+};
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -78,8 +89,38 @@ const DEFAULT_COMPETENCIES: Omit<StoredCompetency, 'competency_id' | 'created_at
   },
 ];
 
+const DEFAULT_MODULES: Omit<ModuleRecord, 'module_id' | 'created_at' | 'updated_at'>[] = [
+  {
+    competency_id: 1,
+    module_name: 'Raise Organic Chicken',
+    description: 'Welcome to the Module on Raising Organic Chicken. This module contains training materials and activities for you to complete. The unit of competency on Raise Organic Chicken contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.',
+    module_pdf: 'assets/learning-materials/module/Raising Organic Chicken.pdf',
+    thumbnail: 'assets/learning-materials/module/Raising-chicken/raise.png',
+  },
+  {
+    competency_id: 2,
+    module_name: 'Produce Organic Vegetables',
+    description: 'Welcome to the Module on Producing Organic Vegetables. This module contains training materials and activities for you to complete. The unit of competency on Produce Organic Vegetables contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.',
+    module_pdf: 'assets/learning-materials/module/Producing Organic Vegetables.pdf',
+    thumbnail: 'assets/learning-materials/module/Producing-organic-vegetables/vegetables.png',
+  },
+  {
+    competency_id: 3,
+    module_name: 'Produce Organic Fertilizer',
+    description: 'Welcome to the Module on Producing Organic Fertilizer. This module contains training materials and activities for you to complete. The unit of competency on Produce Organic Fertilizer contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.',
+    module_pdf: 'assets/learning-materials/module/Producing Organic Fertilizer.pdf',
+    thumbnail: 'assets/learning-materials/module/Producing-organic-fertilizer/fertilizer.jpg',
+  },
+  {
+    competency_id: 4,
+    module_name: 'Produce Organic Concoction and Extract',
+    description: 'Welcome to the Module on Producing Organic Concoction and Extract. This module contains training materials and activities for you to complete. The unit of competency on Produce Organic Concoction and Extract contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.',
+    module_pdf: 'assets/learning-materials/module/Producing Organic Concoction and Extract.pdf',
+    thumbnail: 'assets/learning-materials/module/Producing-organic-concoction/concoction.jpg',
+  },
+];
+
 const databasePromise = SQLite.openDatabaseAsync('student-offline-auth.db');
-let initializationPromise: Promise<void> | null = null;
 
 function toStudentUser(user: StoredStudentUser): StudentUser {
   return {
@@ -92,85 +133,150 @@ function toStudentUser(user: StoredStudentUser): StudentUser {
 }
 
 async function ensureDatabase() {
-  if (!initializationPromise) {
-    initializationPromise = (async () => {
-      const db = await databasePromise;
-      await db.execAsync(`
-        PRAGMA journal_mode = WAL;
-        CREATE TABLE IF NOT EXISTS users (
-          user_id INTEGER PRIMARY KEY NOT NULL,
-          username TEXT NOT NULL,
-          email TEXT NOT NULL UNIQUE,
-          password TEXT NOT NULL,
-          role TEXT NOT NULL,
-          created_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS student_info (
-          student_id INTEGER PRIMARY KEY NOT NULL,
-          user_id INTEGER NOT NULL UNIQUE,
-          first_name TEXT NOT NULL,
-          middle_name TEXT,
-          last_name TEXT NOT NULL,
-          birthdate TEXT NOT NULL,
-          home_address TEXT NOT NULL,
-          grade_level TEXT NOT NULL,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL,
-          FOREIGN KEY (user_id) REFERENCES users(user_id)
-        );
-        CREATE TABLE IF NOT EXISTS competencies (
-          competency_id INTEGER PRIMARY KEY NOT NULL,
-          competency_name TEXT NOT NULL,
-          sector TEXT NOT NULL,
-          qualification TEXT NOT NULL,
-          status TEXT NOT NULL,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        );
-      `);
+  const db = await databasePromise;
+  await db.execAsync('PRAGMA journal_mode = WAL');
 
-      const existing = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM users');
+  const createStatements = [
+    `CREATE TABLE IF NOT EXISTS users (
+      user_id INTEGER PRIMARY KEY NOT NULL,
+      username TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS student_info (
+      student_id INTEGER PRIMARY KEY NOT NULL,
+      user_id INTEGER NOT NULL UNIQUE,
+      first_name TEXT NOT NULL,
+      middle_name TEXT,
+      last_name TEXT NOT NULL,
+      birthdate TEXT NOT NULL,
+      home_address TEXT NOT NULL,
+      grade_level TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS competencies (
+      competency_id INTEGER PRIMARY KEY NOT NULL,
+      competency_name TEXT NOT NULL,
+      sector TEXT NOT NULL,
+      qualification TEXT NOT NULL,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS modules (
+      module_id INTEGER PRIMARY KEY NOT NULL,
+      competency_id INTEGER NOT NULL,
+      module_name TEXT NOT NULL,
+      description TEXT NOT NULL,
+      module_pdf TEXT NOT NULL,
+      thumbnail TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (competency_id) REFERENCES competencies(competency_id)
+    )`,
+  ];
+
+  for (const sql of createStatements) {
+    try {
+      await db.execAsync(sql);
+    } catch (error) {
+      console.error('Database table creation failed:', error);
+    }
+  }
+
+  try {
+    await db.execAsync('ALTER TABLE modules ADD COLUMN module_pdf TEXT DEFAULT ""');
+  } catch {
+    // Column already exists or table not yet created; ignore.
+  }
+
+  try {
+    const existing = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM users');
+    if ((existing?.count ?? 0) === 0) {
+      await db.runAsync(
+        'INSERT INTO users (user_id, username, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+        [
+          DEFAULT_STUDENT_ACCOUNT.user_id,
+          DEFAULT_STUDENT_ACCOUNT.username,
+          DEFAULT_STUDENT_ACCOUNT.email,
+          DEFAULT_STUDENT_ACCOUNT.password,
+          DEFAULT_STUDENT_ACCOUNT.role,
+          DEFAULT_STUDENT_ACCOUNT.created_at,
+        ]
+      );
+    }
+  } catch (error) {
+    console.error('Default student account seeding failed:', error);
+  }
+
+  try {
+    for (let index = 0; index < DEFAULT_COMPETENCIES.length; index += 1) {
+      const competency = DEFAULT_COMPETENCIES[index];
+      const competencyId = index + 1;
+      const now = new Date().toISOString();
+
+      const existing = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM competencies WHERE competency_name = ?',
+        [competency.competency_name]
+      );
+
       if ((existing?.count ?? 0) === 0) {
         await db.runAsync(
-          'INSERT INTO users (user_id, username, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+          `INSERT INTO competencies
+            (competency_id, competency_name, sector, qualification, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
-            DEFAULT_STUDENT_ACCOUNT.user_id,
-            DEFAULT_STUDENT_ACCOUNT.username,
-            DEFAULT_STUDENT_ACCOUNT.email,
-            DEFAULT_STUDENT_ACCOUNT.password,
-            DEFAULT_STUDENT_ACCOUNT.role,
-            DEFAULT_STUDENT_ACCOUNT.created_at,
+            competencyId,
+            competency.competency_name,
+            competency.sector,
+            competency.qualification,
+            competency.status,
+            now,
+            now,
           ]
         );
       }
-
-      const competencyCount = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM competencies');
-      if ((competencyCount?.count ?? 0) === 0) {
-        for (let index = 0; index < DEFAULT_COMPETENCIES.length; index += 1) {
-          const competency = DEFAULT_COMPETENCIES[index];
-          const competencyId = index + 1;
-          const now = new Date().toISOString();
-
-          await db.runAsync(
-            `INSERT INTO competencies
-              (competency_id, competency_name, sector, qualification, status, created_at, updated_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [
-              competencyId,
-              competency.competency_name,
-              competency.sector,
-              competency.qualification,
-              competency.status,
-              now,
-              now,
-            ]
-          );
-        }
-      }
-    })();
+    }
+  } catch (error) {
+    console.error('Competency seeding failed:', error);
   }
 
-  await initializationPromise;
+  try {
+    for (let index = 0; index < DEFAULT_MODULES.length; index += 1) {
+      const moduleItem = DEFAULT_MODULES[index];
+      const moduleId = index + 1;
+      const now = new Date().toISOString();
+
+      const existing = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM modules WHERE module_name = ?',
+        [moduleItem.module_name]
+      );
+
+      if ((existing?.count ?? 0) === 0) {
+        await db.runAsync(
+          `INSERT INTO modules
+            (module_id, competency_id, module_name, description, module_pdf, thumbnail, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            moduleId,
+            moduleItem.competency_id,
+            moduleItem.module_name,
+            moduleItem.description,
+            moduleItem.module_pdf,
+            moduleItem.thumbnail,
+            now,
+            now,
+          ]
+        );
+      }
+    }
+  } catch (error) {
+    console.error('Module seeding failed:', error);
+  }
 }
 
 function normalizeEmail(email: string) {
@@ -375,4 +481,80 @@ export async function listCompetencies() {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<CompetencyRecord>('SELECT * FROM competencies ORDER BY competency_id ASC');
+}
+
+export async function listModules() {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<ModuleRecord>('SELECT * FROM modules ORDER BY module_id ASC');
+}
+
+export async function getModuleByCompetencyId(competencyId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getFirstAsync<ModuleRecord>('SELECT * FROM modules WHERE competency_id = ?', [competencyId]);
+}
+
+export async function resetAndSeedLocalData() {
+  await ensureDatabase();
+  const db = await databasePromise;
+
+  const competencies = await db.getAllAsync<CompetencyRecord>('SELECT * FROM competencies ORDER BY competency_id ASC');
+  const modules = await db.getAllAsync<ModuleRecord>('SELECT * FROM modules ORDER BY module_id ASC');
+
+  const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
+    competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
+  );
+  const hasDefaultModules = DEFAULT_MODULES.every((expected) =>
+    modules.some((m) => m.module_name.toLowerCase() === expected.module_name.toLowerCase())
+  );
+
+  if (hasDefaultCompetencies && hasDefaultModules && competencies.length > 0 && modules.length > 0) {
+    return {
+      competencies: competencies.length,
+      modules: modules.length,
+      alreadyImported: true,
+    };
+  }
+
+  const now = new Date().toISOString();
+
+  await db.runAsync('DELETE FROM modules');
+  await db.runAsync('DELETE FROM competencies');
+  try {
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'modules'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'competencies'");
+  } catch {
+    // sqlite_sequence may not exist in some SQLite versions/environments.
+  }
+
+  for (let index = 0; index < DEFAULT_COMPETENCIES.length; index += 1) {
+    const competency = DEFAULT_COMPETENCIES[index];
+    const competencyId = index + 1;
+
+    await db.runAsync(
+      `INSERT INTO competencies
+        (competency_id, competency_name, sector, qualification, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [competencyId, competency.competency_name, competency.sector, competency.qualification, competency.status, now, now]
+    );
+  }
+
+  for (let index = 0; index < DEFAULT_MODULES.length; index += 1) {
+    const moduleItem = DEFAULT_MODULES[index];
+    const moduleId = index + 1;
+
+    await db.runAsync(
+      `INSERT INTO modules
+        (module_id, competency_id, module_name, description, module_pdf, thumbnail, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [moduleId, moduleItem.competency_id, moduleItem.module_name, moduleItem.description, moduleItem.module_pdf, moduleItem.thumbnail, now, now]
+    );
+  }
+
+  return {
+    competencies: DEFAULT_COMPETENCIES.length,
+    modules: DEFAULT_MODULES.length,
+    alreadyImported: false,
+  };
 }

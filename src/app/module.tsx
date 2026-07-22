@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
-import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { CompetencyRecord, listCompetencies } from '@/lib/auth-api';
+import { CompetencyRecord, ModuleRecord, listCompetencies, listModules } from '@/lib/auth-api';
+
+const PRIMARY = '#5bec13';
+const BACKGROUND_LIGHT = '#f6f8f6';
 
 export default function ModuleScreen() {
   const params = useLocalSearchParams<{ userId?: string }>();
@@ -15,154 +17,246 @@ export default function ModuleScreen() {
   }, [params.userId]);
 
   const [competencies, setCompetencies] = useState<CompetencyRecord[]>([]);
+  const [modules, setModules] = useState<ModuleRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [viewModalVisible, setViewModalVisible] = useState(false);
-  const [viewingCompetency, setViewingCompetency] = useState<CompetencyRecord | null>(null);
+  const [selectedCompetency, setSelectedCompetency] = useState<CompetencyRecord | null>(null);
+  const [selectedModules, setSelectedModules] = useState<ModuleRecord[]>([]);
+  const [detailVisible, setDetailVisible] = useState(false);
 
-  const loadCompetencies = async () => {
+  const loadData = useCallback(async () => {
     setError('');
     try {
-      const records = await listCompetencies();
-      setCompetencies(records);
-      setViewingCompetency((current) => current ?? records[0] ?? null);
+      const [competencyRecords, moduleRecords] = await Promise.all([listCompetencies(), listModules()]);
+      setCompetencies(competencyRecords);
+      setModules(moduleRecords);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load competencies.');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    (async () => {
-      try {
-        const records = await listCompetencies();
-        if (isMounted) {
-          setCompetencies(records);
-          setViewingCompetency(records[0] ?? null);
-        }
-      } catch (loadError) {
-        if (isMounted) {
-          setError(loadError instanceof Error ? loadError.message : 'Unable to load competencies.');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      (async () => {
+        if (isActive) {
+          await loadData();
+        }
+      })();
+      return () => {
+        isActive = false;
+      };
+    }, [loadData])
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadCompetencies();
+    await loadData();
   };
 
-  const handleViewCompetency = (competency: CompetencyRecord) => {
-    setViewingCompetency(competency);
-    setViewModalVisible(true);
+  const openCompetencyDetail = async (competency: CompetencyRecord) => {
+    setSelectedCompetency(competency);
+    setSelectedModules([]);
+    setDetailVisible(true);
+    try {
+      const moduleRecords = await listModules();
+      const filtered = moduleRecords.filter((m) => m.competency_id === competency.competency_id);
+      setSelectedModules(filtered);
+    } catch {
+      setSelectedModules([]);
+    }
   };
 
-  const closeViewModal = () => {
-    setViewModalVisible(false);
+  const closeCompetencyDetail = () => {
+    setDetailVisible(false);
+    setSelectedCompetency(null);
+    setSelectedModules([]);
+  };
+
+  const handleDownload = (competencyModule: ModuleRecord | null) => {
+    if (competencyModule?.module_pdf) {
+      Linking.openURL(competencyModule.module_pdf).catch(() => {
+        // no-op: surface a toast/snackbar here if you have one wired up
+      });
+    }
+  };
+
+  // Placeholder progress label until real progress-tracking data is available.
+  // Swap this out for whatever field your backend uses (e.g. competency.progress_status).
+  const getProgressLabel = (competency: CompetencyRecord) => {
+    return competency.status.toLowerCase() === 'active' ? 'Not started' : 'Unavailable';
   };
 
   return (
     <ThemedView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.card}>
-          <ThemedText type="code" themeColor="textSecondary">
-            Competency Management
-          </ThemedText>
-          <ThemedText type="subtitle" style={{ color: '#000000' }}>
-            Track some available modules and lessons for each competency.
-          </ThemedText>
-          <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-            Records from the offline competency database.
-          </ThemedText>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Pressable style={styles.headerIconButton}>
+            <Text style={styles.headerIcon}>{'<'}</Text>
+          </Pressable>
+          <Text style={styles.headerTitle}>Competency Library</Text>
+          <Pressable onPress={handleRefresh} style={styles.headerIconButton}>
+            <Text style={styles.headerIcon}>↻</Text>
+          </Pressable>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabs}>
+          <Pressable style={styles.categoryTabActive}>
+            <Text style={styles.categoryTabTextActive}>All</Text>
+          </Pressable>
+          <Pressable style={styles.categoryTab}>
+            <Text style={styles.categoryTabText}>Agriculture</Text>
+          </Pressable>
+          <Pressable style={styles.categoryTab}>
+            <Text style={styles.categoryTabText}>Active</Text>
+          </Pressable>
+        </ScrollView>
+
+        <View style={styles.section}>
+          {competencies.map((competency) => {
+            const competencyModule = modules.find((m) => m.competency_id === competency.competency_id) ?? null;
+
+            return (
+              <View key={competency.competency_id} style={styles.card}>
+                <View style={styles.cardTopRow}>
+                  <View style={styles.cardTextGroup}>
+                    <Text style={styles.cardTitle} numberOfLines={2}>
+                      {competency.competency_name}
+                    </Text>
+                    <Text style={styles.cardStatus}>{getProgressLabel(competency)}</Text>
+                  </View>
+
+                  {competencyModule?.thumbnail ? (
+                    <Image
+                      source={{ uri: competencyModule.thumbnail }}
+                      style={styles.cardThumbnail}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={[styles.cardThumbnail, styles.cardThumbnailPlaceholder]} />
+                  )}
+                </View>
+
+                <View style={styles.cardButtonRow}>
+                  <Pressable
+                    onPress={() => handleDownload(competencyModule)}
+                    style={styles.downloadButton}
+                  >
+                    <Text style={styles.downloadIcon}>⬇</Text>
+                    <Text style={styles.downloadButtonText}>Download</Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => openCompetencyDetail(competency)}
+                    style={styles.startButton}
+                  >
+                    <Text style={styles.startButtonText}>Start Module</Text>
+                  </Pressable>
+                </View>
+              </View>
+            );
+          })}
+
+          {!competencies.length && !error ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>
+                {loading ? 'Loading competencies...' : 'No competencies available.'}
+              </Text>
+            </View>
+          ) : null}
 
           {error ? (
-            <ThemedText style={styles.error}>{error}</ThemedText>
-          ) : (
-            <View style={styles.tableCard}>
-              <View style={styles.tableHeaderRow}>
-                <View>
-                  <ThemedText type="subtitle" style={styles.tableTitle}>
-                    Competency List
-                  </ThemedText>
-                  <ThemedText themeColor="textSecondary" style={styles.tableSubtitle}>
-                    Records from local storage
-                  </ThemedText>
-                </View>
-                <Pressable onPress={handleRefresh} style={styles.refreshButton}>
-                  <ThemedText style={styles.refreshButtonText}>{refreshing || loading ? 'Refreshing' : 'Refresh'}</ThemedText>
-                </Pressable>
-              </View>
-
-              <View style={styles.tableHeader}>
-                <ThemedText style={[styles.columnHeader, styles.idColumn]}>ID</ThemedText>
-                <ThemedText style={[styles.columnHeader, styles.competencyColumn]}>Competency</ThemedText>
-                <ThemedText style={[styles.columnHeader, styles.statusColumn]}>Status</ThemedText>
-                <ThemedText style={[styles.columnHeader, styles.actionsColumn]}>Actions</ThemedText>
-              </View>
-
-              <ScrollView style={styles.tableBody}>
-                {competencies.map((competency) => (
-                  <View key={String(competency.competency_id)} style={styles.tableRow}>
-                    <ThemedText style={[styles.cellText, styles.idColumn]}>#{String(competency.competency_id)}</ThemedText>
-                    <View style={[styles.cellBlock, styles.competencyColumn]}>
-                      <ThemedText style={styles.competencyName}>{competency.competency_name}</ThemedText>
-                      <ThemedText themeColor="textSecondary" style={styles.metaText}>
-                        Synced from local storage
-                      </ThemedText>
-                    </View>
-                    <View style={[styles.statusColumn, styles.statusWrap]}>
-                      <StatusPill status={competency.status} />
-                    </View>
-                    <View style={[styles.actionsColumn, styles.actionsWrap]}>
-                      <Pressable onPress={() => handleViewCompetency(competency)} style={styles.viewButton}>
-                        <ThemedText style={styles.viewButtonText}>View</ThemedText>
-                      </Pressable>
-                    </View>
-                  </View>
-                ))}
-
-                {!competencies.length ? (
-                  <ThemedText themeColor="textSecondary" style={styles.emptyText}>
-                    No competencies available.
-                  </ThemedText>
-                ) : null}
-              </ScrollView>
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>{error}</Text>
             </View>
-          )}
+          ) : null}
         </View>
       </ScrollView>
 
       <BottomNavbar activeTab="module" userId={activeUserId} />
 
-      <Modal transparent animationType="fade" visible={viewModalVisible} onRequestClose={closeViewModal}>
+      <Modal transparent animationType="fade" visible={detailVisible} onRequestClose={closeCompetencyDetail}>
         <View style={styles.modalOverlay}>
-          <View style={styles.viewModal}>
-            <ThemedText type="subtitle">Competency Info</ThemedText>
-            {viewingCompetency ? (
-              <View style={styles.infoCard}>
-                <InfoRow label="Competency" value={viewingCompetency.competency_name} />
-                <InfoRow label="Sector" value={viewingCompetency.sector} />
-                <InfoRow label="Qualification" value={viewingCompetency.qualification} />
-                <InfoRow label="Status" value={viewingCompetency.status} />
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={styles.modalTitle}>{selectedCompetency?.competency_name}</Text>
+              <Pressable onPress={closeCompetencyDetail} style={styles.modalCloseButton}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Sector</Text>
+                <Text style={styles.infoValue}>{selectedCompetency?.sector}</Text>
               </View>
-            ) : null}
-            <Pressable onPress={closeViewModal} style={styles.closeButton}>
-              <ThemedText style={styles.closeButtonText}>Close</ThemedText>
-            </Pressable>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Qualification</Text>
+                <Text style={styles.infoValue}>{selectedCompetency?.qualification}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Status</Text>
+                <Text style={styles.infoValue}>{selectedCompetency?.status}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.modalSection}>Modules</Text>
+            <ScrollView
+              style={styles.moduleList}
+              contentContainerStyle={styles.moduleListContent}
+              showsVerticalScrollIndicator={false}>
+              {selectedModules.length > 0 ? (
+                selectedModules.map((moduleItem) => (
+                  <View key={moduleItem.module_id} style={styles.moduleCard}>
+                    <View style={styles.moduleCardHeader}>
+                      <View style={styles.moduleInfo}>
+                        <Text style={styles.moduleName}>{moduleItem.module_name}</Text>
+                        <Text style={styles.moduleDescription} numberOfLines={3}>
+                          {moduleItem.description}
+                        </Text>
+                      </View>
+                      {moduleItem.thumbnail ? (
+                        <Image
+                          source={{ uri: moduleItem.thumbnail }}
+                          style={styles.moduleThumbnail}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View style={styles.moduleThumbnailPlaceholder} />
+                      )}
+                    </View>
+
+                    <View style={styles.moduleCardBody}>
+                      <View style={styles.moduleMetaRow}>
+                        <View style={styles.moduleMetaItem}>
+                          <Text style={styles.moduleMetaLabel}>PDF</Text>
+                          <Text style={styles.moduleMetaValue} numberOfLines={1}>
+                            {moduleItem.module_pdf}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    <View style={styles.moduleCardActions}>
+                      <Pressable onPress={() => {}} style={styles.moduleSecondaryButton}>
+                        <Text style={styles.moduleSecondaryButtonText}>Download</Text>
+                      </Pressable>
+                      <Pressable onPress={() => {}} style={styles.modulePrimaryButton}>
+                        <Text style={styles.modulePrimaryButtonText}>Start</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <View style={styles.noModuleCard}>
+                  <Text style={styles.noModuleText}>No modules available for this competency.</Text>
+                </View>
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -170,188 +264,168 @@ export default function ModuleScreen() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.summaryRow}>
-      <ThemedText type="code" themeColor="textSecondary" style={styles.summaryLabel}>
-        {label}
-      </ThemedText>
-      <ThemedText style={styles.summaryValue}>{value}</ThemedText>
-    </View>
-  );
-}
-
-function StatusPill({ status }: { status: string }) {
-  const isActive = status.toLowerCase() === 'active';
-
-  return (
-    <View style={[styles.statusPill, !isActive && styles.statusPillInactive]}>
-      <ThemedText style={[styles.statusPillText, !isActive && styles.statusPillTextInactive]}>{status}</ThemedText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#edf4ea',
+    backgroundColor: BACKGROUND_LIGHT,
   },
   scrollContent: {
-    padding: 24,
-    paddingBottom: 12,
-  },
-  card: {
-    alignSelf: 'center',
-    width: '100%',
-    maxWidth: 520,
-    padding: 18,
-    borderRadius: 24,
-    gap: 12,
-    backgroundColor: 'transparent',
-  },
-  title: {
-    marginTop: 2,
-  },
-  subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  tableCard: {
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    backgroundColor: 'rgba(255, 255, 255, 0.76)',
     padding: 16,
-    gap: 12,
+    paddingBottom: 100,
   },
-  tableHeaderRow: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    paddingHorizontal: 4,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(148, 163, 184, 0.12)',
   },
-  tableTitle: {
+  headerIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  headerIcon: {
     fontSize: 20,
-  },
-  tableSubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  refreshButton: {
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    backgroundColor: '#eaf1f7',
-  },
-  refreshButtonText: {
-    color: '#334155',
+    color: '#000000',
     fontWeight: '700',
   },
-  tableHeader: {
-    flexDirection: 'row',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.2)',
-  },
-  columnHeader: {
-    color: '#94a3b8',
-    fontSize: 12,
+  headerTitle: {
+    fontSize: 18,
     fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  tableBody: {
-    maxHeight: 420,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.16)',
-  },
-  cellText: {
-    color: '#475569',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  cellBlock: {
-    gap: 4,
-  },
-  competencyName: {
-    color: '#0f172a',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  metaText: {
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  statusWrap: {
-    alignItems: 'center',
-  },
-  actionsWrap: {
-    alignItems: 'flex-end',
-  },
-  idColumn: {
-    width: 78,
-    paddingRight: 8,
-  },
-  competencyColumn: {
+    color: '#000000',
     flex: 1,
-    paddingRight: 8,
-  },
-  statusColumn: {
-    width: 92,
-    paddingRight: 8,
-  },
-  actionsColumn: {
-    width: 72,
-  },
-  emptyText: {
-    paddingVertical: 18,
     textAlign: 'center',
   },
-  statusPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 999,
-    backgroundColor: '#dcfce7',
+  categoryTabs: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(148, 163, 184, 0.12)',
   },
-  statusPillInactive: {
-    backgroundColor: '#e2e8f0',
+  categoryTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+    marginRight: 4,
   },
-  statusPillText: {
-    fontSize: 12,
+  categoryTabActive: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 3,
+    borderBottomColor: PRIMARY,
+    marginRight: 4,
+  },
+  categoryTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  categoryTabTextActive: {
+    fontSize: 14,
     fontWeight: '700',
-    color: '#166534',
+    color: '#000000',
   },
-  statusPillTextInactive: {
-    color: '#475569',
+  section: {
+    marginTop: 20,
+    gap: 16,
   },
-  viewButton: {
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#dbeafe',
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 16,
+    gap: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 1,
   },
-  viewButtonText: {
-    color: '#2563eb',
-    fontWeight: '600',
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  summaryRow: {
+  cardTextGroup: {
+    flex: 1,
     gap: 4,
   },
-  summaryLabel: {
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  summaryValue: {
-    fontSize: 15,
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
     lineHeight: 22,
   },
-  error: {
-    color: '#b91c1c',
+  cardStatus: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  cardThumbnail: {
+    width: 68,
+    height: 68,
+    borderRadius: 14,
+    backgroundColor: '#e2e8f0',
+  },
+  cardThumbnailPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardButtonRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  downloadButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 13,
+    borderRadius: 14,
+    backgroundColor: '#eef2f1',
+  },
+  downloadIcon: {
+    fontSize: 14,
+    color: '#0f172a',
+  },
+  downloadButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  startButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 13,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: PRIMARY,
+    backgroundColor: '#ffffff',
+  },
+  startButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  emptyState: {
+    paddingVertical: 32,
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
   },
   modalOverlay: {
     flex: 1,
@@ -360,22 +434,188 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'rgba(2, 6, 23, 0.45)',
   },
-  viewModal: {
+  modalCard: {
     width: '100%',
-    maxWidth: 520,
+    maxWidth: 420,
+    maxHeight: '85%',
     borderRadius: 20,
     padding: 18,
     gap: 12,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
   },
-  closeButton: {
-    borderRadius: 14,
-    paddingVertical: 13,
+  modalHeaderRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f172a',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  closeButtonText: {
-    color: '#ffffff',
+  modalTitle: {
+    fontSize: 18,
     fontWeight: '700',
+    color: '#000000',
+    flex: 1,
+  },
+  modalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f1f5f9',
+  },
+  modalCloseText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  modalSection: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000000',
+    marginTop: 8,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  infoCard: {
+    gap: 10,
+    paddingVertical: 4,
+  },
+  infoRow: {
+    gap: 6,
+  },
+  infoLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  infoValue: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#000000',
+  },
+  moduleList: {
+    maxHeight: 320,
+  },
+  moduleListContent: {
+    gap: 12,
+  },
+  moduleCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+    backgroundColor: '#ffffff',
+    padding: 14,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  moduleCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  moduleInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  moduleName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000000',
+    lineHeight: 20,
+  },
+  moduleDescription: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#475569',
+    lineHeight: 18,
+  },
+  moduleThumbnailPlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#e2e8f0',
+  },
+  moduleThumbnail: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#e2e8f0',
+  },
+  moduleCardBody: {
+    gap: 8,
+  },
+  moduleMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  moduleMetaItem: {
+    flex: 1,
+    gap: 2,
+  },
+  moduleMetaLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  moduleMetaValue: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#000000',
+  },
+  moduleCardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 10,
+    marginTop: 4,
+  },
+  moduleSecondaryButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.2)',
+  },
+  moduleSecondaryButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  modulePrimaryButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 12,
+    backgroundColor: PRIMARY,
+  },
+  modulePrimaryButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  noModuleCard: {
+    paddingVertical: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+  },
+  noModuleText: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
   },
 });
