@@ -179,18 +179,16 @@ export default function StudentProfileScreen() {
     <ThemedView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
-          <ThemedText type="code" themeColor="textSecondary">
+          <ThemedText type="code" style={{ color: '#000000' }}>
             Student profile
           </ThemedText>
-          <ThemedText type="subtitle" style={styles.title}>
+          <ThemedText type="subtitle" style={{ color: '#000000' }}>
             User #{activeUserId} profile
           </ThemedText>
-          <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-            Add your profile once, then update it anytime using the modal form.
-          </ThemedText>
+          <ThemedText style={{ color: '#000000' }}>Add your profile once, then update it anytime using the modal form.</ThemedText>
 
           {!profileLoaded ? (
-            <ThemedText themeColor="textSecondary">Loading profile...</ThemedText>
+            <ThemedText style={{ color: '#000000' }}>Loading profile...</ThemedText>
           ) : profile ? (
             <View style={styles.profileContainer}>
               <ProfileRow label="Student ID" value={String(profile.student_id)} />
@@ -204,9 +202,7 @@ export default function StudentProfileScreen() {
               <ProfileRow label="Updated At" value={new Date(profile.updated_at).toLocaleString()} />
             </View>
           ) : (
-            <ThemedText themeColor="textSecondary" style={styles.emptyState}>
-              No profile exists yet. Tap Add Profile to insert your student information.
-            </ThemedText>
+            <ThemedText style={{ color: '#000000' }}>No profile exists yet. Tap Add Profile to insert your student information.</ThemedText>
           )}
 
           <Pressable onPress={openModal} style={styles.button}>
@@ -226,7 +222,7 @@ export default function StudentProfileScreen() {
       <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={closeModal}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <ThemedText type="subtitle">{profile ? 'Update Profile' : 'Create Profile'}</ThemedText>
+            <ThemedText type="subtitle" style={{ color: '#000000' }}>{profile ? 'Update Profile' : 'Create Profile'}</ThemedText>
             <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
               <TextInput
                 style={styles.input}
@@ -250,7 +246,7 @@ export default function StudentProfileScreen() {
                 onChangeText={setLastName}
               />
               <View style={styles.fieldBlock}>
-                <ThemedText themeColor="textSecondary" style={styles.fieldLabel}>
+                <ThemedText style={[styles.fieldLabel, { color: '#000000' }]}>
                   Birthdate
                 </ThemedText>
                 <Pressable onPress={openDatePicker} style={styles.dateTrigger}>
@@ -289,7 +285,7 @@ export default function StudentProfileScreen() {
       <Modal animationType="fade" transparent visible={datePickerVisible} onRequestClose={() => setDatePickerVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.dateModalCard}>
-            <ThemedText type="subtitle">Select Birthdate</ThemedText>
+            <ThemedText type="subtitle" style={{ color: '#000000' }}>Select Birthdate</ThemedText>
 
             <View style={styles.dateRow}>
               <DateAdjuster label="Year" value={String(selectedYear)} onMinus={() => updateYear(-1)} onPlus={() => updateYear(1)} />
@@ -325,10 +321,10 @@ export default function StudentProfileScreen() {
 function ProfileRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.profileRow}>
-      <ThemedText type="code" themeColor="textSecondary" style={styles.profileLabel}>
+      <ThemedText type="code" style={[styles.profileLabel, { color: '#000000' }]}>
         {label}
       </ThemedText>
-      <ThemedText style={styles.profileValue}>{value}</ThemedText>
+      <ThemedText style={[styles.profileValue, { color: '#000000' }]}>{value}</ThemedText>
     </View>
   );
 }
@@ -346,7 +342,7 @@ function DateAdjuster({
 }) {
   return (
     <View style={styles.dateAdjuster}>
-      <ThemedText themeColor="textSecondary" style={styles.fieldLabel}>
+      <ThemedText style={[styles.fieldLabel, { color: '#000000' }]}>
         {label}
       </ThemedText>
       <View style={styles.adjusterControls}>
