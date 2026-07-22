@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { AuthLink, AuthShell } from '@/components/auth-shell';
+import { AuthLink, AuthShell, AuthNotification } from '@/components/auth-shell';
 import { ThemedText } from '@/components/themed-text';
 import { loginStudent } from '@/lib/auth-api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -36,17 +37,11 @@ export default function LoginScreen() {
   return (
     <AuthShell
       eyebrow="Student access"
-      title="Welcome back"
+      title={<ThemedText type="subtitle" style={{ color: '#000000' }}>Welcome back</ThemedText>}
       subtitle="Log in with your saved student account to continue offline access.">
       <View style={styles.roleTabs}>
         <Pressable style={[styles.roleTab, styles.roleTabActive]}>
           <ThemedText style={styles.roleTabActiveText}>Student</ThemedText>
-        </Pressable>
-        <Pressable style={styles.roleTab}>
-          <ThemedText style={styles.roleTabText}>Teacher</ThemedText>
-        </Pressable>
-        <Pressable style={styles.roleTab}>
-          <ThemedText style={styles.roleTabText}>Admin</ThemedText>
         </Pressable>
       </View>
 
@@ -60,19 +55,24 @@ export default function LoginScreen() {
           value={email}
           onChangeText={setEmail}
         />
-        <TextInput
-          autoCapitalize="none"
-          placeholder="Password"
-          placeholderTextColor="#64748b"
-          secureTextEntry
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-        />
+        <View style={styles.passwordFieldWrap}>
+          <TextInput
+            autoCapitalize="none"
+            placeholder="Password"
+            placeholderTextColor="#64748b"
+            secureTextEntry={!isPasswordVisible}
+            style={[styles.input, { paddingRight: 44 }]}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <Pressable onPress={() => setIsPasswordVisible((prev) => !prev)} style={styles.passwordToggle}>
+            <Text style={styles.passwordToggleText}>{isPasswordVisible ? '🙈' : '👁️'}</Text>
+          </Pressable>
+        </View>
       </View>
 
-      {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
-      {message ? <ThemedText style={styles.success}>{message}</ThemedText> : null}
+      {error ? <AuthNotification type="error" text={error} /> : null}
+      {message ? <AuthNotification type="success" text={message} /> : null}
 
       <ThemedText themeColor="textSecondary" style={styles.helper}>
         Default account: student1 / example@gmail.com / 12345
@@ -85,7 +85,7 @@ export default function LoginScreen() {
         <ThemedText style={styles.buttonText}>{loading ? 'Signing in...' : 'Login'}</ThemedText>
       </Pressable>
 
-      <AuthLink onPress={() => router.push('/register')}>Need an account? Register</AuthLink>
+      <AuthLink onPress={() => router.push('/register')} textStyle={{ color: '#000000' }}>Need an account? Register</AuthLink>
     </AuthShell>
   );
 }
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   roleTabActiveText: {
-    color: '#ffffff',
+    color: '#000000',
     fontWeight: '700',
   },
   input: {
@@ -130,6 +130,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    color: '#102318',
+  },
+  passwordFieldWrap: {
+    position: 'relative',
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  passwordToggleText: {
+    fontSize: 18,
+    lineHeight: 20,
   },
   button: {
     marginTop: 8,
@@ -142,16 +159,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#fff',
+    color: '#000000',
     fontWeight: '700',
-  },
-  error: {
-    color: '#b91c1c',
-    marginTop: 4,
-  },
-  success: {
-    color: '#047857',
-    marginTop: 4,
   },
   helper: {
     fontSize: 13,
