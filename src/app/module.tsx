@@ -3,6 +3,7 @@ import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'rea
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
+import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
 import { CompetencyRecord, ModuleRecord, listCompetencies, listModules } from '@/lib/auth-api';
 
@@ -93,16 +94,8 @@ export default function ModuleScreen() {
 
   return (
     <ThemedView style={styles.screen}>
+      <Header title="Competency Library" userId={activeUserId} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Pressable style={styles.headerIconButton}>
-            <Text style={styles.headerIcon}>{'<'}</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>Competency Library</Text>
-          <Pressable onPress={handleRefresh} style={styles.headerIconButton}>
-            <Text style={styles.headerIcon}>↻</Text>
-          </Pressable>
-        </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabs}>
           <Pressable style={styles.categoryTabActive}>
@@ -177,7 +170,7 @@ export default function ModuleScreen() {
         </View>
       </ScrollView>
 
-      <BottomNavbar activeTab="module" userId={activeUserId} />
+      <BottomNavbar activeTab="library" userId={activeUserId} />
 
       <Modal transparent animationType="fade" visible={detailVisible} onRequestClose={closeCompetencyDetail}>
         <View style={styles.modalOverlay}>

@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
+import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
@@ -15,6 +16,7 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.screen}>
+      <Header title="Student Dashboard" userId={activeUserId} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <ThemedText type="code" themeColor="textSecondary">Student dashboard</ThemedText>

@@ -542,6 +542,12 @@ export async function deleteStudentProfile(studentId: number) {
   return (result.changes ?? 0) > 0;
 }
 
+export async function getUserById(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getFirstAsync<StoredStudentUser>('SELECT * FROM users WHERE user_id = ?', [userId]);
+}
+
 export async function listCompetencies() {
   await ensureDatabase();
   const db = await databasePromise;

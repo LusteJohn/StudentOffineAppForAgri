@@ -3,6 +3,7 @@ import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
+import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { createStudentProfile, getStudentProfileByUserId, StudentProfile, updateStudentProfile } from '@/lib/auth-api';
@@ -177,6 +178,7 @@ export default function StudentProfileScreen() {
 
   return (
     <ThemedView style={styles.screen}>
+      <Header title="Student Profile" userId={activeUserId} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <ThemedText type="code" style={{ color: '#000000' }}>
