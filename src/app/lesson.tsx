@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
+import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
 import { LessonRecord, ModuleRecord, listLessons, listModules } from '@/lib/auth-api';
 
@@ -99,16 +100,8 @@ export default function LessonScreen() {
 
   return (
     <ThemedView style={styles.screen}>
+      <Header title="Lessons" userId={activeUserId} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Pressable style={styles.headerIconButton}>
-            <Text style={styles.headerIcon}>{'<'}</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>Lessons</Text>
-          <Pressable onPress={handleRefresh} style={styles.headerIconButton}>
-            <Text style={styles.headerIcon}>↻</Text>
-          </Pressable>
-        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Module Lessons</Text>
@@ -168,7 +161,7 @@ export default function LessonScreen() {
         </View>
       </ScrollView>
 
-      <BottomNavbar activeTab="lesson" userId={activeUserId} />
+      <BottomNavbar activeTab="library" userId={activeUserId} />
 
       <Modal transparent animationType="fade" visible={detailVisible} onRequestClose={closeLessonDetail}>
         <View style={styles.modalOverlay}>

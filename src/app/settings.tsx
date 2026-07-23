@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
+import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { resetAndSeedLocalData } from '@/lib/auth-api';
@@ -54,6 +55,7 @@ export default function SettingsScreen() {
 
   return (
     <ThemedView style={styles.screen}>
+      <Header title="Settings" userId={activeUserId} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <ThemedText type="code" style={{ color: '#000000' }}>
