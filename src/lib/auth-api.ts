@@ -54,7 +54,16 @@ export type LessonRecord = {
   order_number: number;
   created_at: string;
   updated_at: string;
-}
+};
+
+export type LessonContentRecord = {
+  lesson_content_id: number;
+  lesson_id: number;
+  content_name: string;
+  objectives: string;
+  created_at: string;
+  updated_at: string;
+};
 
 type StoredStudentUser = StudentUser & {
   password: string;
@@ -145,6 +154,65 @@ const DEFAULT_LESSONS: Omit<LessonRecord, 'lesson_id' | 'created_at' | 'updated_
   { module_id: 4, lesson_name: 'LO3:Package concoctions', order_number: 3 },
 ];
 
+const DEFAULT_LESSON_CONTENTS: Omit<LessonContentRecord, 'lesson_content_id' | 'created_at' | 'updated_at'>[] = [
+  { lesson_id: 1, content_name: 'Chicken breeds identification', objectives: 'After reading this information sheet, you should be able to identify chicken breeds.' },
+  { lesson_id: 1, content_name: "Healthy chick's selection indicators", objectives: 'After reading this information sheet, you should be able to select healthy chicks' },
+  { lesson_id: 1, content_name: 'Determining suitable site for chicken house', objectives: 'After reading this information sheet, you should be able to determine suitable site for chicken house' },
+  { lesson_id: 1, content_name: 'Chicken house design preparation', objectives: 'After reading this information sheet, you should be able to prepare design for chicken house.' },
+  { lesson_id: 1, content_name: 'House equipment installation design', objectives: 'After reading this information sheet, you should be able to identify chicken breeds.' },
+  { lesson_id: 2, content_name: 'House equipment installation', objectives: 'After reading this information sheet, you should be able to appreciate the importance of house equipment installation.' },
+  { lesson_id: 2, content_name: 'Preparing and securing bedding materials', objectives: 'After reading this information sheet, you should be able to prepare and secure bedding materials' },
+  { lesson_id: 2, content_name: 'Setting up brooding facility', objectives: 'After reading this information sheet, you should be able to set up brooding facility.' },
+  { lesson_id: 3, content_name: 'Feed materials selection', objectives: 'After reading this information sheet, you should be able to select materials for feeds' },
+  { lesson_id: 3, content_name: 'Feeding materials preparation', objectives: 'After reading this information sheet, you should be able to prepare feeding materials.' },
+  { lesson_id: 3, content_name: 'Feeding management program', objectives: 'After reading this information sheet, you should be able to differentiate different feeding program.' },
+  { lesson_id: 3, content_name: 'Monitoring feeding', objectives: 'After reading this information sheet, you should be able to monitor feeding.' },
+  { lesson_id: 4, content_name: 'Monitor growth rate', objectives: 'After reading this information sheet, you should be able to monitor growth rate of a broiler' },
+  { lesson_id: 4, content_name: 'Healthcare program implementation', objectives: 'After reading this information sheet, you should be able to appreciate healthcare program.' },
+  { lesson_id: 4, content_name: 'Sanitation and cleanliness program', objectives: 'After reading this information sheet, you should be able to appreciate the importance of sanitation and cleanliness program' },
+  { lesson_id: 4, content_name: 'Organic waste collection for fertilizer formulation', objectives: 'After reading this information sheet, you should be able to collect organic waste.' },
+  { lesson_id: 4, content_name: 'Suitable chicken for harvest selection', objectives: 'After reading this information sheet, you should be able to select Suitable chicken for harvest.' },
+  { lesson_id: 4, content_name: 'Production record', objectives: 'After reading this information sheet, you should be able to appreciate the importance of production record.' },
+  { lesson_id: 5, content_name: 'Selection of Seeds', objectives: 'After reading this information sheet, you should be able to select viable seeds.' },
+  { lesson_id: 5, content_name: 'Seedbed Preparation', objectives: 'After reading this information sheet, you should be able to prepare seedbed.' },
+  { lesson_id: 5, content_name: 'Maintaining Seedling', objectives: 'After reading this information sheet, you should be able to care and maintain seedlings.' },
+  { lesson_id: 5, content_name: 'Prepare Growing Media', objectives: 'After reading this information sheet, you should be able prepare the different growing media.' },
+  { lesson_id: 6, content_name: 'Land Preparation', objectives: 'After reading this information sheet, you should be able to perform land preparation.' },
+  { lesson_id: 6, content_name: 'Beneficial Microorganisms', objectives: 'After reading this information sheet, you should be able to identify the different types beneficial microorganism.' },
+  { lesson_id: 6, content_name: 'Planting/Transplanting Seedlings', objectives: 'After reading this information sheet, you should be able to plant/transplant vegetable seedlings.' },
+  { lesson_id: 6, content_name: 'Water Seedlings', objectives: 'After reading this information sheet, you should be able to water seedlings.' },
+  { lesson_id: 7, content_name: 'Water Management Implementation', objectives: 'After reading this information sheet, you should be able to appreciate the importance of proper water management.' },
+  { lesson_id: 7, content_name: 'Pest and Diseases Control Measures', objectives: 'After reading this information sheet, you should be able to apply control measures on pest and diseases.' },
+  { lesson_id: 7, content_name: 'Replanting Missing Hills', objectives: 'After reading this information sheet, you should be able to do replanting.' },
+  { lesson_id: 7, content_name: 'Plant Rationing (Rejuvenation)', objectives: 'After reading this information sheet, you should be able identify the number of sow to be served per boar.' },
+  { lesson_id: 7, content_name: 'Organic Fertilizers Application', objectives: 'After reading this information sheet, you should be able identify organic fertilizers.' },
+  { lesson_id: 8, content_name: 'Maturity Indices', objectives: 'After reading this information sheet, you should be able identify the maturity indices of fruits of vegetables.' },
+  { lesson_id: 8, content_name: 'Harvest Marketable Products', objectives: 'After reading this information sheet, you should be able to harvest marketable products.' },
+  { lesson_id: 8, content_name: 'Classify Marketable Products', objectives: 'After reading this information sheet, you should be able to classify marketable products.' },
+  { lesson_id: 8, content_name: 'Harvesting Tools and Materials', objectives: 'After reading this information sheet, you should be able identify the best tools for harvesting.' },
+  { lesson_id: 9, content_name: 'Site Selection', objectives: 'After reading this information sheet, you should be able to select composting site.' },
+  { lesson_id: 9, content_name: 'Prepare Site Layout', objectives: 'After reading this information sheet, you should be able to prepare composting site layout.' },
+  { lesson_id: 9, content_name: 'Prepare Bed', objectives: 'After reading this information sheet, you should be able to prepare bed for composting.' },
+  { lesson_id: 9, content_name: 'Gather Materials', objectives: 'After reading this information sheet, you should be able to gather the raw materials for composting.' },
+  { lesson_id: 9, content_name: 'Raw Materials', objectives: 'After reading this information sheet, you should be able to identify the raw materials uses for composting.' },
+  { lesson_id: 10, content_name: 'Composting Method', objectives: 'After reading this information sheet, you should be able to identify the different types of composting method.' },
+  { lesson_id: 10, content_name: 'Monitor Decomposition Process', objectives: 'After reading this information sheet, you should be able to monitor the decomposition process of organic fertilizer.' },
+  { lesson_id: 10, content_name: 'Harvest Quality', objectives: 'After reading this information sheet, you should be able to identify the quality of a good harvest.' },
+  { lesson_id: 10, content_name: 'Processing of Compost Fertilizer', objectives: 'After reading this information sheet, you should be able to identify processes of composting fertilizer.' },
+  { lesson_id: 10, content_name: 'Record Keeping', objectives: 'After reading this information sheet, you should be able to perform record keeping.' },
+  { lesson_id: 11, content_name: 'Storage Area', objectives: 'After reading this information sheet, you should be able to secure the Storage Areas.' },
+  { lesson_id: 11, content_name: 'Raw materials', objectives: 'After reading this information sheet, you should be able to determine the clean raw materials free from chemicals.' },
+  { lesson_id: 11, content_name: 'Tools, Materials and Equipment', objectives: 'After reading this information sheet, you should be able to identify the tools, materials and equipment.' },
+  { lesson_id: 11, content_name: 'Personal Hygiene', objectives: 'None' },
+  { lesson_id: 12, content_name: 'Prepare Raw Materials', objectives: 'After reading this information sheet, you should be able to prepare raw materials when producing organic concoction and extract.' },
+  { lesson_id: 12, content_name: 'Fermentation period', objectives: 'After reading this information sheet, you should be able to determine the period of fermentation process.' },
+  { lesson_id: 12, content_name: 'Various concoctions', objectives: 'After reading this information sheet, you should be able to identify various type of concoctions.' },
+  { lesson_id: 12, content_name: 'Period of harvest', objectives: 'After reading this information sheet, you should be able to identify harvesting time of concoction.' },
+  { lesson_id: 13, content_name: 'Sanitize bottles and containers', objectives: 'After reading this information sheet, you should be able to sanitize the bottles and containers for concoctions.' },
+  { lesson_id: 13, content_name: 'Package concoctions', objectives: 'After reading this information sheet, you should be able to appreciate the proper labeling and packaging of concoctions.' },
+  { lesson_id: 13, content_name: 'Appropriate place to store', objectives: 'After reading this information sheet, you should be able to determine the appropriate storage for the various concoctionss.' },
+];
+
 const databasePromise = SQLite.openDatabaseAsync('student-offline-auth.db');
 
 function toStudentUser(user: StoredStudentUser): StudentUser {
@@ -211,6 +279,15 @@ async function ensureDatabase() {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (module_id) REFERENCES modules(module_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS lesson_content (
+      lesson_content_id INTEGER PRIMARY KEY NOT NULL,
+      lesson_id INTEGER NOT NULL,
+      content_name TEXT NOT NULL,
+      objectives TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
     )`,
   ];
 
@@ -341,6 +418,37 @@ async function ensureDatabase() {
     }
   } catch (error) {
     console.error('Lesson seeding failed:', error);
+  }
+
+  try {
+    for (let index = 0; index < DEFAULT_LESSON_CONTENTS.length; index += 1) {
+      const contentItem = DEFAULT_LESSON_CONTENTS[index];
+      const contentId = index + 1;
+      const now = new Date().toISOString();
+
+      const existing = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM lesson_content WHERE content_name = ?',
+        [contentItem.content_name]
+      );
+
+      if ((existing?.count ?? 0) === 0) {
+        await db.runAsync(
+          `INSERT INTO lesson_content
+            (lesson_content_id, lesson_id, content_name, objectives, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            contentId,
+            contentItem.lesson_id,
+            contentItem.content_name,
+            contentItem.objectives,
+            now,
+            now,
+          ]
+        );
+      }
+    }
+  } catch (error) {
+    console.error('Lesson content seeding failed:', error);
   }
 }
 
@@ -578,6 +686,18 @@ export async function getLessonsByModuleId(moduleId: number) {
   return db.getAllAsync<LessonRecord>('SELECT * FROM lessons WHERE module_id = ? ORDER BY order_number ASC, lesson_id ASC', [moduleId]);
 }
 
+export async function listLessonContent() {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content ORDER BY lesson_id ASC, lesson_content_id ASC');
+}
+
+export async function listLessonContentByLessonId(lessonId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content WHERE lesson_id = ? ORDER BY lesson_content_id ASC', [lessonId]);
+}
+
 export async function resetAndSeedLocalData() {
   await ensureDatabase();
   const db = await databasePromise;
@@ -585,6 +705,7 @@ export async function resetAndSeedLocalData() {
   const competencies = await db.getAllAsync<CompetencyRecord>('SELECT * FROM competencies ORDER BY competency_id ASC');
   const modules = await db.getAllAsync<ModuleRecord>('SELECT * FROM modules ORDER BY module_id ASC');
   const lessons = await db.getAllAsync<LessonRecord>('SELECT * FROM lessons ORDER BY lesson_id ASC');
+  const lessonContents = await db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content ORDER BY lesson_content_id ASC');
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
     competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
@@ -595,22 +716,28 @@ export async function resetAndSeedLocalData() {
   const hasDefaultLessons = DEFAULT_LESSONS.every((expected) =>
     lessons.some((l) => l.lesson_name.toLowerCase() === expected.lesson_name.toLowerCase())
   );
+  const hasDefaultLessonContents = DEFAULT_LESSON_CONTENTS.every((expected) =>
+    lessonContents.some((lc) => lc.content_name.toLowerCase() === expected.content_name.toLowerCase())
+  );
 
-  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && competencies.length > 0 && modules.length > 0 && lessons.length > 0) {
+  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0) {
     return {
       competencies: competencies.length,
       modules: modules.length,
       lessons: lessons.length,
+      lessonContents: lessonContents.length,
       alreadyImported: true,
     };
   }
 
   const now = new Date().toISOString();
 
+  await db.runAsync('DELETE FROM lesson_content');
   await db.runAsync('DELETE FROM lessons');
   await db.runAsync('DELETE FROM modules');
   await db.runAsync('DELETE FROM competencies');
   try {
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_content'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'modules'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'competencies'");
@@ -654,10 +781,23 @@ export async function resetAndSeedLocalData() {
     );
   }
 
+  for (let index = 0; index < DEFAULT_LESSON_CONTENTS.length; index += 1) {
+    const contentItem = DEFAULT_LESSON_CONTENTS[index];
+    const contentId = index + 1;
+
+    await db.runAsync(
+      `INSERT INTO lesson_content
+        (lesson_content_id, lesson_id, content_name, objectives, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)`,
+      [contentId, contentItem.lesson_id, contentItem.content_name, contentItem.objectives, now, now]
+    );
+  }
+
   return {
     competencies: DEFAULT_COMPETENCIES.length,
     modules: DEFAULT_MODULES.length,
     lessons: DEFAULT_LESSONS.length,
+    lessonContents: DEFAULT_LESSON_CONTENTS.length,
     alreadyImported: false,
   };
 }
