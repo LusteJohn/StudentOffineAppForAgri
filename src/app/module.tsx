@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -25,6 +25,17 @@ export default function ModuleScreen() {
   const [selectedCompetency, setSelectedCompetency] = useState<CompetencyRecord | null>(null);
   const [selectedModules, setSelectedModules] = useState<ModuleRecord[]>([]);
   const [detailVisible, setDetailVisible] = useState(false);
+
+  const handleModuleStart = (moduleItem: ModuleRecord) => {
+    setDetailVisible(false);
+    router.replace({
+      pathname: '/lesson',
+      params: {
+        userId: String(activeUserId),
+        moduleId: String(moduleItem.module_id),
+      },
+    });
+  };
 
   const loadData = useCallback(async () => {
     setError('');
@@ -234,14 +245,14 @@ export default function ModuleScreen() {
                       </View>
                     </View>
 
-                    <View style={styles.moduleCardActions}>
-                      <Pressable onPress={() => {}} style={styles.moduleSecondaryButton}>
-                        <Text style={styles.moduleSecondaryButtonText}>Download</Text>
-                      </Pressable>
-                      <Pressable onPress={() => {}} style={styles.modulePrimaryButton}>
-                        <Text style={styles.modulePrimaryButtonText}>Start</Text>
-                      </Pressable>
-                    </View>
+                     <View style={styles.moduleCardActions}>
+                       <Pressable onPress={() => {}} style={styles.moduleSecondaryButton}>
+                         <Text style={styles.moduleSecondaryButtonText}>Download</Text>
+                       </Pressable>
+                       <Pressable onPress={() => handleModuleStart(moduleItem)} style={styles.modulePrimaryButton}>
+                         <Text style={styles.modulePrimaryButtonText}>Start</Text>
+                       </Pressable>
+                     </View>
                   </View>
                 ))
               ) : (

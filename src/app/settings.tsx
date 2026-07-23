@@ -31,11 +31,11 @@ export default function SettingsScreen() {
               const result = await resetAndSeedLocalData();
               if (result.alreadyImported) {
                 setMessage(
-                  `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, and ${result.lessons} lessons.`
+                  `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, and ${result.lessonContents} lesson contents.`
                 );
               } else {
                 setMessage(
-                  `Import completed: ${result.competencies} competencies, ${result.modules} modules, and ${result.lessons} lessons saved to this device.`
+                  `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, and ${result.lessonContents} lesson contents saved to this device.`
                 );
               }
             } catch (importError) {
@@ -73,7 +73,7 @@ export default function SettingsScreen() {
                   Import offline resources
                 </ThemedText>
                 <ThemedText style={[styles.actionDescription, { color: '#000000' }]}>
-                  Replace the current local competency, module, and lesson data with the default offline dataset.
+                  Replace the current local competency, module, lesson, and lesson-content data with the default offline dataset.
                 </ThemedText>
               </View>
             </View>
