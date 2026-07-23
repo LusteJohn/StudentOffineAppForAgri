@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 
 type BottomNavbarProps = {
-  activeTab: 'home' | 'profile' | 'module' | 'settings';
+  activeTab: 'home' | 'profile' | 'module' | 'lesson' | 'settings';
   userId: number;
 };
 
@@ -24,6 +24,12 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   const goModule = () => {
     if (activeTab !== 'module') {
       router.replace({ pathname: '/module', params: { userId: String(userId) } });
+    }
+  };
+
+  const goLesson = () => {
+    if (activeTab !== 'lesson') {
+      router.replace({ pathname: '/lesson', params: { userId: String(userId) } });
     }
   };
 
@@ -48,6 +54,10 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
 
         <Pressable onPress={goModule} style={[styles.tabButton, activeTab === 'module' && styles.activeTabButton]}>
           <ThemedText style={[styles.tabLabel, activeTab === 'module' && styles.activeTabLabel]}>Module</ThemedText>
+        </Pressable>
+
+        <Pressable onPress={goLesson} style={[styles.tabButton, activeTab === 'lesson' && styles.activeTabButton]}>
+          <ThemedText style={[styles.tabLabel, activeTab === 'lesson' && styles.activeTabLabel]}>Lesson</ThemedText>
         </Pressable>
 
         <Pressable onPress={goSettings} style={[styles.tabButton, activeTab === 'settings' && styles.activeTabButton]}>
