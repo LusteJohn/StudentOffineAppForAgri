@@ -54,14 +54,14 @@ async function validatePayload(payload) {
   const modulePdf = normalizeNullableText(payload?.module_pdf);
   const thumbnail = normalizeNullableText(payload?.thumbnail);
 
-    if (!moduleName || !description || !thumbnail) {
-      throw new Error('Module name, description, and thumbnail are required');
+    if (!moduleName || !description || !modulePdf || !thumbnail) {
+      throw new Error('Module name, description, module PDF, and thumbnail are required');
     }
 
   return {
     module_name: moduleName,
     description,
-    module_pdf,
+    module_pdf: modulePdf,
     thumbnail,
   };
 }

@@ -47,6 +47,15 @@ export type ModuleRecord = {
   updated_at: string;
 };
 
+export type LessonRecord = {
+  lesson_id: number;
+  module_id: number;
+  lesson_name: string;
+  order_number: number;
+  created_at: string;
+  updated_at: string;
+}
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -120,6 +129,22 @@ const DEFAULT_MODULES: Omit<ModuleRecord, 'module_id' | 'created_at' | 'updated_
   },
 ];
 
+const DEFAULT_LESSONS: Omit<LessonRecord, 'lesson_id' | 'created_at' | 'updated_at'>[] = [
+  { module_id: 1, lesson_name: 'LO1:Select Healthy Stocks and Suitable Housing', order_number: 1 },
+  { module_id: 1, lesson_name: 'LO2:Set-up Cage Equipment', order_number: 2 },
+  { module_id: 1, lesson_name: 'LO3:Feed Chicken', order_number: 3 },
+  { module_id: 1, lesson_name: 'LO4:Grow and Harvest Chicken', order_number: 4 },
+  { module_id: 2, lesson_name: 'LO1:Establish Nursery', order_number: 1 },
+  { module_id: 2, lesson_name: 'LO2:Plant Seedlings', order_number: 2 },
+  { module_id: 2, lesson_name: 'LO3:Perform Plant Care and Management', order_number: 3 },
+  { module_id: 2, lesson_name: 'LO4:Perform Harvest and Post-Harvest Activities', order_number: 4 },
+  { module_id: 3, lesson_name: 'LO1:Prepare Composting Area and Raw Materials', order_number: 1 },
+  { module_id: 3, lesson_name: 'LO2:Compost and Harvest Fertilizer', order_number: 2 },
+  { module_id: 4, lesson_name: 'LO1:Prepare for the production of various concoctions', order_number: 1 },
+  { module_id: 4, lesson_name: 'LO2:Process concoctions', order_number: 2 },
+  { module_id: 4, lesson_name: 'LO3:Package concoctions', order_number: 3 },
+];
+
 const databasePromise = SQLite.openDatabaseAsync('student-offline-auth.db');
 
 function toStudentUser(user: StoredStudentUser): StudentUser {
@@ -177,6 +202,15 @@ async function ensureDatabase() {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (competency_id) REFERENCES competencies(competency_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS lessons (
+      lesson_id INTEGER PRIMARY KEY NOT NULL,
+      module_id INTEGER NOT NULL,
+      lesson_name TEXT NOT NULL,
+      order_number INTEGER NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (module_id) REFERENCES modules(module_id)
     )`,
   ];
 
@@ -276,6 +310,37 @@ async function ensureDatabase() {
     }
   } catch (error) {
     console.error('Module seeding failed:', error);
+  }
+
+  try {
+    for (let index = 0; index < DEFAULT_LESSONS.length; index += 1) {
+      const lessonItem = DEFAULT_LESSONS[index];
+      const lessonId = index + 1;
+      const now = new Date().toISOString();
+
+      const existing = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM lessons WHERE lesson_name = ?',
+        [lessonItem.lesson_name]
+      );
+
+      if ((existing?.count ?? 0) === 0) {
+        await db.runAsync(
+          `INSERT INTO lessons
+            (lesson_id, module_id, lesson_name, order_number, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            lessonId,
+            lessonItem.module_id,
+            lessonItem.lesson_name,
+            lessonItem.order_number,
+            now,
+            now,
+          ]
+        );
+      }
+    }
+  } catch (error) {
+    console.error('Lesson seeding failed:', error);
   }
 }
 
@@ -495,12 +560,25 @@ export async function getModuleByCompetencyId(competencyId: number) {
   return db.getFirstAsync<ModuleRecord>('SELECT * FROM modules WHERE competency_id = ?', [competencyId]);
 }
 
+export async function listLessons() {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonRecord>('SELECT * FROM lessons ORDER BY module_id ASC, order_number ASC, lesson_id ASC');
+}
+
+export async function getLessonsByModuleId(moduleId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonRecord>('SELECT * FROM lessons WHERE module_id = ? ORDER BY order_number ASC, lesson_id ASC', [moduleId]);
+}
+
 export async function resetAndSeedLocalData() {
   await ensureDatabase();
   const db = await databasePromise;
 
   const competencies = await db.getAllAsync<CompetencyRecord>('SELECT * FROM competencies ORDER BY competency_id ASC');
   const modules = await db.getAllAsync<ModuleRecord>('SELECT * FROM modules ORDER BY module_id ASC');
+  const lessons = await db.getAllAsync<LessonRecord>('SELECT * FROM lessons ORDER BY lesson_id ASC');
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
     competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
@@ -508,20 +586,26 @@ export async function resetAndSeedLocalData() {
   const hasDefaultModules = DEFAULT_MODULES.every((expected) =>
     modules.some((m) => m.module_name.toLowerCase() === expected.module_name.toLowerCase())
   );
+  const hasDefaultLessons = DEFAULT_LESSONS.every((expected) =>
+    lessons.some((l) => l.lesson_name.toLowerCase() === expected.lesson_name.toLowerCase())
+  );
 
-  if (hasDefaultCompetencies && hasDefaultModules && competencies.length > 0 && modules.length > 0) {
+  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && competencies.length > 0 && modules.length > 0 && lessons.length > 0) {
     return {
       competencies: competencies.length,
       modules: modules.length,
+      lessons: lessons.length,
       alreadyImported: true,
     };
   }
 
   const now = new Date().toISOString();
 
+  await db.runAsync('DELETE FROM lessons');
   await db.runAsync('DELETE FROM modules');
   await db.runAsync('DELETE FROM competencies');
   try {
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'modules'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'competencies'");
   } catch {
@@ -552,9 +636,22 @@ export async function resetAndSeedLocalData() {
     );
   }
 
+  for (let index = 0; index < DEFAULT_LESSONS.length; index += 1) {
+    const lessonItem = DEFAULT_LESSONS[index];
+    const lessonId = index + 1;
+
+    await db.runAsync(
+      `INSERT INTO lessons
+        (lesson_id, module_id, lesson_name, order_number, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)`,
+      [lessonId, lessonItem.module_id, lessonItem.lesson_name, lessonItem.order_number, now, now]
+    );
+  }
+
   return {
     competencies: DEFAULT_COMPETENCIES.length,
     modules: DEFAULT_MODULES.length,
+    lessons: DEFAULT_LESSONS.length,
     alreadyImported: false,
   };
 }
