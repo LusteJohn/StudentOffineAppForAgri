@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import { DEFAULT_CONTENT_INFO } from './content-info-seed';
 
 export type StudentUser = {
   user_id: number;
@@ -63,6 +64,14 @@ export type LessonContentRecord = {
   objectives: string;
   created_at: string;
   updated_at: string;
+};
+
+export type ContentInfoRecord = {
+  content_info_id: number;
+  lesson_content_id: number;
+  label: string;
+  description: string;
+  images: string;
 };
 
 type StoredStudentUser = StudentUser & {
@@ -289,6 +298,18 @@ async function ensureDatabase() {
       updated_at TEXT NOT NULL,
       FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
     )`,
+    (`
+      CREATE TABLE IF NOT EXISTS content_info (
+        content_info_id INTEGER PRIMARY KEY NOT NULL,
+        lesson_content_id INTEGER NOT NULL,
+        label TEXT NOT NULL,
+        description TEXT NOT NULL,
+        images TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id)
+      )  
+    `),
   ];
 
   for (const sql of createStatements) {
@@ -686,6 +707,20 @@ export async function getLessonsByModuleId(moduleId: number) {
   return db.getAllAsync<LessonRecord>('SELECT * FROM lessons WHERE module_id = ? ORDER BY order_number ASC, lesson_id ASC', [moduleId]);
 }
 
+export async function getLessonById(lessonId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const rows = await db.getAllAsync<LessonRecord>('SELECT * FROM lessons WHERE lesson_id = ?', [lessonId]);
+  return rows[0] ?? null;
+}
+
+export async function getModuleById(moduleId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const rows = await db.getAllAsync<ModuleRecord>('SELECT * FROM modules WHERE module_id = ?', [moduleId]);
+  return rows[0] ?? null;
+}
+
 export async function listLessonContent() {
   await ensureDatabase();
   const db = await databasePromise;
@@ -698,6 +733,32 @@ export async function listLessonContentByLessonId(lessonId: number) {
   return db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content WHERE lesson_id = ? ORDER BY lesson_content_id ASC', [lessonId]);
 }
 
+export async function listContentInfo() {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info ORDER BY content_info_id ASC');
+}
+
+export async function listContentInfoByLessonContentId(lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info WHERE lesson_content_id = ? ORDER BY content_info_id ASC', [lessonContentId]);
+}
+
+export async function getContentInfoById(contentInfoId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const rows = await db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info WHERE content_info_id = ?', [contentInfoId]);
+  return rows[0] ?? null;
+}
+
+export async function getLessonContentById(lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const rows = await db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content WHERE lesson_content_id = ?', [lessonContentId]);
+  return rows[0] ?? null;
+}
+
 export async function resetAndSeedLocalData() {
   await ensureDatabase();
   const db = await databasePromise;
@@ -706,6 +767,7 @@ export async function resetAndSeedLocalData() {
   const modules = await db.getAllAsync<ModuleRecord>('SELECT * FROM modules ORDER BY module_id ASC');
   const lessons = await db.getAllAsync<LessonRecord>('SELECT * FROM lessons ORDER BY lesson_id ASC');
   const lessonContents = await db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content ORDER BY lesson_content_id ASC');
+  const contentInfos = await db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info ORDER BY content_info_id ASC');
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
     competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
@@ -719,13 +781,17 @@ export async function resetAndSeedLocalData() {
   const hasDefaultLessonContents = DEFAULT_LESSON_CONTENTS.every((expected) =>
     lessonContents.some((lc) => lc.content_name.toLowerCase() === expected.content_name.toLowerCase())
   );
+  const hasDefaultContentInfo = DEFAULT_CONTENT_INFO.every((expected) =>
+    contentInfos.some((ci) => String(ci.content_info_id) === String(expected.content_info_id))
+  );
 
-  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0) {
+  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
     return {
       competencies: competencies.length,
       modules: modules.length,
       lessons: lessons.length,
       lessonContents: lessonContents.length,
+      contentInfo: contentInfos.length,
       alreadyImported: true,
     };
   }
@@ -736,11 +802,13 @@ export async function resetAndSeedLocalData() {
   await db.runAsync('DELETE FROM lessons');
   await db.runAsync('DELETE FROM modules');
   await db.runAsync('DELETE FROM competencies');
+  await db.runAsync('DELETE FROM content_info');
   try {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_content'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'modules'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'competencies'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'content_info'");
   } catch {
     // sqlite_sequence may not exist in some SQLite versions/environments.
   }
@@ -793,11 +861,23 @@ export async function resetAndSeedLocalData() {
     );
   }
 
+  for (let index = 0; index < DEFAULT_CONTENT_INFO.length; index += 1) {
+    const infoItem = DEFAULT_CONTENT_INFO[index];
+
+    await db.runAsync(
+      `INSERT INTO content_info
+        (content_info_id, lesson_content_id, label, description, images, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [infoItem.content_info_id, infoItem.lesson_content_id, infoItem.label, infoItem.description, infoItem.images, now, now]
+    );
+  }
+
   return {
     competencies: DEFAULT_COMPETENCIES.length,
     modules: DEFAULT_MODULES.length,
     lessons: DEFAULT_LESSONS.length,
     lessonContents: DEFAULT_LESSON_CONTENTS.length,
+    contentInfo: DEFAULT_CONTENT_INFO.length,
     alreadyImported: false,
   };
 }

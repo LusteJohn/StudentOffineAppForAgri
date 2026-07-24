@@ -1,9 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View, Alert } from 'react-native';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import { Asset } from 'expo-asset';
-import { Linking } from 'expo-linking';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
@@ -91,41 +88,11 @@ export default function LessonScreen() {
     }
   };
 
-  const MODULE_PDF_PATHS: Record<string, string> = {
-    'Raise Organic Chicken': 'assets/learing-materials/modules/Raising-chicken/Raise Organic Chicken.pdf',
-    'Produce Organic Vegetables': 'assets/learing-materials/modules/Produce-organic-vegetables/Produce Organic Vegetables.pdf',
-    'Produce Organic Fertilizer': 'assets/learing-materials/modules/Produce-organic-fertilizer/Produce Organic Fertilizer.pdf',
-    'Produce Organic Concoction and Extract': 'assets/learing-materials/modules/Produce-organic-concoction/Produce Organic Concoction and Extracts.pdf',
-  };
-
-  const resolveActualModulePdf = (moduleName: string, fallbackPath: string): string => {
-    return MODULE_PDF_PATHS[moduleName] || fallbackPath;
-  };
-
-  const openPdf = async (pdfPath: string) => {
-    try {
-      let uri = pdfPath;
-      if (!pdfPath.startsWith('file://') && !pdfPath.startsWith('http')) {
-        const normalized = pdfPath.replace(/^assets\//, '');
-        const encoded = encodeURI(normalized);
-        const asset = Asset.fromURI(`asset:///${encoded}`);
-        await asset.downloadAsync();
-        if (!asset.localUri) {
-          throw new Error('PDF asset not found');
-        }
-        uri = asset.localUri;
-      }
-
-      await WebBrowser.openBrowserAsync(uri);
-    } catch (error) {
-      console.error('openPdf error:', error);
-      Alert.alert('Error', 'Could not open PDF. Please try again.');
-      try {
-        await Linking.openURL(pdfPath);
-      } catch {
-        // ignore
-      }
-    }
+  const openContentInfo = (lessonContentId: number) => {
+    router.replace({
+      pathname: '/content-info/[id]',
+      params: { id: String(lessonContentId) },
+    });
   };
 
   const closeLessonDetail = () => {
@@ -195,26 +162,7 @@ export default function LessonScreen() {
                           <View style={styles.emptyLessonRow}>
                             <Text style={styles.emptyLessonText}>No lessons available for this module.</Text>
                           </View>
-                        )}
-                      </View>
-
-                      {(() => {
-                        const moduleItem = modules.find((m) => m.module_id === group.module_id);
-                        const pdfPath = moduleItem?.module_pdf || '';
-                        const actualPdfPath = moduleItem ? resolveActualModulePdf(moduleItem.module_name, pdfPath) : pdfPath;
-                        if (!actualPdfPath) return null;
-                        return (
-                          <View style={styles.pdfSection}>
-                            <Text style={styles.pdfLabel}>Module PDF</Text>
-                            <Text style={styles.pdfPath} numberOfLines={1}>{actualPdfPath}</Text>
-                            <View style={styles.pdfActions}>
-                              <Pressable onPress={() => openPdf(actualPdfPath)} style={styles.pdfViewButton}>
-                                <Text style={styles.pdfButtonText}>View</Text>
-                              </Pressable>
-                            </View>
-                          </View>
-                        );
-                      })()}
+                      )}
                     </View>
                   ) : null}
               </View>
@@ -281,6 +229,9 @@ export default function LessonScreen() {
                       <Text style={styles.contentLabel}>Objectives</Text>
                       <Text style={styles.contentValue}>{content.objectives}</Text>
                     </View>
+                    <Pressable onPress={() => openContentInfo(content.lesson_content_id)} style={styles.contentViewButton}>
+                      <Text style={styles.contentViewButtonText}>View Content Info</Text>
+                    </Pressable>
                   </View>
                 ))
               ) : (
@@ -602,44 +553,17 @@ const styles = StyleSheet.create({
   lessonItemContainer: {
     backgroundColor: '#ffffff',
   },
-  pdfSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#f8fafc',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(148, 163, 184, 0.12)',
-    gap: 10,
-  },
-  pdfLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  pdfPath: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#000000',
-  },
-  pdfActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  pdfViewButton: {
+  contentViewButton: {
+    marginTop: 10,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 10,
     backgroundColor: '#f1f5f9',
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.2)',
+    alignItems: 'center',
   },
-  pdfButtonText: {
+  contentViewButtonText: {
     fontSize: 12,
     fontWeight: '700',
     color: '#000000',

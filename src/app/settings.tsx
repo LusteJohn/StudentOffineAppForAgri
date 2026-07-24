@@ -18,7 +18,7 @@ export default function SettingsScreen() {
   const handleImportResources = async () => {
     Alert.alert(
       'Import offline resources',
-      'This will replace your local competency and module records with the default offline resources. This cannot be undone.',
+      'This will replace your local competency, module, lesson, lesson-content, and content-info records with the default offline resources. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -31,11 +31,11 @@ export default function SettingsScreen() {
               const result = await resetAndSeedLocalData();
               if (result.alreadyImported) {
                 setMessage(
-                  `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, and ${result.lessonContents} lesson contents.`
+                  `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, and ${result.contentInfo} content info records.`
                 );
               } else {
                 setMessage(
-                  `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, and ${result.lessonContents} lesson contents saved to this device.`
+                  `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, and ${result.contentInfo} content info records saved to this device.`
                 );
               }
             } catch (importError) {
@@ -73,7 +73,7 @@ export default function SettingsScreen() {
                   Import offline resources
                 </ThemedText>
                 <ThemedText style={[styles.actionDescription, { color: '#000000' }]}>
-                  Replace the current local competency, module, lesson, and lesson-content data with the default offline dataset.
+                  Replace the current local competency, module, lesson, lesson-content, and content-info data with the default offline dataset.
                 </ThemedText>
               </View>
             </View>
