@@ -1,15 +1,17 @@
 import { useCallback, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getUserById } from '@/lib/auth-api';
 
 type HeaderProps = {
   title?: string;
+  showBack?: boolean;
 };
 
-export function Header({ title = 'AgriLearn' }: HeaderProps) {
+export function Header({ title = 'AgriLearn', showBack = false }: HeaderProps) {
+  const router = useRouter();
   const params = useLocalSearchParams<{ userId?: string }>();
   const userId = Number(params.userId ?? '1');
   const [email, setEmail] = useState('');
@@ -40,7 +42,14 @@ export function Header({ title = 'AgriLearn' }: HeaderProps) {
   return (
     <View style={[styles.wrap, { paddingTop: Math.max(insets.top, 12) }]}>
       <View style={styles.inner}>
-        <Text style={styles.title}>{title}</Text>
+        <View style={styles.leftArea}>
+          {showBack ? (
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+              <Text style={styles.backButtonText}>←</Text>
+            </Pressable>
+          ) : null}
+          <Text style={styles.title}>{title}</Text>
+        </View>
         <View style={styles.meta}>
           <Text style={styles.metaText}>{email}</Text>
           <View style={styles.roleBadge}>
@@ -62,6 +71,22 @@ const styles = StyleSheet.create({
   },
   inner: {
     gap: 4,
+  },
+  leftArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backButtonText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#000000',
   },
   title: {
     fontSize: 18,

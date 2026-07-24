@@ -1,19 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Asset } from 'expo-asset';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
+import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ContentInfoRecord, LessonContentRecord, LessonRecord, ModuleRecord, getLessonById, getModuleById, getLessonContentById, listContentInfoByLessonContentId } from '@/lib/auth-api';
+import { resolveContentInfoAsset } from '@/lib/content-info-assets';
 
 const BACKGROUND_LIGHT = '#f6f8f6';
 
 export default function ContentInfoScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; userId?: string }>();
   const lessonContentId = Number(params.id);
+  const activeUserId = Number(params.userId ?? '1');
 
   const [moduleItem, setModuleItem] = useState<ModuleRecord | null>(null);
   const [lessonItem, setLessonItem] = useState<LessonRecord | null>(null);
@@ -22,21 +24,6 @@ export default function ContentInfoScreen() {
   const [imageUris, setImageUris] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const resolveAssetUri = async (assetPath: string): Promise<string | null> => {
-    try {
-      if (assetPath.startsWith('file://') || assetPath.startsWith('http')) {
-        return assetPath;
-      }
-      const normalized = assetPath.replace(/^assets\//, '');
-      const encoded = encodeURI(normalized);
-      const asset = Asset.fromURI(`asset:///${encoded}`);
-      await asset.downloadAsync();
-      return asset.localUri ?? null;
-    } catch {
-      return null;
-    }
-  };
 
   const loadContentInfo = useCallback(async () => {
     setError('');
@@ -62,7 +49,7 @@ export default function ContentInfoScreen() {
       const uris: Record<number, string> = {};
       for (const info of infos) {
         if (info.images) {
-          const uri = await resolveAssetUri(info.images);
+          const uri = resolveContentInfoAsset(info.images);
           if (uri) {
             uris[info.content_info_id] = uri;
           }
@@ -87,7 +74,7 @@ export default function ContentInfoScreen() {
 
   return (
     <ThemedView style={styles.screen}>
-      <Header title="Content Info" />
+      <Header title="Content Info" showBack />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {loading ? (
           <View style={styles.emptyState}>
@@ -113,7 +100,17 @@ export default function ContentInfoScreen() {
                   <Text style={styles.infoValue}>{info.label}</Text>
 
                   {imageUris[info.content_info_id] ? (
-                    <Image source={{ uri: imageUris[info.content_info_id] }} style={styles.infoImage} resizeMode="contain" />
+                    <>
+                      <Text style={styles.infoLabel}>Image</Text>
+                      <View style={styles.imageContainer}>
+                        <Image
+                          source={{ uri: imageUris[info.content_info_id] }}
+                          style={styles.infoImage}
+                          resizeMode="contain"
+                          onError={(e) => console.log('Image load error:', info.content_info_id, e.nativeEvent.error)}
+                        />
+                      </View>
+                    </>
                   ) : null}
 
                   <Text style={styles.infoLabel}>Description</Text>
@@ -129,7 +126,7 @@ export default function ContentInfoScreen() {
         )}
       </ScrollView>
 
-      <BottomNavbar activeTab="content-info" userId={1} />
+      <BottomNavbar activeTab="content-info" userId={activeUserId} />
     </ThemedView>
   );
 }
@@ -185,6 +182,23 @@ const styles = StyleSheet.create({
     height: 220,
     borderRadius: 12,
     backgroundColor: '#f8fafc',
+  },
+  imageContainer: {
+    width: '100%',
+    height: 220,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    overflow: 'hidden',
+  },
+  imagePlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imagePlaceholderText: {
+    fontSize: 13,
+    color: '#64748b',
+    fontWeight: '500',
   },
   emptyState: {
     paddingVertical: 32,

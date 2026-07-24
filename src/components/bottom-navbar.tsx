@@ -39,7 +39,7 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
 
   const goContentInfo = () => {
     if (activeTab !== 'content-info') {
-      router.replace({ pathname: '/content-info/index', params: { userId: String(userId) } });
+      router.replace({ pathname: '/content-info', params: { userId: String(userId) } });
     }
   };
 
