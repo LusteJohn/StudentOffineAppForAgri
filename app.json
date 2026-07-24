@@ -36,6 +36,9 @@
       ],
       "expo-sqlite"
     ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
