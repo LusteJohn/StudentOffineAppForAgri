@@ -91,7 +91,7 @@ export default function LessonScreen() {
   const openContentInfo = (lessonContentId: number) => {
     router.replace({
       pathname: '/content-info/[id]',
-      params: { id: String(lessonContentId) },
+      params: { id: String(lessonContentId), userId: String(activeUserId) },
     });
   };
 
