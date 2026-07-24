@@ -140,31 +140,32 @@ export default function LessonScreen() {
                   <Text style={styles.moduleChevron}>{isExpanded ? '▲' : '▼'}</Text>
                 </Pressable>
 
-                  {isExpanded ? (
-                    <View>
-                      <View style={styles.lessonList}>
-                        {group.lessons.length > 0 ? (
-                          group.lessons.map((lesson) => (
-                            <View key={lesson.lesson_id} style={styles.lessonItemContainer}>
-                              <Pressable onPress={() => openLessonDetail(lesson)} style={styles.lessonRow}>
-                                <View style={styles.lessonIndicator} />
-                                <View style={styles.lessonTextGroup}>
-                                  <Text style={styles.lessonTitle}>{lesson.lesson_name}</Text>
-                                  <Text style={styles.lessonMeta}>Order: {lesson.order_number}</Text>
-                                </View>
-                                <Pressable onPress={() => openLessonDetail(lesson)} style={styles.lessonViewButton}>
-                                  <Text style={styles.lessonViewButtonText}>View</Text>
-                                </Pressable>
+                {isExpanded ? (
+                  <View>
+                    <View style={styles.lessonList}>
+                      {group.lessons.length > 0 ? (
+                        group.lessons.map((lesson) => (
+                          <View key={lesson.lesson_id} style={styles.lessonItemContainer}>
+                            <Pressable onPress={() => openLessonDetail(lesson)} style={styles.lessonRow}>
+                              <View style={styles.lessonIndicator} />
+                              <View style={styles.lessonTextGroup}>
+                                <Text style={styles.lessonTitle}>{lesson.lesson_name}</Text>
+                                <Text style={styles.lessonMeta}>Order: {lesson.order_number}</Text>
+                              </View>
+                              <Pressable onPress={() => openLessonDetail(lesson)} style={styles.lessonViewButton}>
+                                <Text style={styles.lessonViewButtonText}>View</Text>
                               </Pressable>
-                            </View>
-                          ))
-                        ) : (
-                          <View style={styles.emptyLessonRow}>
-                            <Text style={styles.emptyLessonText}>No lessons available for this module.</Text>
+                            </Pressable>
                           </View>
+                        ))
+                      ) : (
+                        <View style={styles.emptyLessonRow}>
+                          <Text style={styles.emptyLessonText}>No lessons available for this module.</Text>
+                        </View>
                       )}
                     </View>
-                  ) : null}
+                  </View>
+                ) : null}
               </View>
             );
           })}
