@@ -112,12 +112,12 @@ export default function ContentInfoScreen() {
                   <Text style={styles.infoLabel}>Label</Text>
                   <Text style={styles.infoValue}>{info.label}</Text>
 
-                  <Text style={styles.infoLabel}>Description</Text>
-                  <Text style={styles.infoValue}>{info.description}</Text>
-
                   {imageUris[info.content_info_id] ? (
                     <Image source={{ uri: imageUris[info.content_info_id] }} style={styles.infoImage} resizeMode="contain" />
                   ) : null}
+
+                  <Text style={styles.infoLabel}>Description</Text>
+                  <Text style={styles.infoValue}>{info.description}</Text>
                 </View>
               ))
             ) : (
