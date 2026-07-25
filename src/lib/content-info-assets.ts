@@ -63,6 +63,49 @@ const ASSET_MAP: Record<string, number> = {
   'module_images/M1/L3/table.png': require('../../assets/module_images/M1/L3/table.png'),
   'module_images/M1/L4/chicken_disease.jpg': require('../../assets/module_images/M1/L4/chicken_disease.jpg'),
   'module_images/M1/L4/table_content.png': require('../../assets/module_images/M1/L4/table_content.png'),
+  'module_images/M2/L1/do_and_dont.png': require('../../assets/module_images/M2/L1/do_and_dont.png'),
+  'module_images/M2/L1/soil.png': require('../../assets/module_images/M2/L1/soil.png'),
+  'module_images/M2/L1/table_crops.png': require('../../assets/module_images/M2/L1/table_crops.png'),
+  'module_images/M2/L2/plants.jpg': require('../../assets/module_images/M2/L2/plants.jpg'),
+  'module_images/M2/L3/brodledf.png': require('../../assets/module_images/M2/L3/brodledf.png'),
+  'module_images/M2/L3/crops.png': require('../../assets/module_images/M2/L3/crops.png'),
+  'module_images/M2/L3/field_crops.png': require('../../assets/module_images/M2/L3/field_crops.png'),
+  'module_images/M2/L3/table_1_2_3.png': require('../../assets/module_images/M2/L3/table_1_2_3.png'),
+  'module_images/M2/L4/balance_sheet.png': require('../../assets/module_images/M2/L4/balance_sheet.png'),
+  'module_images/M2/L4/cash_book.png': require('../../assets/module_images/M2/L4/cash_book.png'),
+  'module_images/M2/L4/cost_keep.png': require('../../assets/module_images/M2/L4/cost_keep.png'),
+  'module_images/M2/L4/logbook.png': require('../../assets/module_images/M2/L4/logbook.png'),
+  'module_images/M2/L4/materials.png': require('../../assets/module_images/M2/L4/materials.png'),
+  'module_images/M2/L4/pay_book.png': require('../../assets/module_images/M2/L4/pay_book.png'),
+  'module_images/M2/L4/profit_loss_account.png': require('../../assets/module_images/M2/L4/profit_loss_account.png'),
+  'module_images/M2/L4/record_keep.png': require('../../assets/module_images/M2/L4/record_keep.png'),
+  'module_images/M2/L4/sale_book.png': require('../../assets/module_images/M2/L4/sale_book.png'),
+  'module_images/M2/L4/store_keeper_book.png': require('../../assets/module_images/M2/L4/store_keeper_book.png'),
+  'module_images/M3/L1/basket_construct.png': require('../../assets/module_images/M3/L1/basket_construct.png'),
+  'module_images/M3/L1/bed_construct.png': require('../../assets/module_images/M3/L1/bed_construct.png'),
+  'module_images/M3/L1/clean.png': require('../../assets/module_images/M3/L1/clean.png'),
+  'module_images/M3/L1/compost_bin.png': require('../../assets/module_images/M3/L1/compost_bin.png'),
+  'module_images/M3/L1/cross_section.png': require('../../assets/module_images/M3/L1/cross_section.png'),
+  'module_images/M3/L1/cut.png': require('../../assets/module_images/M3/L1/cut.png'),
+  'module_images/M3/L1/decompose_incorporate.png': require('../../assets/module_images/M3/L1/decompose_incorporate.png'),
+  'module_images/M3/L1/deep_bed.png': require('../../assets/module_images/M3/L1/deep_bed.png'),
+  'module_images/M3/L1/organic_waste.png': require('../../assets/module_images/M3/L1/organic_waste.png'),
+  'module_images/M3/L1/place_mixture.png': require('../../assets/module_images/M3/L1/place_mixture.png'),
+  'module_images/M3/L1/plant_maintenance.png': require('../../assets/module_images/M3/L1/plant_maintenance.png'),
+  'module_images/M3/L1/prep_materials.png': require('../../assets/module_images/M3/L1/prep_materials.png'),
+  'module_images/M3/L1/site.jpg': require('../../assets/module_images/M3/L1/site.jpg'),
+  'module_images/M3/L1/site_prep.png': require('../../assets/module_images/M3/L1/site_prep.png'),
+  'module_images/M3/L1/sunken.png': require('../../assets/module_images/M3/L1/sunken.png'),
+  'module_images/M3/L1/triple_compost.png': require('../../assets/module_images/M3/L1/triple_compost.png'),
+  'module_images/M3/L2/finish_compost.png': require('../../assets/module_images/M3/L2/finish_compost.png'),
+  'module_images/M3/L2/harvest.png': require('../../assets/module_images/M3/L2/harvest.png'),
+  'module_images/M4/L2/cal.png': require('../../assets/module_images/M4/L2/cal.png'),
+  'module_images/M4/L2/faa.png': require('../../assets/module_images/M4/L2/faa.png'),
+  'module_images/M4/L2/ffj.png': require('../../assets/module_images/M4/L2/ffj.png'),
+  'module_images/M4/L2/fpj.png': require('../../assets/module_images/M4/L2/fpj.png'),
+  'module_images/M4/L2/imo.png': require('../../assets/module_images/M4/L2/imo.png'),
+  'module_images/M4/L2/labs.png': require('../../assets/module_images/M4/L2/labs.png'),
+  'module_images/M4/L2/ohn.png': require('../../assets/module_images/M4/L2/ohn.png'),
   'module_images/placeholder.png': require('../../assets/module_images/placeholder.png'),
   'module_images/M1/L1/Ancona.png': require('../../assets/module_images/M1/L1/Ancona.jpg'),
   'module_images/M1/L1/Andalusian.png': require('../../assets/module_images/M1/L1/Andalusian.jpg'),
@@ -126,6 +169,49 @@ const ASSET_MAP: Record<string, number> = {
   'module_images/M1/L3/table.jpg': require('../../assets/module_images/M1/L3/table.png'),
   'module_images/M1/L4/chicken_disease.png': require('../../assets/module_images/M1/L4/chicken_disease.jpg'),
   'module_images/M1/L4/table_content.jpg': require('../../assets/module_images/M1/L4/table_content.png'),
+  'module_images/M2/L1/do_and_dont.jpg': require('../../assets/module_images/M2/L1/do_and_dont.png'),
+  'module_images/M2/L1/soil.jpg': require('../../assets/module_images/M2/L1/soil.png'),
+  'module_images/M2/L1/table_crops.jpg': require('../../assets/module_images/M2/L1/table_crops.png'),
+  'module_images/M2/L2/plants.png': require('../../assets/module_images/M2/L2/plants.jpg'),
+  'module_images/M2/L3/brodledf.jpg': require('../../assets/module_images/M2/L3/brodledf.png'),
+  'module_images/M2/L3/crops.jpg': require('../../assets/module_images/M2/L3/crops.png'),
+  'module_images/M2/L3/field_crops.jpg': require('../../assets/module_images/M2/L3/field_crops.png'),
+  'module_images/M2/L3/table_1_2_3.jpg': require('../../assets/module_images/M2/L3/table_1_2_3.png'),
+  'module_images/M2/L4/balance_sheet.jpg': require('../../assets/module_images/M2/L4/balance_sheet.png'),
+  'module_images/M2/L4/cash_book.jpg': require('../../assets/module_images/M2/L4/cash_book.png'),
+  'module_images/M2/L4/cost_keep.jpg': require('../../assets/module_images/M2/L4/cost_keep.png'),
+  'module_images/M2/L4/logbook.jpg': require('../../assets/module_images/M2/L4/logbook.png'),
+  'module_images/M2/L4/materials.jpg': require('../../assets/module_images/M2/L4/materials.png'),
+  'module_images/M2/L4/pay_book.jpg': require('../../assets/module_images/M2/L4/pay_book.png'),
+  'module_images/M2/L4/profit_loss_account.jpg': require('../../assets/module_images/M2/L4/profit_loss_account.png'),
+  'module_images/M2/L4/record_keep.jpg': require('../../assets/module_images/M2/L4/record_keep.png'),
+  'module_images/M2/L4/sale_book.jpg': require('../../assets/module_images/M2/L4/sale_book.png'),
+  'module_images/M2/L4/store_keeper_book.jpg': require('../../assets/module_images/M2/L4/store_keeper_book.png'),
+  'module_images/M3/L1/basket_construct.jpg': require('../../assets/module_images/M3/L1/basket_construct.png'),
+  'module_images/M3/L1/bed_construct.jpg': require('../../assets/module_images/M3/L1/bed_construct.png'),
+  'module_images/M3/L1/clean.jpg': require('../../assets/module_images/M3/L1/clean.png'),
+  'module_images/M3/L1/compost_bin.jpg': require('../../assets/module_images/M3/L1/compost_bin.png'),
+  'module_images/M3/L1/cross_section.jpg': require('../../assets/module_images/M3/L1/cross_section.png'),
+  'module_images/M3/L1/cut.jpg': require('../../assets/module_images/M3/L1/cut.png'),
+  'module_images/M3/L1/decompose_incorporate.jpg': require('../../assets/module_images/M3/L1/decompose_incorporate.png'),
+  'module_images/M3/L1/deep_bed.jpg': require('../../assets/module_images/M3/L1/deep_bed.png'),
+  'module_images/M3/L1/organic_waste.jpg': require('../../assets/module_images/M3/L1/organic_waste.png'),
+  'module_images/M3/L1/place_mixture.jpg': require('../../assets/module_images/M3/L1/place_mixture.png'),
+  'module_images/M3/L1/plant_maintenance.jpg': require('../../assets/module_images/M3/L1/plant_maintenance.png'),
+  'module_images/M3/L1/prep_materials.jpg': require('../../assets/module_images/M3/L1/prep_materials.png'),
+  'module_images/M3/L1/site.png': require('../../assets/module_images/M3/L1/site.jpg'),
+  'module_images/M3/L1/site_prep.jpg': require('../../assets/module_images/M3/L1/site_prep.png'),
+  'module_images/M3/L1/sunken.jpg': require('../../assets/module_images/M3/L1/sunken.png'),
+  'module_images/M3/L1/triple_compost.jpg': require('../../assets/module_images/M3/L1/triple_compost.png'),
+  'module_images/M3/L2/finish_compost.jpg': require('../../assets/module_images/M3/L2/finish_compost.png'),
+  'module_images/M3/L2/harvest.jpg': require('../../assets/module_images/M3/L2/harvest.png'),
+  'module_images/M4/L2/cal.jpg': require('../../assets/module_images/M4/L2/cal.png'),
+  'module_images/M4/L2/faa.jpg': require('../../assets/module_images/M4/L2/faa.png'),
+  'module_images/M4/L2/ffj.jpg': require('../../assets/module_images/M4/L2/ffj.png'),
+  'module_images/M4/L2/fpj.jpg': require('../../assets/module_images/M4/L2/fpj.png'),
+  'module_images/M4/L2/imo.jpg': require('../../assets/module_images/M4/L2/imo.png'),
+  'module_images/M4/L2/labs.jpg': require('../../assets/module_images/M4/L2/labs.png'),
+  'module_images/M4/L2/ohn.jpg': require('../../assets/module_images/M4/L2/ohn.png'),
   'module_images/placeholder.jpg': require('../../assets/module_images/placeholder.png'),
 };
 
@@ -140,11 +226,9 @@ export function resolveContentInfoAsset(assetPath: string): string | null {
   if (direct != null) {
     try {
       const resolved = Image.resolveAssetSource(direct);
-      const uri = resolved?.uri ?? null;
-      console.log('[asset] direct match', assetPath, '->', lookup, 'uri=', uri);
-      return uri;
+      return resolved?.uri ?? null;
     } catch (e) {
-      console.log('[asset] Image.resolveAssetSource failed for', lookup, e);
+      console.warn('Image.resolveAssetSource failed for', lookup, e);
     }
   }
 
@@ -159,14 +243,11 @@ export function resolveContentInfoAsset(assetPath: string): string | null {
     if (altModule != null) {
       try {
         const resolved = Image.resolveAssetSource(altModule);
-        const uri = resolved?.uri ?? null;
-        console.log('[asset] alt match', assetPath, '->', altPath, 'uri=', uri);
-        return uri;
+        return resolved?.uri ?? null;
       } catch (e) {
-        console.log('[asset] Image.resolveAssetSource failed for', altPath, e);
+        console.warn('Image.resolveAssetSource failed for', altPath, e);
       }
     }
-    console.log('[asset] alt miss', assetPath, '->', altPath);
   }
 
   console.warn('Content info asset not mapped:', assetPath);

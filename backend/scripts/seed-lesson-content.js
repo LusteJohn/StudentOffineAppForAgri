@@ -227,18 +227,21 @@ const SEED_LESSON_CONTENT = [
         content_name: 'Maturity Indices',
         objectives: 'After reading this information sheet, you should be able identify the maturity indices of fruits of vegetables.',
     },
+    // Module 2: Produce Organic Vegetables, Lesson 4, Content 2
     {
         lesson_content_id: 33,
         lesson_id: 8,
         content_name: 'Harvest Marketable Products',
         objectives: 'After reading this information sheet, you should be able to harvest marketable products.',
     },
+    // Module 2: Produce Organic Vegetables, Lesson 4, Content 3
     {
         lesson_content_id: 34,
         lesson_id: 8,
         content_name: 'Classify Marketable Products',
         objectives: 'After reading this information sheet, you should be able to classify marketable products.',
     },
+    // Module 2: Produce Organic Vegetables, Lesson 4, Content 4
     {
         lesson_content_id: 35,
         lesson_id: 8,
@@ -375,6 +378,20 @@ const SEED_LESSON_CONTENT = [
         lesson_id: 13,
         content_name: 'Appropriate place to store',
         objectives: 'After reading this information sheet, you should be able to determine the appropriate storage for the various concoctionss.',
+    },
+    // Module 2: Produce Organic Vegetables, Lesson 4, Content 5
+    {
+        lesson_content_id: 57,
+        lesson_id: 8,
+        content_name: 'Post-harvest practices',
+        objectives: 'After reading this information sheet, you should be able to learn harvesting practices.',
+    },
+    // Module 2: Produce Organic Vegetables, Lesson 4, Content 6
+    {
+        lesson_content_id: 58,
+        lesson_id: 8,
+        content_name: 'Record Keeping',
+        objectives: 'After reading this information sheet, you should be able to learn record keeping of harvest.',
     },
 ];
 
