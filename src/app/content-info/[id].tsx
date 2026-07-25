@@ -74,7 +74,7 @@ export default function ContentInfoScreen() {
 
   return (
     <ThemedView style={styles.screen}>
-      <Header title="Content Info" showBack />
+      <Header title="Content Info" showBack onBack={() => router.replace({ pathname: '/lesson', params: { userId: String(activeUserId) } })} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {loading ? (
           <View style={styles.emptyState}>

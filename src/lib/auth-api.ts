@@ -199,6 +199,8 @@ const DEFAULT_LESSON_CONTENTS: Omit<LessonContentRecord, 'lesson_content_id' | '
   { lesson_id: 8, content_name: 'Harvest Marketable Products', objectives: 'After reading this information sheet, you should be able to harvest marketable products.' },
   { lesson_id: 8, content_name: 'Classify Marketable Products', objectives: 'After reading this information sheet, you should be able to classify marketable products.' },
   { lesson_id: 8, content_name: 'Harvesting Tools and Materials', objectives: 'After reading this information sheet, you should be able identify the best tools for harvesting.' },
+  { lesson_id: 8, content_name: 'Post-harvest practices', objectives: 'After reading this information sheet, you should be able to learn harvesting practices.' },
+  { lesson_id: 8, content_name: 'Record Keeping', objectives: 'After reading this information sheet, you should be able to learn record keeping of harvest.' },
   { lesson_id: 9, content_name: 'Site Selection', objectives: 'After reading this information sheet, you should be able to select composting site.' },
   { lesson_id: 9, content_name: 'Prepare Site Layout', objectives: 'After reading this information sheet, you should be able to prepare composting site layout.' },
   { lesson_id: 9, content_name: 'Prepare Bed', objectives: 'After reading this information sheet, you should be able to prepare bed for composting.' },

@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View, Image } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
-import { LessonContentRecord, LessonRecord, ModuleRecord, listLessons, listLessonContentByLessonId, listModules, ContentInfoRecord, listContentInfoByLessonContentId, resolveContentInfoAsset } from '@/lib/auth-api';
+import { LessonContentRecord, LessonRecord, ModuleRecord, listLessons, listLessonContentByLessonId, listModules } from '@/lib/auth-api';
 
 const PRIMARY = '#5bec13';
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -30,7 +30,6 @@ export default function LessonScreen() {
   const [modules, setModules] = useState<ModuleRecord[]>([]);
   const [lessons, setLessons] = useState<LessonRecord[]>([]);
   const [lessonContents, setLessonContents] = useState<LessonContentRecord[]>([]);
-  const [contentInfoPreviews, setContentInfoPreviews] = useState<Record<number, ContentInfoRecord[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -84,18 +83,8 @@ export default function LessonScreen() {
     try {
       const contents = await listLessonContentByLessonId(lesson.lesson_id);
       setLessonContents(contents);
-
-      const previews: Record<number, ContentInfoRecord[]> = {};
-      await Promise.all(
-        contents.map(async (content) => {
-          const infos = await listContentInfoByLessonContentId(content.lesson_content_id);
-          previews[content.lesson_content_id] = infos.slice(0, 3);
-        })
-      );
-      setContentInfoPreviews(previews);
     } catch {
       setLessonContents([]);
-      setContentInfoPreviews({});
     }
   };
 
@@ -232,44 +221,20 @@ export default function LessonScreen() {
             <Text style={styles.modalSection}>Lesson Contents</Text>
             <ScrollView style={styles.contentList} contentContainerStyle={styles.contentListContent} showsVerticalScrollIndicator={false}>
               {lessonContents.length > 0 ? (
-                lessonContents.map((content) => {
-                  const previews = contentInfoPreviews[content.lesson_content_id] || [];
-                  const firstInfo = previews[0];
-                  const imageUri = firstInfo ? resolveContentInfoAsset(firstInfo.images) : null;
-
-                  return (
-                    <View key={content.lesson_content_id} style={styles.contentCard}>
-                      <View style={styles.contentHeader}>
-                        <Text style={styles.contentName}>• {content.content_name}</Text>
-                      </View>
-                      <View style={styles.contentBody}>
-                        <Text style={styles.contentLabel}>Objectives</Text>
-                        <Text style={styles.contentValue}>{content.objectives}</Text>
-                      </View>
-
-                      {previews.length > 0 ? (
-                        <View style={styles.contentInfoPreview}>
-                          <Text style={styles.contentInfoPreviewTitle}>Content Info Preview</Text>
-                          {previews.map((info, index) => (
-                            <View key={info.content_info_id} style={styles.contentInfoPreviewItem}>
-                              <Text style={styles.contentInfoPreviewLabel}>{index + 1}. {info.label}</Text>
-                              {index === 0 && imageUri ? (
-                                <Image source={{ uri: imageUri }} style={styles.contentInfoPreviewImage} resizeMode="contain" />
-                              ) : null}
-                            </View>
-                          ))}
-                          {previews.length > 3 ? (
-                            <Text style={styles.contentInfoPreviewMore}>...and {previews.length - 3} more</Text>
-                          ) : null}
-                        </View>
-                      ) : null}
-
-                      <Pressable onPress={() => openContentInfo(content.lesson_content_id)} style={styles.contentViewButton}>
-                        <Text style={styles.contentViewButtonText}>View Content Info</Text>
-                      </Pressable>
+                lessonContents.map((content) => (
+                  <View key={content.lesson_content_id} style={styles.contentCard}>
+                    <View style={styles.contentHeader}>
+                      <Text style={styles.contentName}>• {content.content_name}</Text>
                     </View>
-                  );
-                })
+                    <View style={styles.contentBody}>
+                      <Text style={styles.contentLabel}>Objectives</Text>
+                      <Text style={styles.contentValue}>{content.objectives}</Text>
+                    </View>
+                    <Pressable onPress={() => openContentInfo(content.lesson_content_id)} style={styles.contentViewButton}>
+                      <Text style={styles.contentViewButtonText}>View Content Info</Text>
+                    </Pressable>
+                  </View>
+                ))
               ) : (
                 <View style={styles.emptyContentCard}>
                   <Text style={styles.emptyContentText}>No lesson content available for this lesson.</Text>
@@ -572,44 +537,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#000000',
     lineHeight: 18,
-  },
-  contentInfoPreview: {
-    marginTop: 4,
-    padding: 10,
-    borderRadius: 12,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.12)',
-    gap: 6,
-  },
-  contentInfoPreviewTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  contentInfoPreviewItem: {
-    gap: 4,
-  },
-  contentInfoPreviewLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#000000',
-    lineHeight: 18,
-  },
-  contentInfoPreviewImage: {
-    width: '100%',
-    height: 160,
-    borderRadius: 10,
-    backgroundColor: '#ffffff',
-    marginTop: 4,
-  },
-  contentInfoPreviewMore: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748b',
-    marginTop: 2,
   },
   emptyContentCard: {
     paddingVertical: 24,

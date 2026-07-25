@@ -8,9 +8,10 @@ import { getUserById } from '@/lib/auth-api';
 type HeaderProps = {
   title?: string;
   showBack?: boolean;
+  onBack?: () => void;
 };
 
-export function Header({ title = 'AgriLearn', showBack = false }: HeaderProps) {
+export function Header({ title = 'AgriLearn', showBack = false, onBack }: HeaderProps) {
   const router = useRouter();
   const params = useLocalSearchParams<{ userId?: string }>();
   const userId = Number(params.userId ?? '1');
@@ -39,12 +40,20 @@ export function Header({ title = 'AgriLearn', showBack = false }: HeaderProps) {
 
   const displayRole = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Student';
 
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.back();
+    }
+  };
+
   return (
     <View style={[styles.wrap, { paddingTop: Math.max(insets.top, 12) }]}>
       <View style={styles.inner}>
         <View style={styles.leftArea}>
           {showBack ? (
-            <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Pressable onPress={handleBack} style={styles.backButton}>
               <Text style={styles.backButtonText}>←</Text>
             </Pressable>
           ) : null}
