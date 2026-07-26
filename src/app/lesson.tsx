@@ -4,7 +4,7 @@ import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
-import { LessonContentRecord, LessonRecord, ModuleRecord, listLessons, listLessonContentByLessonId, listModules } from '@/lib/auth-api';
+import { LessonContentRecord, LessonInfoRecord, LessonLinkRecord, LessonRecord, ModuleRecord, listLessons, listLessonContentByLessonId, listModules, listLessonInfoByLessonId, listLessonLinkByLessonId } from '@/lib/auth-api';
 
 const PRIMARY = '#5bec13';
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -30,6 +30,8 @@ export default function LessonScreen() {
   const [modules, setModules] = useState<ModuleRecord[]>([]);
   const [lessons, setLessons] = useState<LessonRecord[]>([]);
   const [lessonContents, setLessonContents] = useState<LessonContentRecord[]>([]);
+  const [lessonInfos, setLessonInfos] = useState<LessonInfoRecord[]>([]);
+  const [lessonLinks, setLessonLinks] = useState<LessonLinkRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -83,8 +85,17 @@ export default function LessonScreen() {
     try {
       const contents = await listLessonContentByLessonId(lesson.lesson_id);
       setLessonContents(contents);
+
+      const [infos, links] = await Promise.all([
+        listLessonInfoByLessonId(lesson.lesson_id),
+        listLessonLinkByLessonId(lesson.lesson_id),
+      ]);
+      setLessonInfos(infos);
+      setLessonLinks(links);
     } catch {
       setLessonContents([]);
+      setLessonInfos([]);
+      setLessonLinks([]);
     }
   };
 
@@ -99,6 +110,8 @@ export default function LessonScreen() {
     setDetailVisible(false);
     setSelectedLesson(null);
     setLessonContents([]);
+    setLessonInfos([]);
+    setLessonLinks([]);
   };
 
   const lessonGroups = useMemo<LessonGroup[]>(() => {
@@ -199,52 +212,80 @@ export default function LessonScreen() {
               </Pressable>
             </View>
 
-            <View style={styles.infoCard}>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Lesson ID</Text>
-                <Text style={styles.infoValue}>#{selectedLesson?.lesson_id}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Module ID</Text>
-                <Text style={styles.infoValue}>#{selectedLesson?.module_id}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Lesson Name</Text>
-                <Text style={styles.infoValue}>{selectedLesson?.lesson_name}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Order</Text>
-                <Text style={styles.infoValue}>{selectedLesson?.order_number}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.modalSection}>Lesson Contents</Text>
-            <ScrollView style={styles.contentList} contentContainerStyle={styles.contentListContent} showsVerticalScrollIndicator={false}>
-              {lessonContents.length > 0 ? (
-                lessonContents.map((content) => (
-                  <View key={content.lesson_content_id} style={styles.contentCard}>
-                    <View style={styles.contentHeader}>
-                      <Text style={styles.contentName}>• {content.content_name}</Text>
-                    </View>
-                    <View style={styles.contentBody}>
-                      <Text style={styles.contentLabel}>Objectives</Text>
-                      <Text style={styles.contentValue}>{content.objectives}</Text>
-                    </View>
-                    <Pressable onPress={() => openContentInfo(content.lesson_content_id)} style={styles.contentViewButton}>
-                      <Text style={styles.contentViewButtonText}>View Content Info</Text>
-                    </Pressable>
-                  </View>
-                ))
-              ) : (
-                <View style={styles.emptyContentCard}>
-                  <Text style={styles.emptyContentText}>No lesson content available for this lesson.</Text>
+            <ScrollView contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.infoCard}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Lesson ID</Text>
+                  <Text style={styles.infoValue}>#{selectedLesson?.lesson_id}</Text>
                 </View>
-              )}
-            </ScrollView>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Module ID</Text>
+                  <Text style={styles.infoValue}>#{selectedLesson?.module_id}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Lesson Name</Text>
+                  <Text style={styles.infoValue}>{selectedLesson?.lesson_name}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Order</Text>
+                  <Text style={styles.infoValue}>{selectedLesson?.order_number}</Text>
+                </View>
+              </View>
 
-            <Pressable onPress={closeLessonDetail} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>Close</Text>
-            </Pressable>
+              {lessonInfos.length > 0 ? (
+                <View style={styles.infoCard}>
+                  <Text style={styles.modalSection}>Lesson Info</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalListContent}>
+                    {lessonInfos.map((info) => (
+                      <View key={info.lesson_info_id} style={styles.horizontalCard}>
+                        <Text style={styles.horizontalLabel}>{info.label}</Text>
+                        <Text style={styles.horizontalContent}>{info.content}</Text>
+                      </View>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : null}
+
+              {lessonLinks.length > 0 ? (
+                <View style={styles.infoCard}>
+                  <Text style={styles.modalSection}>Lesson Links</Text>
+                  {lessonLinks.map((link) => (
+                    <View key={link.lesson_link_id} style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Link</Text>
+                      <Text style={[styles.infoValue, styles.linkText]}>{link.link}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
+              <Text style={styles.modalSection}>Lesson Contents</Text>
+              <ScrollView style={styles.contentList} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+                {lessonContents.length > 0 ? (
+                  lessonContents.map((content) => (
+                    <View key={content.lesson_content_id} style={styles.contentCard}>
+                      <View style={styles.contentHeader}>
+                        <Text style={styles.contentName}>• {content.content_name}</Text>
+                      </View>
+                      <View style={styles.contentBody}>
+                        <Text style={styles.contentLabel}>Objectives</Text>
+                        <Text style={styles.contentValue}>{content.objectives}</Text>
+                      </View>
+                      <Pressable onPress={() => openContentInfo(content.lesson_content_id)} style={styles.contentViewButton}>
+                        <Text style={styles.contentViewButtonText}>View Content Info</Text>
+                      </Pressable>
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.emptyContentCard}>
+                    <Text style={styles.emptyContentText}>No lesson content available for this lesson.</Text>
+                  </View>
+                )}
+              </ScrollView>
+
+              <Pressable onPress={closeLessonDetail} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </Pressable>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -430,10 +471,12 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 420,
+    maxHeight: '85%',
     borderRadius: 20,
     padding: 18,
     gap: 12,
     backgroundColor: '#ffffff',
+    alignSelf: 'stretch',
   },
   modalHeaderRow: {
     flexDirection: 'row',
@@ -499,11 +542,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  contentList: {
-    maxHeight: 260,
-  },
-  contentListContent: {
+  modalScrollContent: {
     gap: 10,
+    paddingBottom: 16,
+  },
+  contentList: {
+    maxHeight: 220,
   },
   contentCard: {
     borderRadius: 14,
@@ -568,5 +612,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#000000',
+  },
+  linkText: {
+    fontSize: 12,
+    color: '#2563eb',
+    textDecorationLine: 'underline',
+  },
+  horizontalListContent: {
+    gap: 10,
+  },
+  horizontalCard: {
+    minWidth: 220,
+    maxWidth: 260,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+    backgroundColor: '#ffffff',
+    gap: 6,
+  },
+  horizontalLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  horizontalContent: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#000000',
+    lineHeight: 18,
   },
 });
