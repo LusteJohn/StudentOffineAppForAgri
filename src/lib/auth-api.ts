@@ -74,6 +74,23 @@ export type ContentInfoRecord = {
   images: string;
 };
 
+export type LessonInfoRecord = {
+  lesson_info_id: number;
+  lesson_id: number;
+  label: string;
+  content: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LessonLinkRecord = {
+  lesson_link_id: number;
+  lesson_id: number;
+  link: string;
+  created_at: string;
+  updated_at: string;
+};
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -224,6 +241,63 @@ const DEFAULT_LESSON_CONTENTS: Omit<LessonContentRecord, 'lesson_content_id' | '
   { lesson_id: 13, content_name: 'Appropriate place to store', objectives: 'After reading this information sheet, you should be able to determine the appropriate storage for the various concoctionss.' },
 ];
 
+const DEFAULT_LESSON_INFO: Omit<LessonInfoRecord, 'created_at' | 'updated_at'>[] = [
+  { lesson_info_id: 1, lesson_id: 1, label: 'Assessment Criteria', content: 'Breed/strains breeds are identified as per PNS-Organic Agriculture-Livestock and GAHP Guidelines. Healthy chicks are selected based on industry acceptable indicator for healthy chicks. Suitable site for chicken house are determined based on PNS recommendations. Chicken house design is prepared based PNS recommendations. House equipment installation design is prepared in line with PNS recommendation and actual scenario.' },
+  { lesson_info_id: 2, lesson_id: 1, label: 'Contents', content: 'Chicken breeds Identification, Healthy chick\'s selection, Determining suitable site for chicken house, Chicken house design preparation, and House equipment installation' },
+  { lesson_info_id: 3, lesson_id: 1, label: 'Tools, Materials and Equipment and Facilities', content: 'Farm, Feeding troughs, Waterers, Containers of concoction, Chicken/ chicks, Rice hull, Saw dust, Coco coir, Rice straw, and PPE ( Boots, surgical masks, disposable gloves, overall)' },
+  { lesson_info_id: 4, lesson_id: 2, label: 'Assessment Criteria', content: 'House equipment are installed in line with housing equipment installation design. Bedding materials are secured based on availability in the locality. Bedding is prepared in accordance with housing equipment housing design. Brooding facility is set-up in accordance with the housing equipment installation design.' },
+  { lesson_info_id: 5, lesson_id: 2, label: 'Contents', content: 'House equipment installation, Prepare and secure bedding materials, and Set-up brooding facility.' },
+  { lesson_info_id: 6, lesson_id: 2, label: 'Tools, Materials and Equipment and Facilities', content: 'Farm, Housing, Bedding materials, Brooding facility, PPE (Boots, surgical masks, disposable gloves, overall.' },
+  { lesson_info_id: 7, lesson_id: 3, label: 'Assessment Criteria', content: 'Suitable feed materials are selected based on availability in the locality and nutrient requirements of chicken. Feed materials are prepared following enterprise prescribed formulation. Animals are fed based on feeding management program. Feeding is monitored following enterprise procedure.' },
+  { lesson_info_id: 8, lesson_id: 3, label: 'Contents', content: 'Feed materials selection. feeding materials preparation. Feeding management program. Monitoring feeding' },
+  { lesson_info_id: 9, lesson_id: 3, label: 'Tools, Materials and Equipment and Facilities', content: 'PPE, Feeding trough, Chopping board, Knife, and Plant material' },
+  { lesson_info_id: 10, lesson_id: 4, label: 'Assessment Criteria', content: 'Growth rate is monitored based on enterprise procedures. Health care program are implemented based on enterprise procedures. Sanitation and cleanliness program are implemented based on enterprise procedure. Organic waste for fertilizer formulation are collected. Suitable chicken for harvest are selected based on market specifications. Production record is accomplished according to enterprise procedure.' },
+  { lesson_info_id: 11, lesson_id: 4, label: 'Contents', content: 'Monitor growth rate, Healthcare program, Sanitation and cleanliness program, Organic waste collection, Suitable chicken for harvest selection, and Production record' },
+  { lesson_info_id: 12, lesson_id: 4, label: 'Tools, Materials and Equipment and Facilities', content: 'Poultry farm, Fully grown broilers, Paper, Pen, Calculator, and Weighing scale' },
+  { lesson_info_id: 13, lesson_id: 5, label: 'Assessment Criteria', content: 'Seeds are selected in accordance with the PNS, and NSQCS/BPI. Seedbeds are prepared in accordance with planting requirements based on Vegetable Production manual (VPM). Care and maintenance of seedlings are done in accordance with enterprise practice. Potting media are prepared in accordance with enterprise procedure.' },
+  { lesson_info_id: 14, lesson_id: 5, label: 'Contents', content: 'Selection of Seeds. Seed bed Preparation. Maintaining Seedling. Prepare growing media' },
+  { lesson_info_id: 15, lesson_id: 5, label: 'Tools, Materials and Equipment and Facilities', content: 'Farm, Different vegetable seeds, Seed bed, Carbonized rice hull, Compost, Animal manure, and PPE' },
+  { lesson_info_id: 16, lesson_id: 6, label: 'Assessment Criteria', content: 'Land preparation is carried out in accordance with enterprise practice. Beneficial micro-organisms are introduced prior to planting in accordance with enterprise procedure. Seedlings are transplanted/planted based on VPM recommendations. Seedlings are watered based on VPM recommendations' },
+  { lesson_info_id: 17, lesson_id: 6, label: 'Contents', content: 'Land Preparation, Beneficial microorganisms, Planting/transplanting seedlings, and Water seedlings' },
+  { lesson_info_id: 18, lesson_id: 6, label: 'Tools, Materials and Equipment and Facilities', content: 'Farm/filed, Seedlings, Trowel, Sprinkler, water, andPPE' },
+  { lesson_info_id: 19, lesson_id: 7, label: 'Assessment Criteria', content: 'Water management is implemented according to plan. Effective control measures are determined on specific pest and diseases as described under the "pest, disease and weed management" of the PNS. All missing hills are replanted to maintain the desired plant population of the area. Plant rejuvenation/rationing are maintained according to PNS. Organic fertilizers are applied in accordance with fertilization policy of the PNS.' },
+  { lesson_info_id: 20, lesson_id: 7, label: 'Contents', content: 'Water management implementation, Pest and diseases control measures, Replanting missing hills, Plant rationing and Organic fertilizer application' },
+  { lesson_info_id: 21, lesson_id: 7, label: 'Tools, Materials and Equipment and Facilities', content: 'Seedlings, Organic fertilizer (compost, animal manure), botanical repellants, hose, and water source' },
+  { lesson_info_id: 22, lesson_id: 8, label: 'Assessment Criteria', content: 'Products are checked using maturity indices according to PNS, PNS-organic agriculture and enterprise practice. Marketable products are harvested according to PNS, PNSorganic agriculture and enterprise practice. Harvested vegetables are classified according to PNS, PNSorganic agriculture and enterprise practice. Appropriate harvesting tools and materials are used according to PNS. Post-harvest practices are applied according to PNS and GAP recommendation. Production record is accomplished according to enterprise procedures.' },
+  { lesson_info_id: 23, lesson_id: 8, label: 'Contents', content: 'maturity indices, harvest marketable products, classify marketable products, harvesting tools and materials, Post-harvest practices, and Record Keeping' },
+  { lesson_info_id: 24, lesson_id: 8, label: 'Tools, Materials and Equipment and Facilities', content: 'Ladder, Basket, Scissors, Scythe, and Notebook and pen' },
+  { lesson_info_id: 25, lesson_id: 9, label: 'Assessment Criteria', content: 'Site is selected based on compost fertilizer production requirements and Site lay-out is prepared based on location. Bed is prepared in accordance with production requirements. Materials are gather based on production requirements and PNS for organic fertilizer. Prepare raw materials following enterprise procedure and PNS for organic fertilizer.' },
+  { lesson_info_id: 26, lesson_id: 9, label: 'Contents', content: 'Site Selection, Prepare site layout, Prepare bed, Gather material, and Prepare raw materials' },
+  { lesson_info_id: 27, lesson_id: 9, label: 'Tools, Materials and Equipment and Facilities', content: 'Composting shed using locally available materials, Shredder, Drums for water storage, Flat and pointed shovels, Hoe, Wheelbarrow, Sieve, and Water hose' },
+  { lesson_info_id: 28, lesson_id: 10, label: 'Assessment Criteria', content: 'Appropriate composting methods are applied based on production requirements. Compost is monitored based PNS indicators of fully decomposed fertilizer. Quality of harvest is checked based on PNS indicators of fully decomposed fertilizer. Processing of compost fertilizer are carried- out based on production requirement. Record keeping is performed according to enterprise procedure.' },
+  { lesson_info_id: 29, lesson_id: 10, label: 'Contents', content: 'Composting methods, Decomposed fertilizer, Quality of harvest, Processing of compost fertilizer, and Record keeping' },
+  { lesson_info_id: 30, lesson_id: 10, label: 'Tools, Materials and Equipment and Facilities', content: 'Composting area and PPE (Boots, surgical masks, disposable gloves, overall)' },
+  { lesson_info_id: 31, lesson_id: 11, label: 'Assessment Criteria', content: 'Work and storage areas are cleaned, sanitized and secured. Raw materials used are cleaned and freed from synthetic chemicals. Tools, materials and equipment used are cleaned, freed from contaminations and must be of "food grade" quality. Personal hygiene are observed according to OHS procedures.' },
+  { lesson_info_id: 32, lesson_id: 11, label: 'Contents', content: 'Storage Areas, Raw materials Tools, materials and equipment, and Personal hygiene' },
+  { lesson_info_id: 33, lesson_id: 11, label: 'Tools, Materials and Equipment and Facilities', content: 'kangkong, camote tops, alugbati, malunggay, banana trunks, bamboo shoots and other fast growing green plants, Molasses/mascuvado/ brown sugar Ripe and sweet fruits but not limited to banana, papaya, watermelon, ampalaya , tomato Trash Fish and gills, scales, offal of big fishes, golden kuhol meat Garlic, ginger, Pure coconut vinegar animal bones, egg shell, sea shell, kuhol shell 1 kl. Cooked, cool rice900 ml. fresh milk, 100 ml clear liquid from fermented rice, Plastic pail, Wooden ladle, Manila paper or cheese cloth, String or rubber bands, Weighing scale,  Chopping board,  Knife  Marker,  Strainer or nylon screen,' },
+  { lesson_info_id: 34, lesson_id: 12, label: 'Assessment Criteria', content: 'Raw materials are prepared in accordance with enterprise practice. Fermentation period is set based on enterprise practice. Various concoctions are fermented following to organic practices. Concoctions are harvested based on fermentation period of the concoction.' },
+  { lesson_info_id: 35, lesson_id: 12, label: 'Contents', content: 'Prepare raw materials, Fermentation period, Various concoctions, and Period of harvest' },
+  { lesson_info_id: 36, lesson_id: 12, label: 'Tools Materials and Equipment', content: 'Storage area, kangkong, camote tops, alugbati, malunggay, banana trunks, bamboo shoots and other fast growing green plants, Molasse/mascuvado/ brown sugar Ripe and sweet fruits but not limited to banana, papaya, watermelon, ampalaya , tomato Trash Fish and gills, scales, offal of big fishes, golden kuhol, meat, Garlic, ginger, Pure coconut vinegar animal bones, egg shell, sea shell, kuhol shell 1 kl. Cooked, cool rice900 ml. fresh milk, 100 ml clear liquid from fermented rice, Plastic pail, Wooden ladle, Manila paper or cheese cloth, String or rubber bands, Weighing scale, chopping board,  Knife  Marker,  Strainer or nylon screen.' },
+  { lesson_info_id: 37, lesson_id: 13, label: 'Assessment Criteria', content: 'Concoctions are contained in sanitized bottles and containers. Packaged concoctions are labeled and tagged in accordance with enterprise practice. Packaged concoctions are stored in appropriate place and temperature following organic practices. Production of concoctions are recorded using enterprise procedures.' },
+  { lesson_info_id: 38, lesson_id: 13, label: 'Contents', content: 'Sanitize bottles and containers, Package concoctions, Appropriate place to store, and Production Record' },
+  { lesson_info_id: 39, lesson_id: 13, label: 'Tools materials and equipment', content: 'Various concoctions, Concoction area, sanitized bottles, Labelling, and Storing area' },
+];
+
+const DEFAULT_LESSON_LINK: Omit<LessonLinkRecord, 'created_at' | 'updated_at'>[] = [
+  { lesson_link_id: 1, lesson_id: 1, link: 'https://starmilling.com/poultry-chicken-breeds, https://www.google.com/search?sxsrf=AOaemvKfBotEpb8oaDfLzaZm4Le020JS1w:1631077568545&q=suitable+site+for+chicken+house&spell=1&sa=X&ved=2ahUKEwjGuMu4ze7yAhXNAogKHQSLCcoQBSgAegQIAhAx&biw=1367&bih=630, https://the-chicken-chick.com/tips-for-choosing-healthy-chicks/, https://poultrymanual.com/philippines-chicken-house-design' },
+  { lesson_link_id: 2, lesson_id: 2, link: 'https://www.thepoultrysite.com/articles/putting-down-perfect-bedding-for-your-poultry, https://www.agriculturediary.com/poultry-farming-poultry-housing-equipment, https://www.farmanddairy.com/top-stories/how-to-set-up-a-brooder-for-baby-chicks/469356.html' },
+  { lesson_link_id: 3, lesson_id: 3, link: 'https://agronomag.com/organic-chicken-feed-short-guide-on-the-nutrition-of-organic-chickens/, https://thefrugalchicken.com/organic-homemade-chicken-feed/, http://www.fao.org/3/t0207e/T0207E0a.htm, https://www.wikihow.com/Make-Feed-for-Chickens, https://petkeen.com/feeding-chicken-how-much-how-often/, https://www.sciencedirect.com/topics/agricultural-and-biological-sciences/ad-libitum-feeding' },
+  { lesson_link_id: 4, lesson_id: 4, link: 'https://www.researchgate.net/post/How-do-I-measure-the-growth-rate-and-feed-conversion-rates-of-poultry-birds, https://www.val-co.com/management-minute-broiler-weight-monitoring/, https://www.poultryhub.org/all-about-poultry/health-management, https://en.engormix.com/poultry-industry/articles/sanitation-cleaning-disinfecting-poultry-t34212.htm, https://www.hazardouswasteexperts.com/what-you-need-to-know-about-organic-waste/, https://thepoultrypunch.com/2020/09/poultry-farm-waste-disposal-management/, https://rapidcityjournal.com/lifestyles/food-and-cooking/raising-chickens-for-meat-know-your-breeds-and-how-to-harvest-humanely/article_b0740f44-11eb-5b20-8233-67e6ece30993.html, https://newsfromthecoop.hoovershatchery.com/harvestingmeatchickens/' },
+  { lesson_link_id: 5, lesson_id: 5, link: 'https://www.hortmag.com/weekly-tips/how-to-know-if-garden-seed-is-viable, https://www.gardenersworld.com/how-to/grow-plants/how-to-test-seed-viability/, https://www.nrcs.usda.gov/Internet/FSE_PLANTMATERIALS/publications/idpmctn10748.pdf, https://smartlivingidea.com/how-to-prepare-a-seedbed/, http://www.heirloom-organics.com/guide/seedstartingcare.html, https://askinglot.com/how-do-you-maintain-seedlings, https://avrdc.org/prepare-growing-medium-seedling-production/' },
+  { lesson_link_id: 6, lesson_id: 6, link: 'https://www.agrifarming.in/land-preparation-types-methods-objectives-advantages, http://www.knowledgebank.irri.org/step-by-step-production/pre-planting/land-preparation, https://www.sciencedirect.com/topics/agricultural-and-biological-sciences/beneficial-microorganisms, https://knoji.com/article/examples-of-beneficial-microorganisms-and-what-they-do/, https://www.nrcs.usda.gov/Internet/FSE_DOCUMENTS/nrcs144p2_002239.pdf, https://www.bootstrapfarmer.com/blogs/how-to-grow-seedlings/easiest-way-to-water-your-seedlings, https://balconygardenweb.com/how-to-water-seedlings/' },
+  { lesson_link_id: 7, lesson_id: 7, link: 'https://www.un.org/waterforlifedecade/iwrm.shtml, https://www.growpittsburgh.org/garden-and-farm-resources/info-hub/pest-disease-management/, https://www.hortweek.com/plant-rationing-comes-sales-fly/ornamentals/article/1710204, https://ph.search.yahoo.com/yhs/search?hspart=trp&hsimp=yhs-001&type=64891_070717&p=organic+fertilizer+application' },
+  { lesson_link_id: 8, lesson_id: 8, link: 'https://agriculturistmusa.com/maturity-indices-types-and-determination/, https://morningchores.com/most-profitable-crops/, https://www.indeed.com/career-advice/career-development/classification-of-consumer-products, https://horticulture.ucdavis.edu/postharvest' },
+  { lesson_link_id: 9, lesson_id: 9, link: 'https://www.progressivegardening.com/waste-management/siting-and-area-considerations.html' },
+  { lesson_link_id: 10, lesson_id: 10, link: 'https://aseq-ehaq.ca/en/composting-101, https://directcompostsolutions.com/8-methods-composting/' },
+  { lesson_link_id: 11, lesson_id: 11, link: 'https://www.youtube.com/watch?v=GouWt_DM544, https://www.youtube.com/watch?v=Qr3gZAbnrHM, https://www.youtube.com/watch?v=W58mZaJCArA, https://www.youtube.com/watch?v=peJeyMV2Plc, https://www.youtube.com/watch?v=lspuVsEW3vY, https://www.youtube.com/watch?v=6a1YezkoLjs, https://www.youtube.com/watch?v=A40KLz6fRk8, https://www.youtube.com/watch?v=UXysXSFuME0, https://www.youtube.com/watch?v=vCFkmuUL-S0, https://www.youtube.com/watch?v=XzdeuMz3MZ4, http://organic.da.gov.ph/images/IECs/FPJ.pdf' },
+  { lesson_link_id: 12, lesson_id: 12, link: 'https://www.ctahr.hawaii.edu/oc/freepubs/pdf/SA-8.pdf /, Making Culturing Lactic Acid Bacteria (LAB) http://www.cgnfindia.com/lab.html, (3) Lactobacillus Serum http://theunconventionalfarmer.com/recipes/lactobacillus-serum/, https://businessdiary.com.ph/3470/how-to-make-fermented-fruit-juice-or-ff' },
+];
+
 const databasePromise = SQLite.openDatabaseAsync('student-offline-auth.db');
 
 function toStudentUser(user: StoredStudentUser): StudentUser {
@@ -312,6 +386,23 @@ async function ensureDatabase() {
         FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id)
       )  
     `),
+    `CREATE TABLE IF NOT EXISTS lesson_info (
+      lesson_info_id INTEGER PRIMARY KEY NOT NULL,
+      lesson_id INTEGER NOT NULL,
+      label TEXT NOT NULL,
+      content TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS lesson_link (
+      lesson_link_id INTEGER PRIMARY KEY NOT NULL,
+      lesson_id INTEGER NOT NULL,
+      link TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
+    )`,
   ];
 
   for (const sql of createStatements) {
@@ -754,6 +845,18 @@ export async function getContentInfoById(contentInfoId: number) {
   return rows[0] ?? null;
 }
 
+export async function listLessonInfoByLessonId(lessonId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonInfoRecord>('SELECT * FROM lesson_info WHERE lesson_id = ? ORDER BY lesson_info_id ASC', [lessonId]);
+}
+
+export async function listLessonLinkByLessonId(lessonId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonLinkRecord>('SELECT * FROM lesson_link WHERE lesson_id = ? ORDER BY lesson_link_id ASC', [lessonId]);
+}
+
 export async function getLessonContentById(lessonContentId: number) {
   await ensureDatabase();
   const db = await databasePromise;
@@ -770,6 +873,8 @@ export async function resetAndSeedLocalData() {
   const lessons = await db.getAllAsync<LessonRecord>('SELECT * FROM lessons ORDER BY lesson_id ASC');
   const lessonContents = await db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content ORDER BY lesson_content_id ASC');
   const contentInfos = await db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info ORDER BY content_info_id ASC');
+  const lessonInfos = await db.getAllAsync<LessonInfoRecord>('SELECT * FROM lesson_info ORDER BY lesson_info_id ASC');
+  const lessonLinks = await db.getAllAsync<LessonLinkRecord>('SELECT * FROM lesson_link ORDER BY lesson_link_id ASC');
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
     competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
@@ -786,14 +891,22 @@ export async function resetAndSeedLocalData() {
   const hasDefaultContentInfo = DEFAULT_CONTENT_INFO.every((expected) =>
     contentInfos.some((ci) => String(ci.content_info_id) === String(expected.content_info_id))
   );
+  const hasDefaultLessonInfo = DEFAULT_LESSON_INFO.every((expected) =>
+    lessonInfos.some((li) => String(li.lesson_info_id) === String(expected.lesson_info_id))
+  );
+  const hasDefaultLessonLink = DEFAULT_LESSON_LINK.every((expected) =>
+    lessonLinks.some((ll) => String(ll.lesson_link_id) === String(expected.lesson_link_id))
+  );
 
-  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
+  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
     return {
       competencies: competencies.length,
       modules: modules.length,
       lessons: lessons.length,
       lessonContents: lessonContents.length,
       contentInfo: contentInfos.length,
+      lessonInfo: lessonInfos.length,
+      lessonLink: lessonLinks.length,
       alreadyImported: true,
     };
   }
@@ -805,12 +918,16 @@ export async function resetAndSeedLocalData() {
   await db.runAsync('DELETE FROM modules');
   await db.runAsync('DELETE FROM competencies');
   await db.runAsync('DELETE FROM content_info');
+  await db.runAsync('DELETE FROM lesson_info');
+  await db.runAsync('DELETE FROM lesson_link');
   try {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_content'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'modules'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'competencies'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'content_info'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_info'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_link'");
   } catch {
     // sqlite_sequence may not exist in some SQLite versions/environments.
   }
@@ -874,12 +991,36 @@ export async function resetAndSeedLocalData() {
     );
   }
 
+  for (let index = 0; index < DEFAULT_LESSON_INFO.length; index += 1) {
+    const infoItem = DEFAULT_LESSON_INFO[index];
+
+    await db.runAsync(
+      `INSERT INTO lesson_info
+        (lesson_info_id, lesson_id, label, content, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)`,
+      [infoItem.lesson_info_id, infoItem.lesson_id, infoItem.label, infoItem.content, now, now]
+    );
+  }
+
+  for (let index = 0; index < DEFAULT_LESSON_LINK.length; index += 1) {
+    const linkItem = DEFAULT_LESSON_LINK[index];
+
+    await db.runAsync(
+      `INSERT INTO lesson_link
+        (lesson_link_id, lesson_id, link, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?)`,
+      [linkItem.lesson_link_id, linkItem.lesson_id, linkItem.link, now, now]
+    );
+  }
+
   return {
     competencies: DEFAULT_COMPETENCIES.length,
     modules: DEFAULT_MODULES.length,
     lessons: DEFAULT_LESSONS.length,
     lessonContents: DEFAULT_LESSON_CONTENTS.length,
     contentInfo: DEFAULT_CONTENT_INFO.length,
+    lessonInfo: DEFAULT_LESSON_INFO.length,
+    lessonLink: DEFAULT_LESSON_LINK.length,
     alreadyImported: false,
   };
 }

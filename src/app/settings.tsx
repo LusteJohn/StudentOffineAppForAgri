@@ -31,11 +31,11 @@ export default function SettingsScreen() {
               const result = await resetAndSeedLocalData();
               if (result.alreadyImported) {
                 setMessage(
-                  `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, and ${result.contentInfo} content info records.`
+                  `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, and ${result.lessonLink} lesson link records.`
                 );
               } else {
                 setMessage(
-                  `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, and ${result.contentInfo} content info records saved to this device.`
+                  `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, and ${result.lessonLink} lesson link records saved to this device.`
                 );
               }
             } catch (importError) {
@@ -73,7 +73,7 @@ export default function SettingsScreen() {
                   Import offline resources
                 </ThemedText>
                 <ThemedText style={[styles.actionDescription, { color: '#000000' }]}>
-                  Replace the current local competency, module, lesson, lesson-content, and content-info data with the default offline dataset.
+                  Replace the current local competency, module, lesson, lesson-content, content-info, lesson-info, and lesson-link data with the default offline dataset.
                 </ThemedText>
               </View>
             </View>
