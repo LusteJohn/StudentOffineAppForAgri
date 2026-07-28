@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 
 type BottomNavbarProps = {
-  activeTab: 'home' | 'profile' | 'library' | 'lesson' | 'exercise' | 'content-info' | 'settings';
+  activeTab: 'home' | 'library' | 'lesson' | 'exercise' | 'content-info' | 'settings';
   userId: number;
 };
 
@@ -16,12 +16,6 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   const goHome = () => {
     if (activeTab !== 'home') {
       router.replace({ pathname: '/home', params: { userId: String(userId) } });
-    }
-  };
-
-  const goProfile = () => {
-    if (activeTab !== 'profile') {
-      router.replace({ pathname: '/student-profile', params: { userId: String(userId) } });
     }
   };
 
@@ -83,15 +77,6 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
             color={activeTab === 'home' ? '#000000' : '#5c6b61'}
           />
           <Text style={[styles.tabLabel, activeTab === 'home' && styles.activeTabLabel]}>Home</Text>
-        </Pressable>
-
-        <Pressable onPress={goProfile} style={[styles.tabButton, activeTab === 'profile' && styles.activeTabButton]}>
-          <Ionicons
-            name={activeTab === 'profile' ? 'person' : 'person-outline'}
-            size={22}
-            color={activeTab === 'profile' ? '#000000' : '#5c6b61'}
-          />
-          <Text style={[styles.tabLabel, activeTab === 'profile' && styles.activeTabLabel]}>Profile</Text>
         </Pressable>
 
         <Pressable onPress={goLibrary} style={[styles.tabButton, activeTab === 'library' && styles.activeTabButton]}>
