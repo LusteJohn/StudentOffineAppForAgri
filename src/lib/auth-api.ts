@@ -1,5 +1,8 @@
 import * as SQLite from 'expo-sqlite';
 import { DEFAULT_CONTENT_INFO } from './content-info-seed';
+import { DEFAULT_QUESTION_INSTRUCT } from './question-instruct-seed';
+import { DEFAULT_QUESTION_CONTENT } from './question-content-seed';
+import { DEFAULT_QUESTION_CHOICE } from './question-choice-seed';
 
 export type StudentUser = {
   user_id: number;
@@ -90,6 +93,35 @@ export type LessonLinkRecord = {
   created_at: string;
   updated_at: string;
 };
+
+export type QuestionInstructionRecord = {
+  instruct_id: number;
+  lesson_content_id: number;
+  question_instruction: string;
+  question_title: string;
+  question_label: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type QuestionContentRecord = {
+  question_id: number;
+  lesson_content_id: number;
+  question: string;
+  questionType: string;
+  questionOrder: number;
+  created_at: string;
+  updated_at: string;
+}
+export type QuestionChoiceRecord = {
+  choice_id: number;
+  question_id: number;
+  choice_label: string;
+  choice_text: string;
+  is_correct: string;
+  created_at: string;
+  updated_at: string;
+}
 
 type StoredStudentUser = StudentUser & {
   password: string;
@@ -402,6 +434,36 @@ async function ensureDatabase() {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS question_instruct (
+        instruct_id INTEGER PRIMARY KEY NOT NULL,
+        lesson_content_id INTEGER NOT NULL,
+        question_instruction TEXT NOT NULL,
+        question_title TEXT NOT NULL,
+        question_label TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS question_content (
+        question_id INTEGER PRIMARY KEY NOT NULL,
+        lesson_content_id INTEGER NOT NULL,
+        question TEXT NOT NULL,
+        question_type TEXT NOT NULL,
+        question_order INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS question_choice (
+        choice_id INTEGER PRIMARY KEY NOT NULL,
+        question_id INTEGER NOT NULL,
+        choice_label TEXT NOT NULL,
+        choice_text TEXT NOT NULL,
+        is_correct TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (question_id) REFERENCES question_content(question_id)
     )`,
   ];
 
@@ -857,6 +919,24 @@ export async function listLessonLinkByLessonId(lessonId: number) {
   return db.getAllAsync<LessonLinkRecord>('SELECT * FROM lesson_link WHERE lesson_id = ? ORDER BY lesson_link_id ASC', [lessonId]);
 }
 
+export async function listQuestionInstructByLessonContentId(lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<QuestionInstructionRecord>('SELECT * FROM question_instruct WHERE lesson_content_id = ? ORDER BY instruct_id ASC', [lessonContentId]);
+}
+
+export async function listQuestionContentByLessonContentId(lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<QuestionContentRecord>('SELECT * FROM question_content WHERE lesson_content_id = ? ORDER BY question_order ASC, question_id ASC', [lessonContentId]);
+}
+
+export async function listQuestionChoiceByQuestionId(questionId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<QuestionChoiceRecord>('SELECT * FROM question_choice WHERE question_id = ? ORDER BY choice_id ASC', [questionId]);
+}
+
 export async function getLessonContentById(lessonContentId: number) {
   await ensureDatabase();
   const db = await databasePromise;
@@ -875,6 +955,9 @@ export async function resetAndSeedLocalData() {
   const contentInfos = await db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info ORDER BY content_info_id ASC');
   const lessonInfos = await db.getAllAsync<LessonInfoRecord>('SELECT * FROM lesson_info ORDER BY lesson_info_id ASC');
   const lessonLinks = await db.getAllAsync<LessonLinkRecord>('SELECT * FROM lesson_link ORDER BY lesson_link_id ASC');
+  const questionInstructs = await db.getAllAsync<QuestionInstructionRecord>('SELECT * FROM question_instruct ORDER BY instruct_id ASC');
+  const questionContents = await db.getAllAsync<QuestionContentRecord>('SELECT * FROM question_content ORDER BY question_id ASC');
+  const questionChoices = await db.getAllAsync<QuestionChoiceRecord>('SELECT * FROM question_choice ORDER BY choice_id ASC');
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
     competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
@@ -897,8 +980,17 @@ export async function resetAndSeedLocalData() {
   const hasDefaultLessonLink = DEFAULT_LESSON_LINK.every((expected) =>
     lessonLinks.some((ll) => String(ll.lesson_link_id) === String(expected.lesson_link_id))
   );
+  const hasDefaultQuestionInstruct = DEFAULT_QUESTION_INSTRUCT.every((expected) =>
+    questionInstructs.some((qi) => String(qi.instruct_id) === String(expected.instruct_id))
+  );
+  const hasDefaultQuestionContent = DEFAULT_QUESTION_CONTENT.every((expected) =>
+    questionContents.some((qc) => String(qc.question_id) === String(expected.question_id))
+  );
+  const hasDefaultQuestionChoice = DEFAULT_QUESTION_CHOICE.every((expected) =>
+    questionChoices.some((qch) => String(qch.choice_id) === String(expected.choice_id))
+  );
 
-  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
+  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && hasDefaultQuestionInstruct && hasDefaultQuestionContent && hasDefaultQuestionChoice && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
     return {
       competencies: competencies.length,
       modules: modules.length,
@@ -907,6 +999,9 @@ export async function resetAndSeedLocalData() {
       contentInfo: contentInfos.length,
       lessonInfo: lessonInfos.length,
       lessonLink: lessonLinks.length,
+      questionInstruct: questionInstructs.length,
+      questionContent: questionContents.length,
+      questionChoice: questionChoices.length,
       alreadyImported: true,
     };
   }
@@ -920,6 +1015,9 @@ export async function resetAndSeedLocalData() {
   await db.runAsync('DELETE FROM content_info');
   await db.runAsync('DELETE FROM lesson_info');
   await db.runAsync('DELETE FROM lesson_link');
+  await db.runAsync('DELETE FROM question_instruct');
+  await db.runAsync('DELETE FROM question_content');
+  await db.runAsync('DELETE FROM question_choice');
   try {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_content'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
@@ -928,6 +1026,9 @@ export async function resetAndSeedLocalData() {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'content_info'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_info'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_link'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'question_instruct'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'question_content'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'question_choice'");
   } catch {
     // sqlite_sequence may not exist in some SQLite versions/environments.
   }
@@ -1013,6 +1114,39 @@ export async function resetAndSeedLocalData() {
     );
   }
 
+  for (let index = 0; index < DEFAULT_QUESTION_INSTRUCT.length; index += 1) {
+    const instructItem = DEFAULT_QUESTION_INSTRUCT[index];
+
+    await db.runAsync(
+      `INSERT INTO question_instruct
+        (instruct_id, lesson_content_id, question_instruction, question_title, question_label, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [instructItem.instruct_id, instructItem.lesson_content_id, instructItem.question_instruction, instructItem.question_title, instructItem.question_label, now, now]
+    );
+  }
+
+  for (let index = 0; index < DEFAULT_QUESTION_CONTENT.length; index += 1) {
+    const questionItem = DEFAULT_QUESTION_CONTENT[index];
+
+    await db.runAsync(
+      `INSERT INTO question_content
+        (question_id, lesson_content_id, question, question_type, question_order, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [questionItem.question_id, questionItem.lesson_content_id, questionItem.question, questionItem.question_type, questionItem.question_order, now, now]
+    );
+  }
+
+  for (let index = 0; index < DEFAULT_QUESTION_CHOICE.length; index += 1) {
+    const choiceItem = DEFAULT_QUESTION_CHOICE[index];
+
+    await db.runAsync(
+      `INSERT INTO question_choice
+        (choice_id, question_id, choice_label, choice_text, is_correct, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [choiceItem.choice_id, choiceItem.question_id, choiceItem.choice_label, choiceItem.choice_text, choiceItem.is_correct, now, now]
+    );
+  }
+
   return {
     competencies: DEFAULT_COMPETENCIES.length,
     modules: DEFAULT_MODULES.length,
@@ -1021,6 +1155,9 @@ export async function resetAndSeedLocalData() {
     contentInfo: DEFAULT_CONTENT_INFO.length,
     lessonInfo: DEFAULT_LESSON_INFO.length,
     lessonLink: DEFAULT_LESSON_LINK.length,
+    questionInstruct: DEFAULT_QUESTION_INSTRUCT.length,
+    questionContent: DEFAULT_QUESTION_CONTENT.length,
+    questionChoice: DEFAULT_QUESTION_CHOICE.length,
     alreadyImported: false,
   };
 }
