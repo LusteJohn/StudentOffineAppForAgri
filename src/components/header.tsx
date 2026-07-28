@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Image, View, Text, StyleSheet, Pressable } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { getUserById } from '@/lib/auth-api';
 
@@ -57,12 +58,18 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
               <Text style={styles.backButtonText}>←</Text>
             </Pressable>
           ) : null}
-          <Text style={styles.title}>{title}</Text>
+          <Image source={require('../../assets/images/app_logo.png')} style={styles.logo} resizeMode="contain" />
         </View>
         <View style={styles.meta}>
-          <Text style={styles.metaText}>{email}</Text>
-          <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>{displayRole}</Text>
+          <Text style={styles.metaTitle}>{title}</Text>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaText} numberOfLines={1}>{email}</Text>
+            <View style={styles.roleBadge}>
+              <Text style={styles.roleText}>{displayRole}</Text>
+            </View>
+            <Pressable onPress={() => router.replace({ pathname: '/student-profile', params: { userId: String(userId) } })} style={styles.profileButton}>
+              <Ionicons name="person-circle-outline" size={24} color="#000000" />
+            </Pressable>
           </View>
         </View>
       </View>
@@ -79,12 +86,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   inner: {
-    gap: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   leftArea: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    flex: 1,
   },
   backButton: {
     width: 32,
@@ -97,20 +107,37 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000000',
   },
+  logo: {
+    width: 32,
+    height: 32,
+  },
   title: {
     fontSize: 18,
     fontWeight: '700',
     color: '#000000',
   },
   meta: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    textAlign: 'center',
+  },
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    alignSelf: 'flex-end',
   },
   metaText: {
     fontSize: 13,
     fontWeight: '500',
     color: '#475569',
+    maxWidth: 140,
   },
   roleBadge: {
     paddingHorizontal: 8,
@@ -124,5 +151,11 @@ const styles = StyleSheet.create({
     color: '#000000',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
+  },
+  profileButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
