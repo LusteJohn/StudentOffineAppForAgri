@@ -67,7 +67,7 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
             <View style={styles.roleBadge}>
               <Text style={styles.roleText}>{displayRole}</Text>
             </View>
-            <Pressable onPress={() => router.replace({ pathname: '/student-profile', params: { userId: String(userId) } })} style={styles.profileButton}>
+            <Pressable onPress={() => router.replace({ pathname: '/settings', params: { userId: String(userId) } })} style={styles.profileButton}>
               <Ionicons name="person-circle-outline" size={24} color="#000000" />
             </Pressable>
           </View>
