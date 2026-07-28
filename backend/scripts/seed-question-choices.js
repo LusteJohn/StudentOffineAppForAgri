@@ -444,13 +444,6 @@ const SEED_QUESTION_CHOICE = [
         is_correct: '',
     },
     {
-        choice_id: 62,
-        question_id: 30,
-        choice_label: '1.',
-        choice_text: 'True',
-        is_correct: 'correct',
-    },
-    {
         choice_id: 64,
         question_id: 30,
         choice_label: '2.',
@@ -2885,13 +2878,6 @@ const SEED_QUESTION_CHOICE = [
         is_correct: 'correct',
     },
     {
-        choice_id: 405,
-        question_id: 224,
-        choice_label: '1.',
-        choice_text: 'False',
-        is_correct: '',
-    },
-    {
         choice_id: 406,
         question_id: 225,
         choice_label: '1.',
@@ -3675,6 +3661,20 @@ const SEED_QUESTION_CHOICE = [
         choice_id: 516,
         question_id: 277,
         choice_label: '2.',
+        choice_text: 'False',
+        is_correct: '',
+    },
+    {
+        choice_id: 517,
+        question_id: 30,
+        choice_label: '1.',
+        choice_text: 'True',
+        is_correct: 'correct',
+    },
+    {
+        choice_id: 518,
+        question_id: 224,
+        choice_label: '1.',
         choice_text: 'False',
         is_correct: '',
     },
