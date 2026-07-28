@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Alert, View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 
 type BottomNavbarProps = {
-  activeTab: 'home' | 'profile' | 'library' | 'lesson' | 'content-info' | 'settings';
+  activeTab: 'home' | 'profile' | 'library' | 'lesson' | 'exercise' | 'content-info' | 'settings';
   userId: number;
 };
 
@@ -37,9 +37,33 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
     }
   };
 
+  const goExercise = () => {
+    if (activeTab !== 'exercise') {
+      Alert.alert(
+        'Select a lesson first',
+        'Please select a module and lesson from the Lesson page before viewing the exercise.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace({ pathname: '/lesson', params: { userId: String(userId) } }),
+          },
+        ]
+      );
+    }
+  };
+
   const goContentInfo = () => {
     if (activeTab !== 'content-info') {
-      router.replace({ pathname: '/content-info', params: { userId: String(userId) } });
+      Alert.alert(
+        'Select a lesson first',
+        'Please select a module and lesson from the Lesson page before viewing the content info.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace({ pathname: '/lesson', params: { userId: String(userId) } }),
+          },
+        ]
+      );
     }
   };
 
@@ -86,6 +110,15 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
             color={activeTab === 'lesson' ? '#000000' : '#5c6b61'}
           />
           <Text style={[styles.tabLabel, activeTab === 'lesson' && styles.activeTabLabel]}>Lesson</Text>
+        </Pressable>
+
+        <Pressable onPress={goExercise} style={[styles.tabButton, activeTab === 'exercise' && styles.activeTabButton]}>
+          <Ionicons
+            name={activeTab === 'exercise' ? 'clipboard' : 'clipboard-outline'}
+            size={22}
+            color={activeTab === 'exercise' ? '#000000' : '#5c6b61'}
+          />
+          <Text style={[styles.tabLabel, activeTab === 'exercise' && styles.activeTabLabel]}>Exercise</Text>
         </Pressable>
 
         <Pressable onPress={goContentInfo} style={[styles.tabButton, activeTab === 'content-info' && styles.activeTabButton]}>

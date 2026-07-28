@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -203,16 +203,17 @@ export default function LessonScreen() {
       <BottomNavbar activeTab="lesson" userId={activeUserId} />
 
       <Modal transparent animationType="fade" visible={detailVisible} onRequestClose={closeLessonDetail}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalTitle}>Lesson</Text>
-              <Pressable onPress={closeLessonDetail} style={styles.modalCloseButton}>
-                <Text style={styles.modalCloseText}>✕</Text>
-              </Pressable>
-            </View>
+        {selectedLesson ? (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeaderRow}>
+                <Text style={styles.modalTitle}>Lesson</Text>
+                <Pressable onPress={closeLessonDetail} style={styles.modalCloseButton}>
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </Pressable>
+              </View>
 
-            <ScrollView contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
+              <ScrollView contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
               <View style={styles.infoCard}>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Lesson ID</Text>
@@ -273,6 +274,9 @@ export default function LessonScreen() {
                       <Pressable onPress={() => openContentInfo(content.lesson_content_id)} style={styles.contentViewButton}>
                         <Text style={styles.contentViewButtonText}>View Content Info</Text>
                       </Pressable>
+                      <Pressable onPress={() => router.replace({ pathname: '/exercise/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })} style={styles.exerciseButton}>
+                        <Text style={styles.exerciseButtonText}>Exercise</Text>
+                      </Pressable>
                     </View>
                   ))
                 ) : (
@@ -282,12 +286,22 @@ export default function LessonScreen() {
                 )}
               </ScrollView>
 
+              <Pressable onPress={() => {
+                const firstContentId = lessonContents[0]?.lesson_content_id;
+                if (firstContentId) {
+                  router.replace({ pathname: '/exercise/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(firstContentId), userId: String(activeUserId) } });
+                }
+              }} style={styles.exerciseButton}>
+                <Text style={styles.exerciseButtonText}>Exercise</Text>
+              </Pressable>
+
               <Pressable onPress={closeLessonDetail} style={styles.closeButton}>
                 <Text style={styles.closeButtonText}>Close</Text>
               </Pressable>
             </ScrollView>
           </View>
         </View>
+        ) : null}
       </Modal>
 
     </ThemedView>
@@ -521,6 +535,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: '#000000',
+  },
+  exerciseButton: {
+    borderRadius: 14,
+    paddingVertical: 13,
+    alignItems: 'center',
+    backgroundColor: '#166534',
+    marginTop: 8,
+  },
+  exerciseButtonText: {
+    color: '#ffffff',
+    fontWeight: '700',
   },
   closeButton: {
     borderRadius: 14,
