@@ -1,4 +1,5 @@
 import { Image, KeyboardAvoidingView, Platform, Pressable, ReactNode, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image as BlurImage } from 'expo-image';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -15,6 +16,7 @@ type AuthShellProps = {
 export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthShellProps) {
   return (
     <ThemedView style={styles.screen}>
+      <BlurImage source={require('../../assets/images/agriLearnSchool.png')} style={styles.backgroundImage} contentFit="cover" blurRadius={2} />
       <View pointerEvents="none" style={styles.skyGlow} />
       <View pointerEvents="none" style={styles.fieldGlow} />
       <View pointerEvents="none" style={styles.overlayWash} />
@@ -26,7 +28,7 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.heroBlock}>
             <View style={styles.logoFrame}>
-              <Image source={require('../../assets/images/expo-logo.png')} style={styles.logo} resizeMode="contain" />
+              <Image source={require('../../assets/images/app_logo.png')} style={styles.logo} resizeMode="contain" />
             </View>
           </View>
 
@@ -71,6 +73,15 @@ export function AuthNotification({ type, text }: { type: 'success' | 'error'; te
 }
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
   notification: {
     flexDirection: 'row',
     alignItems: 'center',
