@@ -1,0 +1,428 @@
+const { createQuestionInstruct } = require('../src/models/questionInstructionModel');
+const { listQuestionInstruct } = require('../src/models/questionInstructionModel');
+
+const SEED_QUESTION_INSTRUCTION = [
+    {
+        instruct_id: 1,
+        lesson_content_id: 1,
+        question_title: 'SELF CHECK 1.1-1',
+        question_label: 'Chicken breeds identification',
+        question_instruction: 'Multiple Choice: Please choose a correct answer on each questions.',
+    },
+    {
+        instruct_id: 2,
+        lesson_content_id: 2,
+        question_title: 'SELF CHECK 1.1-2',
+        question_label: 'Healthy Chicks selection',
+        question_instruction: 'Enumeration: Enumrate the answer based on the question provided.',
+    },
+    {
+        instruct_id: 3,
+        lesson_content_id: 3,
+        question_title: 'SELF CHECK 1.1-3',
+        question_label: 'Determining suitable site for chicken house',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 4,
+        lesson_content_id: 4,
+        question_title: 'SELF CHECK 1.1-4',
+        question_label: 'Chicken house design preparation',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 5,
+        lesson_content_id: 6,
+        question_title: 'SELF CHECK 1.2-1',
+        question_label: 'House equipment installation',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 6,
+        lesson_content_id: 7,
+        question_title: 'SELF CHECK 1.2-2',
+        question_label: 'Prepare and secure bedding materials',
+        question_instruction: 'Identification: Write the correct answer on each questions provided.',
+    },
+    {
+        instruct_id: 7,
+        lesson_content_id: 8,
+        question_title: 'SELF CHECK 1.2-3',
+        question_label: 'Set-up brooding facility',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 8,
+        lesson_content_id: 9,
+        question_title: 'SELF CHECK 1.3-1',
+        question_label: 'Feed materials selection',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 9,
+        lesson_content_id: 10,
+        question_title: 'SELF CHECK 1.3-2',
+        question_label: 'Feeding materials preparation',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 10,
+        lesson_content_id: 11,
+        question_title: 'SELF CHECK 1.3-3',
+        question_label: 'Feeding management program',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 11,
+        lesson_content_id: 12,
+        question_title: 'SELF CHECK 1.3-4',
+        question_label: 'Monitoring feeding',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 12,
+        lesson_content_id: 13,
+        question_title: 'SELF CHECK 1.4-1',
+        question_label: 'Monitor growth rate',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 13,
+        lesson_content_id: 14,
+        question_title: 'SELF CHECK 1.4-2',
+        question_label: 'Healthcare program',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 14,
+        lesson_content_id: 15,
+        question_title: 'SELF CHECK 1.4-3',
+        question_label: 'Sanitation and cleanliness program',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 15,
+        lesson_content_id: 16,
+        question_title: 'SELF CHECK 1.4-4',
+        question_label: 'Organic waste collection',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 16,
+        lesson_content_id: 17,
+        question_title: 'SELF CHECK 1.4-5',
+        question_label: 'Suitable chicken for harvest selection',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 17,
+        lesson_content_id: 18,
+        question_title: 'SELF CHECK 1.4-6',
+        question_label: 'Production record',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    //M2
+    {
+        instruct_id: 18,
+        lesson_content_id: 19,
+        question_title: 'SELF CHECK 2.1-1',
+        question_label: 'SELECTION OF SEEDS',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 19,
+        lesson_content_id: 20,
+        question_title: 'SELF CHECK 2.1-2',
+        question_label: 'Seedbed Preparation',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 20,
+        lesson_content_id: 21,
+        question_title: 'SELF CHECK 2.1-3',
+        question_label: 'Maintaining Seedlings',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 21,
+        lesson_content_id: 22,
+        question_title: 'SELF CHECK 2.1-4',
+        question_label: 'Prepare a Growing Media',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 22,
+        lesson_content_id: 23,
+        question_title: 'SELF CHECK 2.2-1',
+        question_label: 'Land Preparation',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 23,
+        lesson_content_id: 24,
+        question_title: 'SELF CHECK 2.2-2',
+        question_label: 'Beneficial microorganisms',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 24,
+        lesson_content_id: 25,
+        question_title: 'SELF CHECK 2.2-3',
+        question_label: 'Planting/transplanting seedlings',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 25,
+        lesson_content_id: 26,
+        question_title: 'SELF CHECK 2.2-4',
+        question_label: 'Water Seedlings',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 26,
+        lesson_content_id: 27,
+        question_title: 'SELF CHECK 2.3-1',
+        question_label: 'Water management implementation',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 27,
+        lesson_content_id: 28,
+        question_title: 'SELF CHECK 2.3-2',
+        question_label: 'Pest and diseases control measures',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 28,
+        lesson_content_id: 29,
+        question_title: 'SELF CHECK 2.3-3',
+        question_label: 'Replanting missing hills',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 29,
+        lesson_content_id: 30,
+        question_title: 'SELF CHECK 2.3-4',
+        question_label: 'Plant rationing',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 30,
+        lesson_content_id: 31,
+        question_title: 'SELF CHECK 2.3-5',
+        question_label: 'Organic fertilizers application',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 31,
+        lesson_content_id: 32,
+        question_title: 'SELF CHECK 2.4-1',
+        question_label: 'Maturity Indices',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 32,
+        lesson_content_id: 33,
+        question_title: 'SELF CHECK 2.4-2',
+        question_label: 'Harvest Marketable products',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 33,
+        lesson_content_id: 34,
+        question_title: 'SELF CHECK 2.4-3',
+        question_label: 'Classify marketable products',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 34,
+        lesson_content_id: 35,
+        question_title: 'SELF CHECK 2.4-4',
+        question_label: 'Harvesting tools and materials',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 35,
+        lesson_content_id: 57,
+        question_title: 'SELF CHECK 2.4-5',
+        question_label: 'Post-harvest practices',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 36,
+        lesson_content_id: 58,
+        question_title: 'SELF CHECK 2.4-6',
+        question_label: 'Record Keeping',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 37,
+        lesson_content_id: 36,
+        question_title: 'SELF CHECK 3.1-1',
+        question_label: 'Site Selection',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 38,
+        lesson_content_id: 37,
+        question_title: 'SELF CHECK 3.1-2',
+        question_label: 'Prepare site layout',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 39,
+        lesson_content_id: 38,
+        question_title: 'SELF CHECK 3.1-3',
+        question_label: 'Prepare bed',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 40,
+        lesson_content_id: 39,
+        question_title: 'SELF CHECK 3.1-4',
+        question_label: 'Gather materials',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 41,
+        lesson_content_id: 40,
+        question_title: 'SELF CHECK 3.1-5',
+        question_label: 'Raw Materials',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 42,
+        lesson_content_id: 41,
+        question_title: 'SELF CHECK 3.2-1',
+        question_label: 'Composting Method',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 43,
+        lesson_content_id: 42,
+        question_title: 'SELF CHECK 3.2-2',
+        question_label: 'Monitor Decomposition Process',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 44,
+        lesson_content_id: 43,
+        question_title: 'SELF CHECK 3.2-3',
+        question_label: 'Harvest Quality',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 45,
+        lesson_content_id: 44,
+        question_title: 'SELF CHECK 3.2-4',
+        question_label: 'Processing of Compost Fertilizer',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 46,
+        lesson_content_id: 45,
+        question_title: 'SELF CHECK 3.2-5',
+        question_label: 'Record Keeping',
+        question_instruction: 'Enumeration: Enumerate the answer based on the quesion provided.',
+    },
+    {
+        instruct_id: 47,
+        lesson_content_id: 46,
+        question_title: 'SELF CHECK 4.1-1',
+        question_label: 'Storage Area',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 48,
+        lesson_content_id: 47,
+        question_title: 'SELF CHECK 4.1-2',
+        question_label: 'Raw Materials',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 49,
+        lesson_content_id: 48,
+        question_title: 'SELF CHECK 4.1-3',
+        question_label: 'Tools, Materials and Equipment',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 50,
+        lesson_content_id: 49,
+        question_title: 'SELF CHECK 4.1-4',
+        question_label: 'Personal Hygiene',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 51,
+        lesson_content_id: 50,
+        question_title: 'SELF CHECK 4.2-1',
+        question_label: 'Prepare raw materials',
+        question_instruction: 'Identification: Write your answer on the space provided.',
+    },
+    {
+        instruct_id: 52,
+        lesson_content_id: 51,
+        question_title: 'SELF CHECK 4.2-2',
+        question_label: 'Fermentation period',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 53,
+        lesson_content_id: 52,
+        question_title: 'SELF CHECK 4.2-3',
+        question_label: 'Various concoctions',
+        question_instruction: 'Multiple Choice: Please choose a correct answer on each questions.',
+    },
+    {
+        instruct_id: 54,
+        lesson_content_id: 53,
+        question_title: 'SELF CHECK 4.2-4',
+        question_label: 'Period of harvest',
+        question_instruction: 'Multiple Choice: Please choose a correct answer on each questions.',
+    },
+    {
+        instruct_id: 55,
+        lesson_content_id: 54,
+        question_title: 'SELF CHECK 4.3-1',
+        question_label: 'Sanitize bottles and containers',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 56,
+        lesson_content_id: 55,
+        question_title: 'SELF CHECK 4.3-2',
+        question_label: 'Package concoctions',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+    {
+        instruct_id: 57,
+        lesson_content_id: 56,
+        question_title: 'SELF CHECK 4.3-3',
+        question_label: 'Appropriate place to store',
+        question_instruction: 'TRUE OR FALSE: Write True if the statement is correct, write False if it is incorrect.',
+    },
+];
+
+async function seedQuestionInstruct() {
+    const existingRecords = await listQuestionInstruct();
+    const existingId = new Set(existingRecords.map((record) =>record.instruct_id));
+
+    let insertedCount = 0;
+    for (const instructInput of SEED_QUESTION_INSTRUCTION) {
+        if (existingId.has(instructInput.instruct_id)) {
+            continue;
+        }
+
+        await createQuestionInstruct(instructInput);
+        insertedCount += 1;
+    }
+
+    console.log(`Seeded ${insertedCount} questions instruction record(s).`);
+}
+
+seedQuestionInstruct().catch((error) => {
+    console.error('Failed to seed question instruction.', error);
+    process.exitCode = 1;
+});
+
