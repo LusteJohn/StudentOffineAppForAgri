@@ -1,72 +1,110 @@
 const {
-    createQuestionAnswer,
-    getQuestionById,
-    listQuestionAnswer,
-    updateQuestionAnswer,
+  createQuestionAnswer,
+  createQuestionAnswersBatch,
+  getAnswerById,
+  listQuestionAnswer,
+  listQuestionAnswersByUser,
+  updateQuestionAnswer,
 } = require('../models/questionAnswerModel');
-const { sendJson } = require('./authController');
 
-function parseQuestionAnswerId(value) {
-    const parsed = Number(value);
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+function parseAnswerId(value) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function parseUserId(value) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
 async function listQuestionAnswerHandler(res) {
-    const answerInfo = await listQuestionChoice();
-    return sendJson(res, 200, { data: contentInfo });
+  const answerInfo = await listQuestionAnswer();
+  return sendJson(res, 200, { data: answerInfo });
 }
 
-async function createQuestionAnswerHandler(res, body) {
-    try {
-        const record = await createQuestionAnswer(body);
-        return sendJson(res, 201, {
-            message: 'Question Answer created successfully.',
-            data: record,
-        });
-    } catch (error) {
-        return sendJson(res, 400, {
-            message: error instanceof Error ? error.message : 'Unable to submit question answer.',
-        });
-    }
+async function listQuestionAnswersByUserHandler(req, res, userId) {
+  const parsedUserId = parseUserId(userId);
+  if (!parsedUserId) {
+    return sendJson(res, 400, { message: 'Invalid user_id.' });
+  }
+
+  try {
+    const answers = await listQuestionAnswersByUser(parsedUserId);
+    return sendJson(res, 200, { data: answers });
+  } catch (error) {
+    return sendJson(res, 400, {
+      message: error instanceof Error ? error.message : 'Unable to load question answers.',
+    });
+  }
+}
+
+async function createQuestionAnswerHandler(req, res, body) {
+  try {
+    const record = await createQuestionAnswer(body);
+    return sendJson(res, 201, {
+      message: 'Question Answer created successfully.',
+      data: record,
+    });
+  } catch (error) {
+    return sendJson(res, 400, {
+      message: error instanceof Error ? error.message : 'Unable to submit question answer.',
+    });
+  }
+}
+
+async function createQuestionAnswersBatchHandler(req, res, body) {
+  try {
+    const records = await createQuestionAnswersBatch(body);
+    return sendJson(res, 201, {
+      message: 'Question answers submitted successfully.',
+      data: records,
+    });
+  } catch (error) {
+    return sendJson(res, 400, {
+      message: error instanceof Error ? error.message : 'Unable to submit question answers.',
+    });
+  }
 }
 
 async function getQuestionAnswerByIdHandler(res, answerId) {
-    const parsedId = parseQuestionAnswereId(answerId);
-    if (!parsedId) {
-        return sendJson(res, 400, { message: 'Invalid answer_id.' });
-    }
+  const parsedId = parseAnswerId(answerId);
+  if (!parsedId) {
+    return sendJson(res, 400, { message: 'Invalid answer_id.' });
+  }
 
-    const answerInfo = await getQuestionById(parsedId);
-    if (!answerInfo) {
-        return sendJson(res, 404, { message: 'Question answer not found.' });
-    }
+  const answerInfo = await getAnswerById(parsedId);
+  if (!answerInfo) {
+    return sendJson(res, 404, { message: 'Question answer not found.' });
+  }
 
-    return sendJson(res, 200, { data: answerInfo });
+  return sendJson(res, 200, { data: answerInfo });
 }
 
 async function updateQuestionAnswerHandler(res, answerId, body) {
-    const parsedId = parseQuestionAnswerId(answerId);
-    if (!parsedId) {
-        return sendJson(res, 400, { message: 'Invalid answer_id.' });
+  const parsedId = parseAnswerId(answerId);
+  if (!parsedId) {
+    return sendJson(res, 400, { message: 'Invalid answer_id.' });
+  }
+
+  try {
+    const answerInfo = await updateQuestionAnswer(parsedId, body);
+    if (!answerInfo) {
+      return sendJson(res, 404, { message: 'Question answer not found.' });
     }
 
-    try {
-        const answerInfo = await updateQuestionAnswer(parsedId, body);
-        if (!answerInfo) {
-            return sendJson(res, 404, { message: 'Question answer not found.' });
-        }
-
-        return sendJson(res, 200, { data: answerInfo });
-    } catch (error) {
-        return sendJson(res, 400, {
-            message: error instanceof Error ? error.message : 'Unable to update question answer.',
-        });
-    }
+    return sendJson(res, 200, { data: answerInfo });
+  } catch (error) {
+    return sendJson(res, 400, {
+      message: error instanceof Error ? error.message : 'Unable to update question answer.',
+    });
+  }
 }
 
 module.exports = {
-    listQuestionAnswerHandler,
-    createQuestionAnswerHandler,
-    getQuestionAnswerByIdHandler,
-    updateQuestionAnswerHandler,
-}
+  listQuestionAnswerHandler,
+  listQuestionAnswersByUserHandler,
+  createQuestionAnswerHandler,
+  createQuestionAnswersBatchHandler,
+  getQuestionAnswerByIdHandler,
+  updateQuestionAnswerHandler,
+};
