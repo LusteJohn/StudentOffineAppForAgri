@@ -277,6 +277,9 @@ export default function LessonScreen() {
                       <Pressable onPress={() => router.replace({ pathname: '/exercise/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })} style={styles.exerciseButton}>
                         <Text style={styles.exerciseButtonText}>Exercise</Text>
                       </Pressable>
+                      <Pressable onPress={() => router.replace({ pathname: '/job/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })} style={styles.jobSheetButton}>
+                        <Text style={styles.jobSheetButtonText}>Job Sheet</Text>
+                      </Pressable>
                     </View>
                   ))
                 ) : (
@@ -293,6 +296,15 @@ export default function LessonScreen() {
                 }
               }} style={styles.exerciseButton}>
                 <Text style={styles.exerciseButtonText}>Exercise</Text>
+              </Pressable>
+
+              <Pressable onPress={() => {
+                const firstContentId = lessonContents[0]?.lesson_content_id;
+                if (firstContentId) {
+                  router.replace({ pathname: '/job/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(firstContentId), userId: String(activeUserId) } });
+                }
+              }} style={styles.jobSheetButton}>
+                <Text style={styles.jobSheetButtonText}>Job Sheet</Text>
               </Pressable>
 
               <Pressable onPress={closeLessonDetail} style={styles.closeButton}>
@@ -544,6 +556,17 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   exerciseButtonText: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  jobSheetButton: {
+    borderRadius: 14,
+    paddingVertical: 13,
+    alignItems: 'center',
+    backgroundColor: '#2563eb',
+    marginTop: 8,
+  },
+  jobSheetButtonText: {
     color: '#ffffff',
     fontWeight: '700',
   },

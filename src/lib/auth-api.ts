@@ -1026,6 +1026,19 @@ export async function getLessonContentById(lessonContentId: number) {
   return rows[0] ?? null;
 }
 
+export async function getJobSheetByLessonContentId(lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const rows = await db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet WHERE lesson_content_id = ? ORDER BY job_id ASC', [lessonContentId]);
+  return rows[0] ?? null;
+}
+
+export async function listJobSheetByLessonContentId(lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet WHERE lesson_content_id = ? ORDER BY job_id ASC', [lessonContentId]);
+}
+
 export async function resetAndSeedLocalData() {
   await ensureDatabase();
   const db = await databasePromise;
