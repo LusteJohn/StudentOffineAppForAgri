@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
-import { LessonContentRecord, LessonRecord, ModuleRecord, getModuleById, getLessonById, getLessonContentById, listQuestionInstructByLessonContentId, listQuestionContentByLessonContentId, listQuestionChoiceByQuestionId } from '@/lib/auth-api';
+import { LessonContentRecord, LessonRecord, ModuleRecord, createQuestionAnswersBatch, getModuleById, getLessonById, getLessonContentById, listQuestionInstructByLessonContentId, listQuestionContentByLessonContentId, listQuestionChoiceByQuestionId, listQuestionAnswersByUserAndQuestions } from '@/lib/auth-api';
 
 const BACKGROUND_LIGHT = '#f6f8f6';
 
@@ -29,11 +29,14 @@ export default function ExerciseContentScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [hasExistingAnswers, setHasExistingAnswers] = useState(false);
 
   const loadExercise = useCallback(async () => {
     setError('');
     setLoading(true);
     setAnswers({});
+    setHasExistingAnswers(false);
     try {
       const [mod, lesson, content] = await Promise.all([
         getModuleById(moduleId),
@@ -63,12 +66,26 @@ export default function ExerciseContentScreen() {
         }))
       );
       setQuestions(questionsWithChoices);
+
+      const userId = Number(params.userId ?? '1');
+      const questionIds = loadedQuestions.map((q) => q.question_id);
+      if (questionIds.length > 0 && userId > 0) {
+        const existingAnswers = await listQuestionAnswersByUserAndQuestions(userId, questionIds);
+        if (existingAnswers.length > 0) {
+          setHasExistingAnswers(true);
+          const initialAnswers: Record<number, string> = {};
+          existingAnswers.forEach((record) => {
+            initialAnswers[record.question_id] = record.answer_text;
+          });
+          setAnswers(initialAnswers);
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load exercise.');
     } finally {
       setLoading(false);
     }
-  }, [moduleId, lessonId, lessonContentId]);
+  }, [moduleId, lessonId, lessonContentId, params.userId]);
 
   useEffect(() => {
     if (Number.isInteger(moduleId) && Number.isInteger(lessonId) && Number.isInteger(lessonContentId) && moduleId > 0 && lessonId > 0 && lessonContentId > 0) {
@@ -131,6 +148,59 @@ export default function ExerciseContentScreen() {
     );
   };
 
+  const handleSubmit = async () => {
+    const userId = Number(params.userId ?? '1');
+
+    if (hasExistingAnswers) {
+      Alert.alert('Already submitted', 'You have already submitted answers for this lesson content. Duplicate submissions are not allowed.');
+      return;
+    }
+
+    const unanswered = questions
+      .filter((q) => {
+        const answer = answers[q.question.question_id];
+        return !answer || String(answer).trim().length === 0;
+      })
+      .map((q) => q.question.question);
+
+    if (unanswered.length > 0) {
+      const missingList = unanswered.map((text, index) => `${index + 1}. ${text}`).join('\n');
+      Alert.alert(
+        'Please answer all questions',
+        `The following questions are still unanswered:\n\n${missingList}`
+      );
+      return;
+    }
+
+    const answerEntries = Object.entries(answers).map(([questionId, answer_text]) => ({
+      question_id: Number(questionId),
+      answer_text,
+    }));
+
+    Alert.alert(
+      'Submit answers',
+      'Are you sure you want to submit your answers? This will save your responses.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Submit',
+          onPress: async () => {
+            setSubmitting(true);
+            try {
+              await createQuestionAnswersBatch({ user_id: userId, answers: answerEntries });
+              setHasExistingAnswers(true);
+              Alert.alert('Submitted', 'Your answers have been saved successfully.');
+            } catch (submitError) {
+              Alert.alert('Submit failed', submitError instanceof Error ? submitError.message : 'Unable to submit answers.');
+            } finally {
+              setSubmitting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ThemedView style={styles.screen}>
       <Header title="Exercise" />
@@ -171,6 +241,23 @@ export default function ExerciseContentScreen() {
           </View>
         )}
       </ScrollView>
+
+      {!loading && !error ? (
+        <View style={styles.submitWrap}>
+          {hasExistingAnswers ? (
+            <View style={styles.submitBlockedBox}>
+              <Text style={styles.submitBlockedText}>You have already submitted answers for this lesson content.</Text>
+            </View>
+          ) : (
+            <Pressable
+              onPress={handleSubmit}
+              disabled={submitting}
+              style={[styles.submitButton, submitting && styles.submitButtonDisabled]}>
+              <Text style={styles.submitButtonText}>{submitting ? 'Submitting...' : 'Submit Answers'}</Text>
+            </Pressable>
+          )}
+        </View>
+      ) : null}
 
       <BottomNavbar activeTab="exercise" userId={Number(params.userId ?? '1')} />
     </ThemedView>
@@ -329,5 +416,38 @@ const styles = StyleSheet.create({
     color: '#b91c1c',
     fontSize: 13,
     lineHeight: 18,
+  },
+  submitWrap: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  submitButton: {
+    borderRadius: 16,
+    paddingVertical: 15,
+    alignItems: 'center',
+    backgroundColor: '#55e10a',
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
+  },
+  submitButtonText: {
+    color: '#000000',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  submitBlockedBox: {
+    borderRadius: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: 'rgba(185, 28, 28, 0.18)',
+  },
+  submitBlockedText: {
+    color: '#b91c1c',
+    fontWeight: '700',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

@@ -122,6 +122,26 @@ export type QuestionChoiceRecord = {
   created_at: string;
   updated_at: string;
 }
+export type JobSheetRecord = {
+  job_id: number;
+  lesson_content_id: number;
+  job_title: string;
+  job_objectives: string;
+  job_materials: string;
+  job_steps: string;
+  job_assesment_method: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type QuestionAnswerRecord = {
+  answer_id: number;
+  question_id: number;
+  user_id: number;
+  answer_text: string;
+  created_at: string;
+  updated_at: string;
+}
 
 type StoredStudentUser = StudentUser & {
   password: string;
@@ -464,6 +484,28 @@ async function ensureDatabase() {
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (question_id) REFERENCES question_content(question_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS job_sheet (
+        job_id INTEGER PRIMARY KEY NOT NULL,
+        lesson_content_id INTEGER NOT NULL,
+        job_title TEXT NOT NULL,
+        job_objectives TEXT NOT NULL,
+        job_materials TEXT NOT NULL,
+        job_steps TEXT NOT NULL,
+        job_assesment_method TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS question_answers (
+        answer_id INTEGER PRIMARY KEY NOT NULL,
+        question_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        answer_text TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (question_id) REFERENCES question_content(question_id),
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
     )`,
   ];
 
@@ -1158,6 +1200,124 @@ export async function resetAndSeedLocalData() {
     questionInstruct: DEFAULT_QUESTION_INSTRUCT.length,
     questionContent: DEFAULT_QUESTION_CONTENT.length,
     questionChoice: DEFAULT_QUESTION_CHOICE.length,
+    questionAnswers: 0,
     alreadyImported: false,
   };
+}
+
+export async function listQuestionAnswers() {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<QuestionAnswerRecord>('SELECT * FROM question_answers ORDER BY answer_id ASC');
+}
+
+export async function listQuestionAnswersByUser(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<QuestionAnswerRecord>('SELECT * FROM question_answers WHERE user_id = ? ORDER BY answer_id ASC', [userId]);
+}
+
+export async function listQuestionAnswersByUserAndQuestions(userId: number, questionIds: number[]) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const placeholders = questionIds.map(() => '?').join(',');
+  const params = [userId, ...questionIds];
+  return db.getAllAsync<QuestionAnswerRecord>(
+    `SELECT * FROM question_answers WHERE user_id = ? AND question_id IN (${placeholders}) ORDER BY answer_id ASC`,
+    params
+  );
+}
+
+export async function createQuestionAnswer(payload: { question_id: number; user_id: number; answer_text: string }) {
+  await ensureDatabase();
+  const db = await databasePromise;
+
+  const existing = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM question_answers WHERE question_id = ? AND user_id = ?',
+    [payload.question_id, payload.user_id]
+  );
+
+  if ((existing?.count ?? 0) > 0) {
+    const updatedAt = new Date().toISOString();
+    await db.runAsync(
+      `UPDATE question_answers SET answer_text = ?, updated_at = ? WHERE question_id = ? AND user_id = ?`,
+      [payload.answer_text, updatedAt, payload.question_id, payload.user_id]
+    );
+    const updated = await db.getFirstAsync<QuestionAnswerRecord>(
+      'SELECT * FROM question_answers WHERE question_id = ? AND user_id = ?',
+      [payload.question_id, payload.user_id]
+    );
+    return updated ?? null;
+  }
+
+  const row = await db.getFirstAsync<{ answer_id: number }>(
+    'SELECT COALESCE(MAX(answer_id), 0) + 1 AS answer_id FROM question_answers'
+  );
+  const answerId = row?.answer_id ?? 1;
+  const now = new Date().toISOString();
+
+  await db.runAsync(
+    `INSERT INTO question_answers (answer_id, question_id, user_id, answer_text, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
+    [answerId, payload.question_id, payload.user_id, payload.answer_text, now, now]
+  );
+
+  return {
+    answer_id: answerId,
+    question_id: payload.question_id,
+    user_id: payload.user_id,
+    answer_text: payload.answer_text,
+    created_at: now,
+    updated_at: now,
+  } satisfies QuestionAnswerRecord;
+}
+
+export async function createQuestionAnswersBatch(payload: { user_id: number; answers: { question_id: number; answer_text: string }[] }) {
+  await ensureDatabase();
+  const db = await databasePromise;
+
+  const now = new Date().toISOString();
+  const created: QuestionAnswerRecord[] = [];
+
+  for (const item of payload.answers) {
+    const existing = await db.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) as count FROM question_answers WHERE question_id = ? AND user_id = ?',
+      [item.question_id, payload.user_id]
+    );
+
+    if ((existing?.count ?? 0) > 0) {
+      await db.runAsync(
+        `UPDATE question_answers SET answer_text = ?, updated_at = ? WHERE question_id = ? AND user_id = ?`,
+        [item.answer_text, now, item.question_id, payload.user_id]
+      );
+      const updated = await db.getFirstAsync<QuestionAnswerRecord>(
+        'SELECT * FROM question_answers WHERE question_id = ? AND user_id = ?',
+        [item.question_id, payload.user_id]
+      );
+      if (updated) {
+        created.push(updated);
+      }
+      continue;
+    }
+
+    const row = await db.getFirstAsync<{ answer_id: number }>(
+      'SELECT COALESCE(MAX(answer_id), 0) + 1 AS answer_id FROM question_answers'
+    );
+    const answerId = row?.answer_id ?? 1;
+
+    await db.runAsync(
+      `INSERT INTO question_answers (answer_id, question_id, user_id, answer_text, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
+      [answerId, item.question_id, payload.user_id, item.answer_text, now, now]
+    );
+
+    created.push({
+      answer_id: answerId,
+      question_id: item.question_id,
+      user_id: payload.user_id,
+      answer_text: item.answer_text,
+      created_at: now,
+      updated_at: now,
+    });
+  }
+
+  return created;
 }

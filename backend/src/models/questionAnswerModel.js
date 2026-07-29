@@ -79,6 +79,7 @@ async function createQuestionAnswer(payload) {
     const newAnswerInfo = {
         answer_id: answerId,
         question_id: questionId,
+        user_id: payload?.userId || null,
         ...answerInput,
         created_at: now,
         updated_at: now,  
