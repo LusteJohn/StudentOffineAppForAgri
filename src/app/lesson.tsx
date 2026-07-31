@@ -290,37 +290,10 @@ export default function LessonScreen() {
                     <Text style={styles.emptyContentText}>No lesson content available for this lesson.</Text>
                   </View>
                 )}
-              </ScrollView>
+</ScrollView>
 
-              <Pressable onPress={() => {
-                const firstContentId = lessonContents[0]?.lesson_content_id;
-                if (firstContentId) {
-                  router.replace({ pathname: '/exercise/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(firstContentId), userId: String(activeUserId) } });
-                }
-              }} style={styles.exerciseButton}>
-                <Text style={styles.exerciseButtonText}>Exercise</Text>
-              </Pressable>
-
-              <Pressable onPress={() => {
-                const firstContentId = lessonContents[0]?.lesson_content_id;
-                if (firstContentId) {
-                  router.replace({ pathname: '/job/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(firstContentId), userId: String(activeUserId) } });
-                }
-              }} style={styles.jobSheetButton}>
-                <Text style={styles.jobSheetButtonText}>Job Sheet</Text>
-              </Pressable>
-
-              <Pressable onPress={() => {
-                const firstContentId = lessonContents[0]?.lesson_content_id;
-                if (firstContentId) {
-                  router.replace({ pathname: '/performance/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(firstContentId), userId: String(activeUserId) } });
-                }
-              }} style={styles.performanceButton}>
-                <Text style={styles.performanceButtonText}>Performance Check</Text>
-              </Pressable>
-
-              <Pressable onPress={closeLessonDetail} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>Close</Text>
+               <Pressable onPress={closeLessonDetail} style={styles.closeButton}>
+                 <Text style={styles.closeButtonText}>Close</Text>
               </Pressable>
             </ScrollView>
           </View>

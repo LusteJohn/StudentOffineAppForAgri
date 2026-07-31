@@ -4,6 +4,7 @@ const { handleAuthRoutes } = require('./routes/authRoutes');
 const { handleCompetencyRoutes } = require('./routes/competencyRoutes');
 const { handleQuestionAnswerRoutes } = require('./routes/questionAnswerRoutes');
 const { handleJobSheetAnswerRoutes } = require('./routes/jobSheetAnswerRoutes');
+const { handlePerformanceAnswerRoutes } = require('./routes/performanceAnswerRoutes');
 
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -74,7 +75,8 @@ const server = http.createServer(async (req, res) => {
   const routeHandled = (await handleAuthRoutes(req, res, requestUrl.pathname, body))
     || (await handleCompetencyRoutes(req, res, requestUrl.pathname, body))
     || (await handleQuestionAnswerRoutes(req, res, requestUrl.pathname, body))
-    || (await handleJobSheetAnswerRoutes(req, res, requestUrl.pathname, body));
+    || (await handleJobSheetAnswerRoutes(req, res, requestUrl.pathname, body))
+    || (await handlePerformanceAnswerRoutes(req, res, requestUrl.pathname, body));
 
   if (routeHandled === false) {
     sendNotFound(res);
