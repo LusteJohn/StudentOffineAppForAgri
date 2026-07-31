@@ -52,41 +52,47 @@ async function validatePayload(payload) {
     const performanceAnswerText = normalizeText(payload?.performance_answer_text);
 
     if (!performanceAnswerText) {
-      throw new Error('All are required');
+      throw new Error('performance_answer_text is required');
     }
 
     return {
-        performanceAnswerText: performance_answer_text,
+        performanceAnswerText: performanceAnswerText,
     };
 }
 
 async function createPerformanceAnswer(payload) {
     const performanceId = Number(payload?.performance_id);
+    const userId = Number(payload?.user_id);
     if (!Number.isInteger(performanceId) || performanceId <= 0) {
         throw new Error('Performance check ID is required and must be a positive integer');
     }
-
-    const performanceAnswerInput = await validatePayload(payload);
-    const performanceAnswerInfo = await readQuestionAnswer();
-    const existingRecord = performanceAnswerInfo.find((record) => normalizeText(record.performanceAnswerText).toLowerCase() === normalizeText(performanceAnswerInput.performanceAnswerText).toLowerCase());
-    if (existingRecord) {
-        throw new Error(`Question Choices with label "${performanceAnswerInput.performanceAnswerText}" already exists.`);
+    if (!Number.isInteger(userId) || userId <= 0) {
+        throw new Error('User ID is required and must be a positive integer');
     }
 
-    const answerId = performanceAnswerInfo.length > 0 ? Math.max(...performanceAnswerInfo.map((record) => record.answer_id)) + 1 : 1;
+    const performanceAnswerInput = await validatePayload(payload);
+    const performanceAnswerInfo = await readPerformanceAnswer();
+    const existingRecord = performanceAnswerInfo.find(
+        (record) => Number(record.performance_id) === performanceId && Number(record.user_id) === userId
+    );
+    if (existingRecord) {
+        throw new Error(`Performance answer for performance_id "${performanceId}" already exists for this user.`);
+    }
+
+    const answerId = performanceAnswerInfo.length > 0 ? Math.max(...performanceAnswerInfo.map((record) => record.performance_answer_id)) + 1 : 1;
     const now = new Date().toISOString();
 
     const newAnswerInfo = {
-        performance_answer_id: performanceAnswerId,
+        performance_answer_id: answerId,
         performance_id: performanceId,
-        user_id: payload?.userId || null,
-        ...performanceAnswerInput,
+        user_id: userId,
+        performance_answer_text: performanceAnswerInput.performanceAnswerText,
         created_at: now,
-        updated_at: now,  
+        updated_at: now,
     };
 
     performanceAnswerInfo.push(newAnswerInfo);
-    await writeQuestionAnswer(performanceAnswerInfo);
+    await writePerformanceAnswer(performanceAnswerInfo);
     return newAnswerInfo;
 }
 
@@ -119,14 +125,14 @@ async function listPerformanceAnswersByUser(userId) {
 }
 
 async function listPerformanceAnswersByPerformance(performanceId) {
-  const parsedPerformanceId = Number(performanceId);
-  if (!Number.isInteger(parsedJobId) || parsedPerformanceId <= 0) {
-    throw new Error('Invalid performance_id');
-  }
-  const performanceAnswerInfo = await readJobSheetAnswer();
-  return performanceAnswerInfo
-    .filter((record) => Number(record.performance_id) === parsedPerformanceId)
-    .sort((left, right) => Number(left.performance_answer_id) - Number(right.performance_answer_id));
+    const parsedPerformanceId = Number(performanceId);
+    if (!Number.isInteger(parsedPerformanceId) || parsedPerformanceId <= 0) {
+        throw new Error('Invalid performance_id');
+    }
+    const performanceAnswerInfo = await readPerformanceAnswer();
+    return performanceAnswerInfo
+        .filter((record) => Number(record.performance_id) === parsedPerformanceId)
+        .sort((left, right) => Number(left.performance_answer_id) - Number(right.performance_answer_id));
 }
 
 async function listPerformanceAnswersByUserAndPerformance(userId, performanceId) {
@@ -146,12 +152,12 @@ async function listPerformanceAnswersByUserAndPerformance(userId, performanceId)
 
 async function updatePerformanceAnswer(performanceAnswerId, payload) {
     const performanceAnswerInfo = await readPerformanceAnswer();
-    const index = performanceAnswerInfo.findIndex((record) => String(record.performance_id) === String(performanceAnswerId));
-  
+    const index = performanceAnswerInfo.findIndex((record) => String(record.performance_answer_id) === String(performanceAnswerId));
+
     if (index === -1) {
-        throw new Error(`Job Instruct with ID "${performanceAnswerId}" not found.`);
+        throw new Error(`Performance Answer with ID "${performanceAnswerId}" not found.`);
     }
-  
+
     const performanceAnswerInput = await validatePayload(payload);
     const existingRecord = performanceAnswerInfo[index];
     const updatedRecord = {
@@ -159,7 +165,7 @@ async function updatePerformanceAnswer(performanceAnswerId, payload) {
         ...performanceAnswerInput,
         updated_at: new Date().toISOString(),
     };
-  
+
     performanceAnswerInfo[index] = updatedRecord;
     await writePerformanceAnswer(performanceAnswerInfo);
     return updatedRecord;

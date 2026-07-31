@@ -585,6 +585,16 @@ async function ensureDatabase() {
         updated_at TEXT NOT NULL,
         FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id)
     )`,
+    `CREATE TABLE IF NOT EXISTS performance_answer (
+        performance_answer_id INTEGER PRIMARY KEY NOT NULL,
+        performance_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        performance_answer_text TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (performance_id) REFERENCES performance_checklist(performance_id),
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )`,
   ];
 
   for (const sql of createStatements) {
@@ -1077,10 +1087,53 @@ export async function listJobSheetByLessonContentId(lessonContentId: number) {
   return db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet WHERE lesson_content_id = ? ORDER BY job_id ASC', [lessonContentId]);
 }
 
+export type PerformanceAnswerRecord = {
+  performance_answer_id: number;
+  performance_id: number;
+  user_id: number;
+  performance_answer_text: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export async function listPerformanceCheckByLessonContentId(lessonContentId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<PerformanceChecklistRecord>('SELECT * FROM performance_checklist WHERE lesson_content_id = ? ORDER BY performance_order ASC', [lessonContentId]);
+}
+
+export async function createPerformanceAnswer(payload: {
+  performance_id: number;
+  user_id: number;
+  performance_answer_text: string;
+}) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  await db.runAsync(
+    `INSERT INTO performance_answer
+      (performance_id, user_id, performance_answer_text, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)`,
+    [payload.performance_id, payload.user_id, payload.performance_answer_text, now, now]
+  );
+}
+
+export async function listPerformanceAnswersByUserAndPerformance(userId: number, performanceId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<PerformanceAnswerRecord>(
+    'SELECT * FROM performance_answer WHERE user_id = ? AND performance_id = ? ORDER BY performance_answer_id ASC',
+    [userId, performanceId]
+  );
+}
+
+export async function listPerformanceAnswersByUser(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<PerformanceAnswerRecord>(
+    'SELECT * FROM performance_answer WHERE user_id = ? ORDER BY performance_answer_id ASC',
+    [userId]
+  );
 }
 
 export async function resetAndSeedLocalData() {

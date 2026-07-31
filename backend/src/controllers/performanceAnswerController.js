@@ -45,13 +45,13 @@ async function listPerformanceAnswersByUserHandler(req, res, userId) {
 }
 
 async function listPerformanceAnswersByPerformanceHandler(req, res, performanceId) {
-  const parse = parsedPerformanceId(performanceId);
-  if (!parsedPerformanceId) {
+  const parsed = parsedPerformanceId(performanceId);
+  if (!parsed) {
     return sendJson(res, 400, { message: 'Invalid performance_id.' });
   }
 
   try {
-    const answers = await listPerformanceAnswersByPerformance(parsedPerformanceId);
+    const answers = await listPerformanceAnswersByPerformance(parsed);
     return sendJson(res, 200, { data: answers });
   } catch (error) {
     return sendJson(res, 400, {
