@@ -1214,16 +1214,6 @@ export async function listLessonContentProgressByUserAndLessonContent(userId: nu
   );
 }
 
-export async function updateLessonContentProgress(progressLessonId: number, isRead: boolean) {
-  await ensureDatabase();
-  const db = await databasePromise;
-  const now = new Date().toISOString();
-  await db.runAsync(
-    `UPDATE lesson_content_progress SET is_read = ?, read_at = ?, updated_at = ? WHERE progress_lesson_id = ?`,
-    [isRead ? 1 : 0, now, now, progressLessonId]
-  );
-}
-
 export async function resetAndSeedLocalData() {
   await ensureDatabase();
   const db = await databasePromise;

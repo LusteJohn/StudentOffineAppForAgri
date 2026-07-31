@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ContentInfoRecord, LessonContentRecord, LessonRecord, ModuleRecord, getLessonById, getModuleById, getLessonContentById, listContentInfoByLessonContentId } from '@/lib/auth-api';
+import { ContentInfoRecord, LessonContentRecord, LessonRecord, ModuleRecord, getLessonById, getModuleById, getLessonContentById, listContentInfoByLessonContentId, createLessonContentProgress, listLessonContentProgressByUserAndLessonContent, updateLessonContentProgress } from '@/lib/auth-api';
 import { resolveContentInfoAsset } from '@/lib/content-info-assets';
 
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -24,6 +24,8 @@ export default function ContentInfoScreen() {
   const [imageUris, setImageUris] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isRead, setIsRead] = useState(false);
+  const [markingRead, setMarkingRead] = useState(false);
 
   const loadContentInfo = useCallback(async () => {
     setError('');
@@ -56,6 +58,9 @@ export default function ContentInfoScreen() {
         }
       }
       setImageUris(uris);
+
+      const existingProgress = await listLessonContentProgressByUserAndLessonContent(activeUserId, lessonContentId);
+      setIsRead(existingProgress.length > 0 && Boolean(existingProgress[0].is_read));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load content info.');
     } finally {
@@ -71,6 +76,50 @@ export default function ContentInfoScreen() {
       setLoading(false);
     }
   }, [lessonContentId, loadContentInfo]);
+
+  const markAsRead = useCallback(async () => {
+    if (markingRead) return;
+    const confirmed = await new Promise<boolean>((resolve) =>
+      Alert.alert(
+        isRead ? 'Mark as Unread' : 'Mark as Read',
+        isRead
+          ? 'Are you sure you want to mark this content as unread?'
+          : 'Are you sure you want to mark this content as read?',
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Confirm', onPress: () => resolve(true) },
+        ],
+        { cancelable: true }
+      )
+    );
+    if (!confirmed) return;
+    setMarkingRead(true);
+    try {
+      if (isRead) {
+        const existing = await listLessonContentProgressByUserAndLessonContent(activeUserId, lessonContentId);
+        if (existing.length > 0) {
+          await updateLessonContentProgress(existing[0].progress_lesson_id, { is_read: false });
+        }
+        setIsRead(false);
+      } else {
+        const existing = await listLessonContentProgressByUserAndLessonContent(activeUserId, lessonContentId);
+        if (existing.length > 0) {
+          await updateLessonContentProgress(existing[0].progress_lesson_id, { is_read: true });
+        } else {
+          await createLessonContentProgress({
+            lesson_content_id: lessonContentId,
+            user_id: activeUserId,
+            is_read: true,
+          });
+        }
+        setIsRead(true);
+      }
+    } catch (markError) {
+      Alert.alert('Unable to update progress', markError instanceof Error ? markError.message : 'Please try again.');
+    } finally {
+      setMarkingRead(false);
+    }
+  }, [isRead, lessonContentId, activeUserId, markingRead]);
 
   return (
     <ThemedView style={styles.screen}>
@@ -122,6 +171,16 @@ export default function ContentInfoScreen() {
                 <Text style={styles.emptyStateText}>No content info available for this lesson content.</Text>
               </View>
             )}
+
+            <Pressable
+              onPress={markAsRead}
+              disabled={markingRead}
+              style={[styles.markAsReadButton, isRead && styles.markAsReadButtonOutline]}
+            >
+              <Text style={[styles.markAsReadButtonText, isRead && styles.markAsReadButtonTextOutline]}>
+                {markingRead ? 'Saving...' : isRead ? 'Mark as Unread' : 'Mark as Read'}
+              </Text>
+            </Pressable>
           </View>
         )}
       </ScrollView>
@@ -226,5 +285,25 @@ const styles = StyleSheet.create({
     color: '#b91c1c',
     fontSize: 13,
     lineHeight: 18,
+  },
+  markAsReadButton: {
+    borderRadius: 14,
+    paddingVertical: 13,
+    alignItems: 'center',
+    backgroundColor: '#5bec13',
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  markAsReadButtonOutline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#166534',
+  },
+  markAsReadButtonText: {
+    color: '#000000',
+    fontWeight: '700',
+  },
+  markAsReadButtonTextOutline: {
+    color: '#166534',
   },
 });

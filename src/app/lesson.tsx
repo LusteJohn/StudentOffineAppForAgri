@@ -4,7 +4,7 @@ import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
-import { LessonContentRecord, LessonInfoRecord, LessonLinkRecord, LessonRecord, ModuleRecord, listLessons, listLessonContentByLessonId, listModules, listLessonInfoByLessonId, listLessonLinkByLessonId, createLessonContentProgress, listLessonContentProgressByUserAndLessonContent, updateLessonContentProgress } from '@/lib/auth-api';
+import { LessonContentRecord, LessonInfoRecord, LessonLinkRecord, LessonRecord, ModuleRecord, listLessons, listLessonContentByLessonId, listModules, listLessonInfoByLessonId, listLessonLinkByLessonId, listLessonContentProgressByUser } from '@/lib/auth-api';
 
 const PRIMARY = '#5bec13';
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -115,25 +115,6 @@ export default function LessonScreen() {
       pathname: '/content-info/[id]',
       params: { id: String(lessonContentId), userId: String(activeUserId) },
     });
-  };
-
-  const markAsRead = async (lessonContentId: number) => {
-    try {
-      const parsedUserId = Number(activeUserId);
-      const existingProgress = await listLessonContentProgressByUserAndLessonContent(parsedUserId, lessonContentId);
-      if (existingProgress.length > 0) {
-        await updateLessonContentProgress(existingProgress[0].progress_lesson_id, true);
-      } else {
-        await createLessonContentProgress({
-          lesson_content_id: lessonContentId,
-          user_id: parsedUserId,
-          is_read: true,
-        });
-      }
-      setProgressMap((prev) => ({ ...prev, [lessonContentId]: true }));
-    } catch {
-      // Silently fail - progress tracking is optional
-    }
   };
 
   const closeLessonDetail = () => {
@@ -306,11 +287,6 @@ export default function LessonScreen() {
                         <Text style={styles.contentLabel}>Objectives</Text>
                         <Text style={styles.contentValue}>{content.objectives}</Text>
                       </View>
-                      {!progressMap[content.lesson_content_id] ? (
-                        <Pressable onPress={() => markAsRead(content.lesson_content_id)} style={styles.readButton}>
-                          <Text style={styles.readButtonText}>Mark as Read</Text>
-                        </Pressable>
-                      ) : null}
                       <Pressable onPress={() => openContentInfo(content.lesson_content_id)} style={styles.contentViewButton}>
                         <Text style={styles.contentViewButtonText}>View Content Info</Text>
                       </Pressable>
@@ -582,17 +558,6 @@ const styles = StyleSheet.create({
   },
   exerciseButtonText: {
     color: '#ffffff',
-    fontWeight: '700',
-  },
-  readButton: {
-    borderRadius: 14,
-    paddingVertical: 13,
-    alignItems: 'center',
-    backgroundColor: '#5bec13',
-    marginTop: 8,
-  },
-  readButtonText: {
-    color: '#000000',
     fontWeight: '700',
   },
   readBadge: {
