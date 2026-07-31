@@ -1,11 +1,22 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
 import { CompetencyRecord, ModuleRecord, listCompetencies, listModules } from '@/lib/auth-api';
+
+const moduleImages: Record<number, any> = {
+  1: require('@/assets/learning_materials/modules/1/raise.png'),
+  2: require('@/assets/learning_materials/modules/2/vegetables.png'),
+  3: require('@/assets/learning_materials/modules/3/fertilizer.jpg'),
+  4: require('@/assets/learning_materials/modules/4/concoction.jpg'),
+};
+
+const getModuleImage = (moduleId: number) => {
+  return moduleImages[moduleId] ?? null;
+};
 
 const PRIMARY = '#5bec13';
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -134,15 +145,16 @@ export default function ModuleScreen() {
                     <Text style={styles.cardStatus}>{getProgressLabel(competency)}</Text>
                   </View>
 
-                  {competencyModule?.thumbnail ? (
-                    <Image
-                      source={{ uri: competencyModule.thumbnail }}
-                      style={styles.cardThumbnail}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={[styles.cardThumbnail, styles.cardThumbnailPlaceholder]} />
-                  )}
+                  {(() => {
+                    const moduleImage = getModuleImage(competencyModule?.module_id ?? 0);
+                    if (moduleImage) {
+                      return <Image source={moduleImage} style={styles.cardThumbnail} resizeMode="cover" />;
+                    }
+                    if (competencyModule?.thumbnail) {
+                      return <Image source={{ uri: competencyModule.thumbnail }} style={styles.cardThumbnail} resizeMode="cover" />;
+                    }
+                    return <View style={[styles.cardThumbnail, styles.cardThumbnailPlaceholder]} />;
+                  })()}
                 </View>
 
                 <View style={styles.cardButtonRow}>
@@ -215,44 +227,40 @@ export default function ModuleScreen() {
               showsVerticalScrollIndicator={false}>
               {selectedModules.length > 0 ? (
                 selectedModules.map((moduleItem) => (
-                  <View key={moduleItem.module_id} style={styles.moduleCard}>
-                    <View style={styles.moduleCardHeader}>
-                      <View style={styles.moduleInfo}>
-                        <Text style={styles.moduleName}>{moduleItem.module_name}</Text>
-                        <Text style={styles.moduleDescription} numberOfLines={3}>
-                          {moduleItem.description}
-                        </Text>
-                      </View>
-                      {moduleItem.thumbnail ? (
-                        <Image
-                          source={{ uri: moduleItem.thumbnail }}
-                          style={styles.moduleThumbnail}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View style={styles.moduleThumbnailPlaceholder} />
-                      )}
-                    </View>
-
-                    <View style={styles.moduleCardBody}>
-                      <View style={styles.moduleMetaRow}>
-                        <View style={styles.moduleMetaItem}>
-                          <Text style={styles.moduleMetaLabel}>PDF</Text>
-                          <Text style={styles.moduleMetaValue} numberOfLines={1}>
-                            {moduleItem.module_pdf}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-
-                     <View style={styles.moduleCardActions}>
-                       <Pressable onPress={() => {}} style={styles.moduleSecondaryButton}>
-                         <Text style={styles.moduleSecondaryButtonText}>Download</Text>
-                       </Pressable>
-                       <Pressable onPress={() => handleModuleStart(moduleItem)} style={styles.modulePrimaryButton}>
-                         <Text style={styles.modulePrimaryButtonText}>Start</Text>
-                       </Pressable>
+                   <View key={moduleItem.module_id} style={styles.moduleCard}>
+                     <View style={styles.moduleInfo}>
+                       <Text style={styles.moduleName}>{moduleItem.module_name}</Text>
+                       <Text style={styles.moduleDescription} numberOfLines={3}>
+                         {moduleItem.description}
+                       </Text>
                      </View>
+
+                     {getModuleImage(moduleItem.module_id) ? (
+                       <Image
+                         source={getModuleImage(moduleItem.module_id)}
+                         style={styles.moduleThumbnail}
+                         resizeMode="cover"
+                       />
+                     ) : (
+                       <View style={styles.moduleThumbnailPlaceholder} />
+                     )}
+
+                     <View style={styles.moduleCardBody}>
+                       <View style={styles.moduleMetaRow}>
+                         <View style={styles.moduleMetaItem}>
+                           <Text style={styles.moduleMetaLabel}>PDF</Text>
+                           <Text style={styles.moduleMetaValue} numberOfLines={1}>
+                             {moduleItem.module_pdf}
+                           </Text>
+                         </View>
+                       </View>
+                     </View>
+
+                      <View style={styles.moduleCardActions}>
+                        <Pressable onPress={() => handleModuleStart(moduleItem)} style={styles.modulePrimaryButton}>
+                          <Text style={styles.modulePrimaryButtonText}>Start</Text>
+                        </Pressable>
+                      </View>
                   </View>
                 ))
               ) : (
@@ -542,14 +550,14 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   moduleThumbnailPlaceholder: {
-    width: 64,
-    height: 64,
+    width: '100%',
+    height: 180,
     borderRadius: 12,
     backgroundColor: '#e2e8f0',
   },
   moduleThumbnail: {
-    width: 64,
-    height: 64,
+    width: '100%',
+    height: 180,
     borderRadius: 12,
     backgroundColor: '#e2e8f0',
   },

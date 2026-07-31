@@ -143,6 +143,15 @@ export type QuestionAnswerRecord = {
   updated_at: string;
 }
 
+export type JobSheetAnswerRecord = {
+  answer_id: number;
+  job_id: number;
+  user_id: number;
+  answer_text: string;
+  created_at: string;
+  updated_at: string;
+}
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -545,6 +554,16 @@ async function ensureDatabase() {
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (question_id) REFERENCES question_content(question_id),
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS job_sheet_answers (
+        answer_id INTEGER PRIMARY KEY NOT NULL,
+        job_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        answer_text TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (job_id) REFERENCES job_sheet(job_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id)
     )`,
   ];
@@ -1229,12 +1248,22 @@ export async function resetAndSeedLocalData() {
 
   for (let index = 0; index < DEFAULT_QUESTION_CONTENT.length; index += 1) {
     const questionItem = DEFAULT_QUESTION_CONTENT[index];
+    const matchingChoices = DEFAULT_QUESTION_CHOICE.filter((choice) => choice.question_id === questionItem.question_id);
+    let correctAnswer = '';
+
+    if (questionItem.question_type === 'multiple_choice' || questionItem.question_type === 'true_or_false') {
+      const correctChoice = matchingChoices.find((choice) => choice.is_correct === 'correct');
+      correctAnswer = correctChoice ? correctChoice.choice_text : '';
+    } else if (questionItem.question_type === 'enumeration' || questionItem.question_type === 'identification') {
+      const openEnded = matchingChoices.find((choice) => choice.is_correct && choice.is_correct.trim().length > 0);
+      correctAnswer = openEnded ? openEnded.is_correct.trim() : '';
+    }
 
     await db.runAsync(
       `INSERT INTO question_content
-        (question_id, lesson_content_id, question, question_type, question_order, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [questionItem.question_id, questionItem.lesson_content_id, questionItem.question, questionItem.question_type, questionItem.question_order, now, now]
+        (question_id, lesson_content_id, question, question_type, question_order, correct_answer, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [questionItem.question_id, questionItem.lesson_content_id, questionItem.question, questionItem.question_type, questionItem.question_order, correctAnswer, now, now]
     );
   }
 
@@ -1392,4 +1421,56 @@ export async function createQuestionAnswersBatch(payload: { user_id: number; ans
   }
 
   return created;
+}
+
+export async function createJobSheetAnswer(payload: { job_id: number; user_id: number; answer_text: string }) {
+  await ensureDatabase();
+  const db = await databasePromise;
+
+  const existing = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM job_sheet_answers WHERE job_id = ? AND user_id = ?',
+    [payload.job_id, payload.user_id]
+  );
+
+  if ((existing?.count ?? 0) > 0) {
+    const updatedAt = new Date().toISOString();
+    await db.runAsync(
+      `UPDATE job_sheet_answers SET answer_text = ?, updated_at = ? WHERE job_id = ? AND user_id = ?`,
+      [payload.answer_text, updatedAt, payload.job_id, payload.user_id]
+    );
+    const updated = await db.getFirstAsync<JobSheetAnswerRecord>(
+      'SELECT * FROM job_sheet_answers WHERE job_id = ? AND user_id = ?',
+      [payload.job_id, payload.user_id]
+    );
+    return updated ?? null;
+  }
+
+  const row = await db.getFirstAsync<{ answer_id: number }>(
+    'SELECT COALESCE(MAX(answer_id), 0) + 1 AS answer_id FROM job_sheet_answers'
+  );
+  const answerId = row?.answer_id ?? 1;
+  const now = new Date().toISOString();
+
+  await db.runAsync(
+    `INSERT INTO job_sheet_answers (answer_id, job_id, user_id, answer_text, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
+    [answerId, payload.job_id, payload.user_id, payload.answer_text, now, now]
+  );
+
+  return {
+    answer_id: answerId,
+    job_id: payload.job_id,
+    user_id: payload.user_id,
+    answer_text: payload.answer_text,
+    created_at: now,
+    updated_at: now,
+  } satisfies JobSheetAnswerRecord;
+}
+
+export async function listJobSheetAnswersByUserAndJob(userId: number, jobId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<JobSheetAnswerRecord>(
+    'SELECT * FROM job_sheet_answers WHERE user_id = ? AND job_id = ? ORDER BY answer_id ASC',
+    [userId, jobId]
+  );
 }
