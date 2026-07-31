@@ -1,12 +1,12 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { listCompetencies, listModules, listLessons, listLessonContent, listPerformanceAnswersByUser, listQuestionAnswersByUser } from '@/lib/auth-api';
+import { listCompetencies, listModules, listLessons, listLessonContent, listPerformanceAnswersByUser, listQuestionAnswersByUser, listLessonContentProgressByUser, LessonContentProgressRecord } from '@/lib/auth-api';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -109,7 +109,7 @@ function LineChart({ data, labels, color }: { data: number[]; labels: string[]; 
   );
 }
 
-function BarChart({ data, labels, colors }: { data: number[]; labels: string[]; colors: string[] }) {
+function BarChart({ data, labels, colors, onBarPress }: { data: number[]; labels: string[]; colors: string[]; onBarPress?: (index: number) => void }) {
   const maxValue = Math.max(...data, 1);
   const barWidth = Math.min(40, (screenWidth - 80) / data.length - 8);
 
@@ -117,13 +117,13 @@ function BarChart({ data, labels, colors }: { data: number[]; labels: string[]; 
     <View style={styles.barChart}>
       <View style={styles.barChartInner}>
         {data.map((value, index) => (
-          <View key={index} style={styles.barItem}>
+          <Pressable key={index} onPress={() => onBarPress?.(index)} style={styles.barItem}>
             <View style={styles.barLabelContainer}>
               <Text style={styles.barValue}>{value}</Text>
             </View>
             <View style={[styles.bar, { height: (value / maxValue) * 160, backgroundColor: colors[index % colors.length] }]} />
             <Text style={styles.barLabel}>{labels[index]}</Text>
-          </View>
+          </Pressable>
         ))}
       </View>
     </View>
@@ -143,20 +143,25 @@ export default function HomeScreen() {
   const [lessonContents, setLessonContents] = useState<any[]>([]);
   const [performanceAnswers, setPerformanceAnswers] = useState<any[]>([]);
   const [questionAnswers, setQuestionAnswers] = useState<any[]>([]);
+  const [lessonContentProgress, setLessonContentProgress] = useState<LessonContentProgressRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(null);
+  const [progressModalVisible, setProgressModalVisible] = useState(false);
 
   const loadDashboardData = useCallback(async () => {
     setError('');
     setLoading(true);
     try {
-      const [compData, modData, lessonData, contentData, perfAnswers, qAnswers] = await Promise.all([
+      const [compData, modData, lessonData, contentData, perfAnswers, qAnswers, progressData] = await Promise.all([
         listCompetencies(),
         listModules(),
         listLessons(),
         listLessonContent(),
         listPerformanceAnswersByUser(userId),
         listQuestionAnswersByUser(userId),
+        listLessonContentProgressByUser(userId),
       ]);
       setCompetencies(compData);
       setModules(modData);
@@ -164,6 +169,7 @@ export default function HomeScreen() {
       setLessonContents(contentData);
       setPerformanceAnswers(perfAnswers);
       setQuestionAnswers(qAnswers);
+      setLessonContentProgress(progressData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load dashboard data.');
     } finally {
@@ -184,18 +190,23 @@ export default function HomeScreen() {
   const progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   const moduleCompletionData = useMemo(() => {
+    const readContentIds = new Set(
+      lessonContentProgress.filter((p) => p.is_read).map((p) => p.lesson_content_id)
+    );
     return modules.map((mod: any) => {
       const modLessons = lessons.filter((l: any) => l.module_id === mod.module_id);
       const modContents = lessonContents.filter((c: any) =>
         modLessons.some((ml: any) => ml.lesson_id === c.lesson_id)
       );
+      const completed = modContents.filter((c) => readContentIds.has(c.lesson_content_id)).length;
       return {
+        module_id: mod.module_id,
         module_name: mod.module_name,
-        total: modLessons.length,
-        completed: modContents.length,
+        total: modContents.length,
+        completed,
       };
     });
-  }, [modules, lessons, lessonContents]);
+  }, [modules, lessons, lessonContents, lessonContentProgress]);
 
   const lineChartData = useMemo(() => {
     const labels = ['W1', 'W2', 'W3', 'W4'];
@@ -210,6 +221,41 @@ export default function HomeScreen() {
   }, [moduleCompletionData]);
 
   const barColors = useMemo(() => ['#2563eb', '#55e10a', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'], []);
+
+  const selectedModule = selectedModuleIndex !== null ? moduleCompletionData[selectedModuleIndex] : null;
+
+  const selectedModuleContents = useMemo(() => {
+    if (!selectedModule) return [];
+    const moduleId = selectedModule.module_id;
+    const modLessons = lessons.filter((l: any) => l.module_id === moduleId);
+    const modContents = lessonContents.filter((c: any) =>
+      modLessons.some((ml: any) => ml.lesson_id === c.lesson_id)
+    );
+    const progressMap = new Map(
+      lessonContentProgress.map((p) => [p.lesson_content_id, p])
+    );
+    return modContents.map((content: any) => {
+      const progress = progressMap.get(content.lesson_content_id);
+      return {
+        lesson_content_id: content.lesson_content_id,
+        content_name: content.content_name,
+        objectives: content.objectives,
+        lesson_id: content.lesson_id,
+        is_read: progress ? progress.is_read : false,
+        read_at: progress ? progress.read_at : null,
+      };
+    });
+  }, [selectedModule, lessons, lessonContents, lessonContentProgress]);
+
+  const openModuleProgress = (moduleIndex: number) => {
+    setSelectedModuleIndex(moduleIndex);
+    setProgressModalVisible(true);
+  };
+
+  const closeModuleProgress = () => {
+    setProgressModalVisible(false);
+    setSelectedModuleIndex(null);
+  };
 
   const tableData = useMemo(() => {
     const rows = [
@@ -281,7 +327,7 @@ export default function HomeScreen() {
         <View style={styles.chartContainer}>
           <Text style={styles.chartTitle}>Module Completion</Text>
           {barChartData.values.length > 0 ? (
-            <BarChart data={barChartData.values} labels={barChartData.labels} colors={barColors} />
+            <BarChart data={barChartData.values} labels={barChartData.labels} colors={barColors} onBarPress={openModuleProgress} />
           ) : (
             <Text style={styles.noDataText}>No module data yet</Text>
           )}
@@ -309,14 +355,75 @@ export default function HomeScreen() {
             You have {totalRecords} total records across all categories.
             {competencies.length} competencies, {modules.length} modules, {lessons.length} lessons, and {lessonContents.length} lesson contents loaded.
           </ThemedText>
-
-          <Pressable onPress={() => router.replace('/settings')} style={styles.secondaryButton}>
-            <ThemedText style={styles.secondaryButtonText}>Open Settings</ThemedText>
-          </Pressable>
         </View>
       </ScrollView>
 
       <BottomNavbar activeTab="home" userId={userId} />
+
+      <Modal transparent animationType="fade" visible={progressModalVisible} onRequestClose={closeModuleProgress}>
+        {selectedModule ? (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeaderRow}>
+                <Text style={styles.modalTitle}>{selectedModule.module_name}</Text>
+                <Pressable onPress={closeModuleProgress} style={styles.modalCloseButton}>
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.modalSummaryRow}>
+                <View style={styles.modalSummaryItem}>
+                  <Text style={styles.modalSummaryValue}>{selectedModule.completed}</Text>
+                  <Text style={styles.modalSummaryLabel}>Read</Text>
+                </View>
+                <View style={styles.modalSummaryItem}>
+                  <Text style={styles.modalSummaryValue}>{selectedModule.total}</Text>
+                  <Text style={styles.modalSummaryLabel}>Total Contents</Text>
+                </View>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} style={styles.modalContentList}>
+                {selectedModuleContents.length > 0 ? (
+                  selectedModuleContents.map((content: any) => (
+                    <View key={content.lesson_content_id} style={styles.progressContentCard}>
+                      <View style={styles.progressContentHeader}>
+                        <Text style={styles.progressContentName}>• {content.content_name}</Text>
+                        {content.is_read ? (
+                          <View style={[styles.progressBadge, styles.readBadge]}>
+                            <Text style={styles.readBadgeText}>✓ Read</Text>
+                          </View>
+                        ) : (
+                          <View style={[styles.progressBadge, styles.unreadBadge]}>
+                            <Text style={styles.unreadBadgeText}>Unread</Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.progressContentBody}>
+                        <Text style={styles.progressContentLabel}>Objectives</Text>
+                        <Text style={styles.progressContentValue}>{content.objectives}</Text>
+                      </View>
+                      {content.is_read && content.read_at ? (
+                        <View style={styles.progressContentBody}>
+                          <Text style={styles.progressContentLabel}>Read At</Text>
+                          <Text style={styles.progressContentValue}>{content.read_at}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.emptyContentCard}>
+                    <Text style={styles.emptyContentText}>No lesson contents available for this module.</Text>
+                  </View>
+                )}
+              </ScrollView>
+
+              <Pressable onPress={closeModuleProgress} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+      </Modal>
     </ThemedView>
   );
 }
@@ -580,5 +687,159 @@ const styles = StyleSheet.create({
     color: '#b91c1c',
     fontSize: 13,
     lineHeight: 18,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: 'rgba(2, 6, 23, 0.45)',
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 420,
+    maxHeight: '85%',
+    borderRadius: 20,
+    padding: 18,
+    gap: 12,
+    backgroundColor: '#ffffff',
+    alignSelf: 'stretch',
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    flex: 1,
+  },
+  modalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f1f5f9',
+  },
+  modalCloseText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  modalSummaryRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 4,
+  },
+  modalSummaryItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+  },
+  modalSummaryValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  modalSummaryLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+    marginTop: 2,
+  },
+  modalContentList: {
+    flex: 1,
+  },
+  progressContentCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+    backgroundColor: '#ffffff',
+    padding: 12,
+    gap: 8,
+    marginBottom: 8,
+  },
+  progressContentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  progressContentName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#166534',
+    lineHeight: 20,
+    flex: 1,
+  },
+  progressBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  readBadge: {
+    backgroundColor: '#5bec13',
+  },
+  unreadBadge: {
+    backgroundColor: '#f59e0b',
+  },
+  readBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  unreadBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  progressContentBody: {
+    gap: 4,
+  },
+  progressContentLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  progressContentValue: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#000000',
+    lineHeight: 18,
+  },
+  closeButton: {
+    borderRadius: 14,
+    paddingVertical: 13,
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    marginTop: 8,
+  },
+  closeButtonText: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  emptyContentCard: {
+    paddingVertical: 24,
+    alignItems: 'center',
+    borderRadius: 14,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+  },
+  emptyContentText: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
   },
 });
