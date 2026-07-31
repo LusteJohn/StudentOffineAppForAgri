@@ -214,11 +214,11 @@ export default function SettingsScreen() {
               const result = await resetAndSeedLocalData();
                if (result.alreadyImported) {
                 setMessage(
-                  `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, and ${result.jobSheet} job sheets.`
+                  `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, ${result.jobSheet} job sheets, and ${result.performanceCheck} performance checks.`
                 );
               } else {
                 setMessage(
-                  `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, and ${result.jobSheet} job sheets saved to this device.`
+                  `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, ${result.jobSheet} job sheets, and ${result.performanceCheck} performance checks saved to this device.`
                 );
               }
             } catch (importError) {
