@@ -576,7 +576,7 @@ async function ensureDatabase() {
         FOREIGN KEY (job_id) REFERENCES job_sheet(job_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id)
     )`,
-    `CREATE TABLE IF NOT EXISTS performance_checklist (
+`CREATE TABLE IF NOT EXISTS performance_checklist (
         performance_id INTEGER PRIMARY KEY NOT NULL,
         lesson_content_id INTEGER NOT NULL,
         performance_question TEXT NOT NULL,
@@ -1077,6 +1077,12 @@ export async function listJobSheetByLessonContentId(lessonContentId: number) {
   return db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet WHERE lesson_content_id = ? ORDER BY job_id ASC', [lessonContentId]);
 }
 
+export async function listPerformanceCheckByLessonContentId(lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<PerformanceChecklistRecord>('SELECT * FROM performance_checklist WHERE lesson_content_id = ? ORDER BY performance_order ASC', [lessonContentId]);
+}
+
 export async function resetAndSeedLocalData() {
   await ensureDatabase();
   const db = await databasePromise;
@@ -1313,12 +1319,12 @@ return {
     );
   }
 
-  for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
+for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
     const checkItem = DEFAULT_PERFORMANCE_CHECK[index];
 
     await db.runAsync(
       `INSERT INTO performance_checklist
-        (performance_id, lesson_content_id, performance_question, performance_order, created_at, updated_at)
+        (performance_id, lesson_content_id, performance_question, "performance_order", created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`,
       [checkItem.performance_id, checkItem.lesson_content_id, checkItem.performance_question, checkItem.performance_order, now, now]
     );

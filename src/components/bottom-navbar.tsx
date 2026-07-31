@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 
 type BottomNavbarProps = {
-  activeTab: 'home' | 'library' | 'lesson' | 'exercise' | 'job' | 'content-info' | 'settings';
+  activeTab: 'home' | 'library' | 'lesson' | 'exercise' | 'job' | 'performance' | 'content-info' | 'settings';
   userId: number;
 };
 
@@ -66,6 +66,21 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
       Alert.alert(
         'Select a lesson first',
         'Please select a module and lesson from the Lesson page before viewing the content info.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace({ pathname: '/lesson', params: { userId: String(userId) } }),
+          },
+        ]
+      );
+    }
+  };
+
+  const goPerformance = () => {
+    if (activeTab !== 'performance') {
+      Alert.alert(
+        'Select a lesson first',
+        'Please select a module and lesson from the Lesson page before viewing the performance checklist.',
         [
           {
             text: 'OK',
@@ -138,6 +153,15 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
               color={activeTab === 'content-info' ? '#000000' : '#5c6b61'}
             />
             <Text style={[styles.tabLabel, activeTab === 'content-info' && styles.activeTabLabel]}>Content Info</Text>
+          </Pressable>
+
+          <Pressable onPress={goPerformance} style={[styles.tabButton, activeTab === 'performance' && styles.activeTabButton]}>
+            <Ionicons
+              name={activeTab === 'performance' ? 'clipboard-checkmark' : 'clipboard-checkmark-outline'}
+              size={22}
+              color={activeTab === 'performance' ? '#000000' : '#5c6b61'}
+            />
+            <Text style={[styles.tabLabel, activeTab === 'performance' && styles.activeTabLabel]}>Performance</Text>
           </Pressable>
 
           <Pressable onPress={goSettings} style={[styles.tabButton, activeTab === 'settings' && styles.activeTabButton]}>

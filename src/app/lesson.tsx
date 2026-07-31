@@ -280,6 +280,9 @@ export default function LessonScreen() {
                       <Pressable onPress={() => router.replace({ pathname: '/job/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })} style={styles.jobSheetButton}>
                         <Text style={styles.jobSheetButtonText}>Job Sheet</Text>
                       </Pressable>
+                      <Pressable onPress={() => router.replace({ pathname: '/performance/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })} style={styles.performanceButton}>
+                        <Text style={styles.performanceButtonText}>Performance Check</Text>
+                      </Pressable>
                     </View>
                   ))
                 ) : (
@@ -305,6 +308,15 @@ export default function LessonScreen() {
                 }
               }} style={styles.jobSheetButton}>
                 <Text style={styles.jobSheetButtonText}>Job Sheet</Text>
+              </Pressable>
+
+              <Pressable onPress={() => {
+                const firstContentId = lessonContents[0]?.lesson_content_id;
+                if (firstContentId) {
+                  router.replace({ pathname: '/performance/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(firstContentId), userId: String(activeUserId) } });
+                }
+              }} style={styles.performanceButton}>
+                <Text style={styles.performanceButtonText}>Performance Check</Text>
               </Pressable>
 
               <Pressable onPress={closeLessonDetail} style={styles.closeButton}>
@@ -568,6 +580,17 @@ const styles = StyleSheet.create({
   },
   jobSheetButtonText: {
     color: '#ffffff',
+    fontWeight: '700',
+  },
+  performanceButton: {
+    borderRadius: 14,
+    paddingVertical: 13,
+    alignItems: 'center',
+    backgroundColor: '#5bec13',
+    marginTop: 8,
+  },
+  performanceButtonText: {
+    color: '#000000',
     fontWeight: '700',
   },
   closeButton: {
