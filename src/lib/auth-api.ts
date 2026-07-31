@@ -595,6 +595,17 @@ async function ensureDatabase() {
         FOREIGN KEY (performance_id) REFERENCES performance_checklist(performance_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id)
     )`,
+    `CREATE TABLE IF NOT EXISTS lesson_content_progress (
+        progress_lesson_id INTEGER PRIMARY KEY NOT NULL,
+        lesson_content_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        is_read INTEGER NOT NULL DEFAULT 0,
+        read_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id),
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )`,
   ];
 
   for (const sql of createStatements) {
@@ -1133,6 +1144,83 @@ export async function listPerformanceAnswersByUser(userId: number) {
   return db.getAllAsync<PerformanceAnswerRecord>(
     'SELECT * FROM performance_answer WHERE user_id = ? ORDER BY performance_answer_id ASC',
     [userId]
+  );
+}
+
+export type LessonContentProgressRecord = {
+  progress_lesson_id: number;
+  lesson_content_id: number;
+  user_id: number;
+  is_read: boolean;
+  read_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function createLessonContentProgress(payload: {
+  lesson_content_id: number;
+  user_id: number;
+  is_read: boolean;
+}) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  await db.runAsync(
+    `INSERT INTO lesson_content_progress
+      (lesson_content_id, user_id, is_read, read_at, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)`,
+    [payload.lesson_content_id, payload.user_id, payload.is_read ? 1 : 0, now, now, now]
+  );
+}
+
+export async function updateLessonContentProgress(progressLessonId: number, payload: {
+  is_read: boolean;
+}) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  await db.runAsync(
+    `UPDATE lesson_content_progress
+      SET is_read = ?, read_at = ?, updated_at = ?
+      WHERE progress_lesson_id = ?`,
+    [payload.is_read ? 1 : 0, now, now, progressLessonId]
+  );
+}
+
+export async function listLessonContentProgressByUser(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonContentProgressRecord>(
+    'SELECT * FROM lesson_content_progress WHERE user_id = ? ORDER BY progress_lesson_id ASC',
+    [userId]
+  );
+}
+
+export async function listLessonContentProgressByLessonContent(lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonContentProgressRecord>(
+    'SELECT * FROM lesson_content_progress WHERE lesson_content_id = ? ORDER BY progress_lesson_id ASC',
+    [lessonContentId]
+  );
+}
+
+export async function listLessonContentProgressByUserAndLessonContent(userId: number, lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonContentProgressRecord>(
+    'SELECT * FROM lesson_content_progress WHERE user_id = ? AND lesson_content_id = ? ORDER BY progress_lesson_id ASC',
+    [userId, lessonContentId]
+  );
+}
+
+export async function updateLessonContentProgress(progressLessonId: number, isRead: boolean) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  await db.runAsync(
+    `UPDATE lesson_content_progress SET is_read = ?, read_at = ?, updated_at = ? WHERE progress_lesson_id = ?`,
+    [isRead ? 1 : 0, now, now, progressLessonId]
   );
 }
 
