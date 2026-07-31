@@ -3,6 +3,7 @@ import { DEFAULT_CONTENT_INFO } from './content-info-seed';
 import { DEFAULT_QUESTION_INSTRUCT } from './question-instruct-seed';
 import { DEFAULT_QUESTION_CONTENT } from './question-content-seed';
 import { DEFAULT_QUESTION_CHOICE } from './question-choice-seed';
+import { DEFAULT_PERFORMANCE_CHECK } from './performance-check-seed';
 
 export type StudentUser = {
   user_id: number;
@@ -148,6 +149,15 @@ export type JobSheetAnswerRecord = {
   job_id: number;
   user_id: number;
   answer_text: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type PerformanceChecklistRecord = {
+  performance_id: number;
+  lesson_content_id: number;
+  performance_question: string;
+  performance_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -565,6 +575,15 @@ async function ensureDatabase() {
         updated_at TEXT NOT NULL,
         FOREIGN KEY (job_id) REFERENCES job_sheet(job_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS performance_checklist (
+        performance_id INTEGER PRIMARY KEY NOT NULL,
+        lesson_content_id INTEGER NOT NULL,
+        performance_question TEXT NOT NULL,
+        performance_order INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id)
     )`,
   ];
 
@@ -1073,6 +1092,7 @@ export async function resetAndSeedLocalData() {
   const questionContents = await db.getAllAsync<QuestionContentRecord>('SELECT * FROM question_content ORDER BY question_id ASC');
   const questionChoices = await db.getAllAsync<QuestionChoiceRecord>('SELECT * FROM question_choice ORDER BY choice_id ASC');
   const jobSheets = await db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet ORDER BY job_id ASC');
+  const performanceChecklists = await db.getAllAsync<PerformanceChecklistRecord>('SELECT * FROM performance_checklist ORDER BY performance_id ASC');
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
     competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
@@ -1107,9 +1127,12 @@ export async function resetAndSeedLocalData() {
   const hasDefaultJobSheet = DEFAULT_JOB_SHEET.every((expected) =>
     jobSheets.some((js) => String(js.job_id) === String(expected.job_id))
   );
+  const hasDefaultPerformanceCheck = DEFAULT_PERFORMANCE_CHECK.every((expected) =>
+    performanceChecklists.some((pc) => String(pc.performance_id) === String(expected.performance_id))
+  );
 
-  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && hasDefaultQuestionInstruct && hasDefaultQuestionContent && hasDefaultQuestionChoice && hasDefaultJobSheet && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
-    return {
+  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && hasDefaultQuestionInstruct && hasDefaultQuestionContent && hasDefaultQuestionChoice && hasDefaultJobSheet && hasDefaultPerformanceCheck && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
+return {
       competencies: competencies.length,
       modules: modules.length,
       lessons: lessons.length,
@@ -1117,11 +1140,12 @@ export async function resetAndSeedLocalData() {
       contentInfo: contentInfos.length,
       lessonInfo: lessonInfos.length,
       lessonLink: lessonLinks.length,
-    questionInstruct: questionInstructs.length,
-    questionContent: questionContents.length,
-    questionChoice: questionChoices.length,
-    jobSheet: jobSheets.length,
-    alreadyImported: true,
+      questionInstruct: questionInstructs.length,
+      questionContent: questionContents.length,
+      questionChoice: questionChoices.length,
+      jobSheet: jobSheets.length,
+      performanceCheck: performanceChecklists.length,
+      alreadyImported: true,
     };
   }
 
@@ -1261,9 +1285,9 @@ export async function resetAndSeedLocalData() {
 
     await db.runAsync(
       `INSERT INTO question_content
-        (question_id, lesson_content_id, question, question_type, question_order, correct_answer, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [questionItem.question_id, questionItem.lesson_content_id, questionItem.question, questionItem.question_type, questionItem.question_order, correctAnswer, now, now]
+        (question_id, lesson_content_id, question, question_type, question_order, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [questionItem.question_id, questionItem.lesson_content_id, questionItem.question, questionItem.question_type, questionItem.question_order, now, now]
     );
   }
 
@@ -1289,6 +1313,17 @@ export async function resetAndSeedLocalData() {
     );
   }
 
+  for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
+    const checkItem = DEFAULT_PERFORMANCE_CHECK[index];
+
+    await db.runAsync(
+      `INSERT INTO performance_checklist
+        (performance_id, lesson_content_id, performance_question, performance_order, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)`,
+      [checkItem.performance_id, checkItem.lesson_content_id, checkItem.performance_question, checkItem.performance_order, now, now]
+    );
+  }
+
   return {
     competencies: DEFAULT_COMPETENCIES.length,
     modules: DEFAULT_MODULES.length,
@@ -1301,6 +1336,7 @@ export async function resetAndSeedLocalData() {
     questionContent: DEFAULT_QUESTION_CONTENT.length,
     questionChoice: DEFAULT_QUESTION_CHOICE.length,
     jobSheet: DEFAULT_JOB_SHEET.length,
+    performanceCheck: DEFAULT_PERFORMANCE_CHECK.length,
     questionAnswers: 0,
     alreadyImported: false,
   };
