@@ -315,6 +315,9 @@ export default function HomeScreen() {
               <Text style={styles.heroBadgeSecondaryText}>Offline ready</Text>
             </View>
           </View>
+          <ThemedText type="subtitle" style={styles.appNameText}>
+            Organic Agriculture Production Learning App
+          </ThemedText>
           <ThemedText type="subtitle" style={styles.welcomeText}>
             Welcome, Student #{userId}
           </ThemedText>
@@ -492,6 +495,12 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     fontSize: 12,
     fontWeight: '700',
+  },
+  appNameText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0f172a',
+    lineHeight: 24,
   },
   welcomeText: {
     fontSize: 20,
