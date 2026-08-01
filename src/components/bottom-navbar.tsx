@@ -1,4 +1,4 @@
-import { Alert, View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { Alert, View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -12,6 +12,8 @@ type BottomNavbarProps = {
 
 export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const goHome = () => {
     if (activeTab !== 'home') {
@@ -100,7 +102,7 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   return (
     <View style={[styles.wrap, { paddingTop: Math.max(insets.top, 8), paddingBottom: Math.max(insets.bottom, 16) }]}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.bar}>
+        <View style={[styles.bar, isCompact ? styles.barCompact : styles.barWide]}>
           <Pressable onPress={goHome} style={[styles.tabButton, activeTab === 'home' && styles.activeTabButton]}>
             <Ionicons
               name={activeTab === 'home' ? 'home' : 'home-outline'}
@@ -157,7 +159,7 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
 
           <Pressable onPress={goPerformance} style={[styles.tabButton, activeTab === 'performance' && styles.activeTabButton]}>
             <Ionicons
-              name={activeTab === 'performance' ? 'clipboard-checkmark' : 'clipboard-checkmark-outline'}
+              name={activeTab === 'performance' ? 'clipboard' : 'clipboard-outline'}
               size={22}
               color={activeTab === 'performance' ? '#000000' : '#5c6b61'}
             />
@@ -180,7 +182,7 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 16,
     backgroundColor: 'transparent',
@@ -191,18 +193,30 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     gap: 8,
-    borderRadius: 18,
+    borderRadius: 999,
     borderWidth: 1,
     borderColor: 'rgba(92, 107, 97, 0.16)',
     backgroundColor: '#ffffff',
     padding: 6,
     alignSelf: 'flex-start',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+  },
+  barCompact: {
+    paddingHorizontal: 4,
+    gap: 4,
+  },
+  barWide: {
+    paddingHorizontal: 8,
   },
   tabButton: {
     minWidth: 72,
     maxWidth: 120,
     paddingHorizontal: 12,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',

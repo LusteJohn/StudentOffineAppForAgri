@@ -1,4 +1,4 @@
-import { Image, KeyboardAvoidingView, Platform, Pressable, ReactNode, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ReactNode, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Image as BlurImage } from 'expo-image';
 
 import { ThemedText } from '@/components/themed-text';
@@ -14,6 +14,9 @@ type AuthShellProps = {
 };
 
 export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthShellProps) {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
+
   return (
     <ThemedView style={styles.screen}>
       <BlurImage source={require('../../assets/images/agriLearnSchool.png')} style={styles.backgroundImage} contentFit="cover" blurRadius={2} />
@@ -25,14 +28,14 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.select({ ios: 24, android: 0 })}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={[styles.scrollContent, isCompact ? styles.scrollContentCompact : styles.scrollContentWide]} keyboardShouldPersistTaps="handled">
           <View style={styles.heroBlock}>
             <View style={styles.logoFrame}>
               <Image source={require('../../assets/images/app_logo.png')} style={styles.logo} resizeMode="contain" />
             </View>
           </View>
 
-          <ThemedView type="backgroundElement" style={styles.card}>
+          <ThemedView type="backgroundElement" style={[styles.card, isCompact ? styles.cardCompact : styles.cardWide]}>
             <View style={styles.cardHeader}>
               <ThemedText type="code" themeColor="textSecondary" style={styles.eyebrow}>
                 {eyebrow}
@@ -131,8 +134,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingVertical: 24,
+  },
+  scrollContentCompact: {
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+  },
+  scrollContentWide: {
+    paddingHorizontal: 28,
   },
   heroBlock: {
     width: '100%',
@@ -143,10 +153,15 @@ const styles = StyleSheet.create({
   logoFrame: {
     paddingHorizontal: 18,
     paddingVertical: 14,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.75)',
+    borderColor: 'rgba(255, 255, 255, 0.9)',
+    shadowColor: '#143610',
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
   logo: {
     width: 156,
@@ -156,18 +171,24 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
     maxWidth: 460,
-    borderRadius: 32,
+    borderRadius: 28,
     padding: 22,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.55)',
-    backgroundColor: 'rgba(255, 255, 255, 0.72)',
-    shadowColor: '#000',
-    shadowOpacity: 0.16,
-    shadowRadius: 26,
+    borderColor: 'rgba(255, 255, 255, 0.65)',
+    backgroundColor: 'rgba(255, 255, 255, 0.84)',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.14,
+    shadowRadius: 24,
     shadowOffset: { width: 0, height: 14 },
     elevation: 10,
-    backdropFilter: 'blur(14px)',
+  },
+  cardCompact: {
+    padding: 18,
+    borderRadius: 24,
+  },
+  cardWide: {
+    padding: 24,
   },
   cardHeader: {
     gap: 8,

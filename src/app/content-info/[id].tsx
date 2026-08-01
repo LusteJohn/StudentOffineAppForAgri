@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
@@ -26,6 +26,8 @@ export default function ContentInfoScreen() {
   const [error, setError] = useState('');
   const [isRead, setIsRead] = useState(false);
   const [markingRead, setMarkingRead] = useState(false);
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const loadContentInfo = useCallback(async () => {
     setError('');
@@ -136,7 +138,7 @@ export default function ContentInfoScreen() {
           </View>
         ) : (
           <View style={styles.contentContainer}>
-            <View style={styles.breadcrumb}>
+            <View style={[styles.breadcrumb, styles.surfaceCard]}>
               <Text style={styles.breadcrumbText}>
                 {moduleItem?.module_name} {' > '} {lessonItem?.lesson_name} {' > '} {contentItem?.content_name}
               </Text>
@@ -144,7 +146,7 @@ export default function ContentInfoScreen() {
 
             {contentInfos.length > 0 ? (
               contentInfos.map((info) => (
-                <View key={info.content_info_id} style={styles.infoCard}>
+                <View key={info.content_info_id} style={[styles.infoCard, styles.surfaceCard, isCompact && styles.infoCardCompact]}>
                   <Text style={styles.infoLabel}>Label</Text>
                   <Text style={styles.infoValue}>{info.label}</Text>
 
@@ -175,7 +177,7 @@ export default function ContentInfoScreen() {
             <Pressable
               onPress={markAsRead}
               disabled={markingRead}
-              style={[styles.markAsReadButton, isRead && styles.markAsReadButtonOutline]}
+              style={[styles.markAsReadButton, isRead && styles.markAsReadButtonOutline, isCompact && styles.markAsReadButtonCompact]}
             >
               <Text style={[styles.markAsReadButtonText, isRead && styles.markAsReadButtonTextOutline]}>
                 {markingRead ? 'Saving...' : isRead ? 'Mark as Unread' : 'Mark as Read'}
@@ -201,7 +203,7 @@ const styles = StyleSheet.create({
   },
   breadcrumb: {
     backgroundColor: '#ffffff',
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 12,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
@@ -215,8 +217,15 @@ const styles = StyleSheet.create({
   contentContainer: {
     gap: 12,
   },
+  surfaceCard: {
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
   infoCard: {
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
     backgroundColor: '#ffffff',
@@ -286,8 +295,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
   },
+  infoCardCompact: {
+    padding: 12,
+  },
   markAsReadButton: {
-    borderRadius: 14,
+    borderRadius: 999,
     paddingVertical: 13,
     alignItems: 'center',
     backgroundColor: '#5bec13',
@@ -298,6 +310,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#166534',
+  },
+  markAsReadButtonCompact: {
+    paddingVertical: 12,
   },
   markAsReadButtonText: {
     color: '#000000',

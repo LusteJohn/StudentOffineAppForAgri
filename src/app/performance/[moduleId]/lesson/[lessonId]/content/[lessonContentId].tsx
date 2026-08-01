@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
@@ -27,6 +27,8 @@ export default function PerformanceCheckScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [error, setError] = useState('');
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const loadPerformanceCheck = useCallback(async () => {
     setError('');
@@ -147,9 +149,9 @@ export default function PerformanceCheckScreen() {
               checklist.map((item) => {
                 const currentAnswer = selectedAnswers[item.performance_id] ?? '';
                 return (
-                  <View key={item.performance_id} style={styles.checkItem}>
+                  <View key={item.performance_id} style={[styles.checkItem, styles.surfaceCard, isCompact && styles.checkItemCompact]}>
                     <View style={styles.checkItemLeft}>
-                      <Text style={styles.checkOrder}>{item.order}.</Text>
+                      <Text style={styles.checkOrder}>{item.performance_order}.</Text>
                       <Text style={styles.checkQuestion}>{item.performance_question}</Text>
                     </View>
                     <View style={styles.radioGroup}>
@@ -250,7 +252,7 @@ const styles = StyleSheet.create({
   },
   checkItem: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
     padding: 16,
@@ -282,6 +284,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  surfaceCard: {
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  checkItemCompact: {
+    padding: 12,
+  },
   radioButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -305,7 +317,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   submitButton: {
-    borderRadius: 14,
+    borderRadius: 999,
     paddingVertical: 14,
     alignItems: 'center',
     backgroundColor: '#55e10a',

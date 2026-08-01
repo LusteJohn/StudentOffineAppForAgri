@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Image, View, Text, StyleSheet, Pressable } from 'react-native';
+import { Image, View, Text, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +20,8 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
   const [role, setRole] = useState('');
   const [name, setName] = useState('');
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const loadUser = useCallback(async () => {
     try {
@@ -51,7 +53,7 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
 
   return (
     <View style={[styles.wrap, { paddingTop: Math.max(insets.top, 12) }]}>
-      <View style={styles.inner}>
+      <View style={[styles.inner, isCompact ? styles.innerCompact : styles.innerWide]}>
         <View style={styles.leftArea}>
           {showBack ? (
             <Pressable onPress={handleBack} style={styles.backButton}>
@@ -79,16 +81,23 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f8fff3',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(148, 163, 184, 0.12)',
-    paddingBottom: 10,
+    paddingBottom: 12,
     paddingHorizontal: 16,
   },
   inner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 12,
+  },
+  innerCompact: {
+    alignItems: 'flex-start',
+  },
+  innerWide: {
+    alignItems: 'center',
   },
   leftArea: {
     flexDirection: 'row',
@@ -124,7 +133,7 @@ const styles = StyleSheet.create({
   metaTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000000',
+    color: '#0f172a',
     textAlign: 'center',
   },
   metaRow: {
@@ -142,8 +151,8 @@ const styles = StyleSheet.create({
   roleBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
-    backgroundColor: '#f1f5f9',
+    borderRadius: 999,
+    backgroundColor: '#e4f8d6',
   },
   roleText: {
     fontSize: 12,
