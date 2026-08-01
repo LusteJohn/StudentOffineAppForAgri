@@ -33,6 +33,11 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
             <View style={styles.logoFrame}>
               <Image source={require('../../assets/images/app_logo.png')} style={styles.logo} resizeMode="contain" />
             </View>
+            <View style={styles.appNameWrap}>
+              <ThemedText type="subtitle" style={styles.appNameText}>
+                Organic Agriculture Production Learning App
+              </ThemedText>
+            </View>
           </View>
 
           <ThemedView type="backgroundElement" style={[styles.card, isCompact ? styles.cardCompact : styles.cardWide]}>
@@ -166,6 +171,17 @@ const styles = StyleSheet.create({
   logo: {
     width: 156,
     height: 46,
+  },
+  appNameWrap: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  appNameText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0f172a',
+    textAlign: 'center',
+    lineHeight: 24,
   },
   card: {
     alignSelf: 'center',
