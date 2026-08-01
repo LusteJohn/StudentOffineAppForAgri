@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View, TextInput } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
@@ -31,6 +31,8 @@ export default function ExerciseContentScreen() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [hasExistingAnswers, setHasExistingAnswers] = useState(false);
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const loadExercise = useCallback(async () => {
     setError('');
@@ -216,14 +218,14 @@ export default function ExerciseContentScreen() {
           </View>
         ) : (
           <View style={styles.container}>
-            <View style={styles.headerCard}>
+            <View style={[styles.headerCard, styles.surfaceCard]}>
               <Text style={styles.headerTitle}>{moduleItem?.module_name}</Text>
               <Text style={styles.headerSubtitle}>{lessonItem?.lesson_name}</Text>
               {contentItem ? <Text style={styles.contentName}>{contentItem.content_name}</Text> : null}
             </View>
 
             {instructs.map((instruct) => (
-              <View key={instruct.instruct_id} style={styles.instructCard}>
+              <View key={instruct.instruct_id} style={[styles.instructCard, styles.surfaceCard, isCompact && styles.instructCardCompact]}>
                 <Text style={styles.instructLabel}>Instructions</Text>
                 <Text style={styles.instructTitle}>{instruct.question_title}</Text>
                 <Text style={styles.instructText}>{instruct.question_instruction}</Text>
@@ -231,7 +233,7 @@ export default function ExerciseContentScreen() {
             ))}
 
             {questions.map((q, idx) => (
-              <View key={q.question.question_id} style={styles.questionCard}>
+              <View key={q.question.question_id} style={[styles.questionCard, styles.surfaceCard, isCompact && styles.questionCardCompact]}>
                 <Text style={styles.questionNumber}>{idx + 1}. {q.question.question}</Text>
                 <View style={styles.choicesContainer}>
                   {renderChoices(q.question, q.choices, q.question.question_id)}
@@ -279,7 +281,7 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
     padding: 16,
@@ -299,6 +301,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#166534',
+  },
+  surfaceCard: {
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
   },
   instructCard: {
     gap: 4,
@@ -323,6 +332,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#334155',
     lineHeight: 18,
+  },
+  instructCardCompact: {
+    paddingVertical: 10,
   },
   questionCard: {
     gap: 10,

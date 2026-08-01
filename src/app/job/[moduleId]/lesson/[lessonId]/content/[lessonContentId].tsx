@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -36,6 +36,8 @@ export default function JobSheetScreen() {
   const [selectedSheet, setSelectedSheet] = useState<JobSheetRecord | null>(null);
   const [answerText, setAnswerText] = useState('');
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const loadJobSheet = useCallback(async () => {
     setError('');
@@ -214,7 +216,7 @@ export default function JobSheetScreen() {
               jobSheets.map((sheet) => {
                 const hasAnswer = answers.some((answer) => answer.job_id === sheet.job_id);
                 return (
-                  <View key={sheet.job_id} style={styles.sheetCard}>
+                  <View key={sheet.job_id} style={[styles.sheetCard, styles.surfaceCard, isCompact && styles.sheetCardCompact]}>
                     <Text style={styles.sheetTitle}>{sheet.job_title}</Text>
                     <View style={styles.section}>
                       <Text style={styles.sectionLabel}>Objectives</Text>
@@ -335,7 +337,7 @@ const styles = StyleSheet.create({
   },
   sheetCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
     padding: 16,

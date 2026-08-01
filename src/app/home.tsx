@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import { Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
@@ -8,7 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { listCompetencies, listModules, listLessons, listLessonContent, listPerformanceAnswersByUser, listQuestionAnswersByUser, listLessonContentProgressByUser, LessonContentProgressRecord } from '@/lib/auth-api';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth } = useWindowDimensions();
 
 function LineChart({ data, labels, color }: { data: number[]; labels: string[]; color: string }) {
   const maxValue = Math.max(...data, 1);
@@ -146,6 +146,8 @@ export default function HomeScreen() {
   const [lessonContentProgress, setLessonContentProgress] = useState<LessonContentProgressRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(null);
   const [progressModalVisible, setProgressModalVisible] = useState(false);
@@ -274,7 +276,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <ThemedView style={styles.screen}>
-        <Header title="Student Dashboard" userId={userId} />
+        <Header title="Student Dashboard" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading dashboard...</Text>
@@ -288,7 +290,7 @@ export default function HomeScreen() {
   if (error) {
     return (
       <ThemedView style={styles.screen}>
-        <Header title="Student Dashboard" userId={userId} />
+        <Header title="Student Dashboard" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.errorContainer}>
             <Text style={styles.errorTitle}>Unable to load dashboard</Text>
@@ -302,9 +304,17 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.screen}>
-      <Header title="Student Dashboard" userId={userId} />
+      <Header title="Student Dashboard" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerCard}>
+        <View style={[styles.headerCard, styles.heroCard]}>
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroBadge}>
+              <Text style={styles.heroBadgeText}>Learning progress</Text>
+            </View>
+            <View style={styles.heroBadgeSecondary}>
+              <Text style={styles.heroBadgeSecondaryText}>Offline ready</Text>
+            </View>
+          </View>
           <ThemedText type="subtitle" style={styles.welcomeText}>
             Welcome, Student #{userId}
           </ThemedText>
@@ -333,7 +343,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-        <View style={styles.tableContainer}>
+        <View style={[styles.tableContainer, styles.surfaceCard]}>
           <Text style={styles.chartTitle}>Data Records Overview</Text>
           <View style={styles.tableWrapper}>
             <View style={styles.tableHeader}>
@@ -349,7 +359,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={styles.card}>
+        <View style={[styles.card, styles.surfaceCard]}>
           <ThemedText type="code" themeColor="textSecondary">Dashboard summary</ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.summaryText}>
             You have {totalRecords} total records across all categories.
@@ -440,11 +450,48 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
     padding: 20,
     gap: 8,
+  },
+  heroCard: {
+    backgroundColor: '#f8fff3',
+    borderColor: 'rgba(85, 225, 10, 0.22)',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+  },
+  heroTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  heroBadge: {
+    borderRadius: 999,
+    backgroundColor: '#e4f8d6',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  heroBadgeText: {
+    color: '#166534',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  heroBadgeSecondary: {
+    borderRadius: 999,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  heroBadgeSecondaryText: {
+    color: '#0f172a',
+    fontSize: 12,
+    fontWeight: '700',
   },
   welcomeText: {
     fontSize: 20,
@@ -457,14 +504,14 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
     padding: 16,
     gap: 12,
   },
   chartTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#000000',
     textTransform: 'uppercase',
@@ -476,6 +523,13 @@ const styles = StyleSheet.create({
   },
   barChart: {
     gap: 8,
+  },
+  surfaceCard: {
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
   },
   barChartInner: {
     flexDirection: 'row',
@@ -584,14 +638,14 @@ const styles = StyleSheet.create({
   },
   tableContainer: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
     padding: 16,
     gap: 12,
   },
   tableWrapper: {
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: 'hidden',
   },
   tableHeader: {

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
@@ -36,6 +36,8 @@ export default function ModuleScreen() {
   const [selectedCompetency, setSelectedCompetency] = useState<CompetencyRecord | null>(null);
   const [selectedModules, setSelectedModules] = useState<ModuleRecord[]>([]);
   const [detailVisible, setDetailVisible] = useState(false);
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const handleModuleStart = (moduleItem: ModuleRecord) => {
     setDetailVisible(false);
@@ -116,7 +118,7 @@ export default function ModuleScreen() {
 
   return (
     <ThemedView style={styles.screen}>
-      <Header title="Competency Library" userId={activeUserId} />
+      <Header title="Competency Library" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabs}>
@@ -131,12 +133,12 @@ export default function ModuleScreen() {
           </Pressable>
         </ScrollView>
 
-        <View style={styles.section}>
+        <View style={[styles.section, isCompact && styles.sectionCompact]}>
           {competencies.map((competency) => {
             const competencyModule = modules.find((m) => m.competency_id === competency.competency_id) ?? null;
 
             return (
-              <View key={competency.competency_id} style={styles.card}>
+              <View key={competency.competency_id} style={[styles.card, styles.surfaceCard, isCompact && styles.cardCompact]}>
                 <View style={styles.cardTopRow}>
                   <View style={styles.cardTextGroup}>
                     <Text style={styles.cardTitle} numberOfLines={2}>
@@ -160,7 +162,7 @@ export default function ModuleScreen() {
                 <View style={styles.cardButtonRow}>
                   <Pressable
                     onPress={() => handleDownload(competencyModule)}
-                    style={styles.downloadButton}
+                    style={[styles.downloadButton, isCompact && styles.downloadButtonCompact]}
                   >
                     <Text style={styles.downloadIcon}>⬇</Text>
                     <Text style={styles.downloadButtonText}>Download</Text>
@@ -168,7 +170,7 @@ export default function ModuleScreen() {
 
                   <Pressable
                     onPress={() => openCompetencyDetail(competency)}
-                    style={styles.startButton}
+                    style={[styles.startButton, isCompact && styles.startButtonCompact]}
                   >
                     <Text style={styles.startButtonText}>Start Module</Text>
                   </Pressable>
@@ -348,9 +350,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     gap: 16,
   },
+  sectionCompact: {
+    marginTop: 14,
+    gap: 12,
+  },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 22,
     padding: 16,
     gap: 16,
     shadowColor: '#000000',
@@ -393,6 +399,17 @@ const styles = StyleSheet.create({
   cardButtonRow: {
     flexDirection: 'row',
     gap: 10,
+    flexWrap: 'wrap',
+  },
+  surfaceCard: {
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
+  cardCompact: {
+    padding: 14,
   },
   downloadButton: {
     flex: 1,
@@ -408,6 +425,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#0f172a',
   },
+  downloadButtonCompact: {
+    minHeight: 44,
+  },
   downloadButtonText: {
     fontSize: 14,
     fontWeight: '700',
@@ -422,6 +442,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: PRIMARY,
     backgroundColor: '#ffffff',
+  },
+  startButtonCompact: {
+    minHeight: 44,
   },
   startButtonText: {
     fontSize: 14,

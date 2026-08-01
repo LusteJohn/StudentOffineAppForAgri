@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -55,6 +56,8 @@ export default function SettingsScreen() {
   const [homeAddress, setHomeAddress] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   useEffect(() => {
     let isMounted = true;
@@ -236,21 +239,56 @@ export default function SettingsScreen() {
     );
   };
 
+  const profileDisplayName = profile
+    ? [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ')
+    : 'Create a student profile';
+
   return (
     <ThemedView style={styles.screen}>
       <Header title="Settings" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.card}>
-          <ThemedText type="code" style={{ color: '#000000' }}>
-            Student profile
-          </ThemedText>
-          <ThemedText type="subtitle" style={{ color: '#000000' }}>
-            User #{activeUserId} profile
-          </ThemedText>
-          <ThemedText style={{ color: '#000000' }}>Add your profile once, then update it anytime using the modal form.</ThemedText>
+        <View style={[styles.heroCard, isCompact && styles.heroCardCompact]}>
+          <View style={styles.heroContent}>
+            <View style={styles.heroIconWrap}>
+              <Ionicons name="school-outline" size={24} color="#0f172a" />
+            </View>
+            <View style={styles.heroTextWrap}>
+              <ThemedText type="code" style={styles.heroEyebrow}>
+                Student profile
+              </ThemedText>
+              <ThemedText type="subtitle" style={styles.heroTitle}>
+                {profileDisplayName}
+              </ThemedText>
+              <ThemedText style={styles.heroDescription}>
+                {profile
+                  ? `${profile.grade_level || 'Grade pending'} • ${profile.birthdate || 'Birthdate pending'}`
+                  : 'Add your details once and keep your learning profile current.'}
+              </ThemedText>
+            </View>
+          </View>
+          <Pressable onPress={openModal} style={styles.heroButton}>
+            <Ionicons name={profile ? 'create-outline' : 'add-circle-outline'} size={18} color="#0f172a" />
+            <ThemedText style={styles.heroButtonText}>{profile ? 'Edit profile' : 'Add profile'}</ThemedText>
+          </Pressable>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconWrap}>
+              <Ionicons name="person-outline" size={18} color="#0f172a" />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={styles.sectionEyebrow}>
+                Profile
+              </ThemedText>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Student details
+              </ThemedText>
+            </View>
+          </View>
 
           {!profileLoaded ? (
-            <ThemedText style={{ color: '#000000' }}>Loading profile...</ThemedText>
+            <ThemedText style={styles.sectionBody}>Loading profile...</ThemedText>
           ) : profile ? (
             <View style={styles.profileContainer}>
               <ProfileRow label="Student ID" value={String(profile.student_id)} />
@@ -264,30 +302,33 @@ export default function SettingsScreen() {
               <ProfileRow label="Updated At" value={new Date(profile.updated_at).toLocaleString()} />
             </View>
           ) : (
-            <ThemedText style={{ color: '#000000' }}>No profile exists yet. Tap Add Profile to insert your student information.</ThemedText>
+            <ThemedText style={styles.sectionBody}>No profile exists yet. Tap the button to insert your student information.</ThemedText>
           )}
-
-          <Pressable onPress={openModal} style={styles.button}>
-            <ThemedText style={styles.buttonText}>{profile ? 'Edit Profile' : 'Add Profile'}</ThemedText>
-          </Pressable>
         </View>
 
-        <View style={styles.card}>
-          <ThemedText type="code" style={{ color: '#000000' }}>
-            Settings
-          </ThemedText>
-          <ThemedText type="subtitle" style={{ color: '#000000' }}>
-            Device data
-          </ThemedText>
-          <ThemedText style={{ color: '#000000' }}>Manage offline resources stored on this device.</ThemedText>
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconWrap}>
+              <Ionicons name="cloud-download-outline" size={18} color="#0f172a" />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={styles.sectionEyebrow}>
+                Device data
+              </ThemedText>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Offline resources
+              </ThemedText>
+            </View>
+          </View>
+          <ThemedText style={styles.sectionBody}>Manage offline resources stored on this device.</ThemedText>
 
           <View style={styles.actionCard}>
             <View style={styles.actionHeader}>
-              <View>
-                <ThemedText type="subtitle" style={[styles.actionTitle, { color: '#000000' }]}>
+              <View style={styles.actionTextWrap}>
+                <ThemedText type="subtitle" style={styles.actionTitle}>
                   Import offline resources
                 </ThemedText>
-                <ThemedText style={[styles.actionDescription, { color: '#000000' }]}>
+                <ThemedText style={styles.actionDescription}>
                   Replace the current local competency, module, lesson, lesson-content, content-info, lesson-info, lesson-link, question-instruct, question-content, and question-choice data with the default offline dataset.
                 </ThemedText>
               </View>
@@ -297,6 +338,7 @@ export default function SettingsScreen() {
               onPress={handleImportResources}
               disabled={importing}
               style={[styles.primaryButton, importing && styles.primaryButtonDisabled]}>
+              <Ionicons name="download-outline" size={18} color="#0f172a" />
               <ThemedText style={styles.primaryButtonText}>{importing ? 'Importing...' : 'Import resources'}</ThemedText>
             </Pressable>
 
@@ -320,19 +362,27 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <View style={styles.card}>
-          <ThemedText type="code" style={{ color: '#000000' }}>
-            Logout
-          </ThemedText>
-          <ThemedText type="subtitle" style={{ color: '#000000' }}>
-            Session
-          </ThemedText>
-          <ThemedText style={{ color: '#000000' }}>Logout from your current student account on this device.</ThemedText>
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconWrap}>
+              <Ionicons name="log-out-outline" size={18} color="#0f172a" />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={styles.sectionEyebrow}>
+                Session
+              </ThemedText>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Logout
+              </ThemedText>
+            </View>
+          </View>
+          <ThemedText style={styles.sectionBody}>Logout from your current student account on this device.</ThemedText>
 
           <Pressable
             onPress={handleLogout}
             disabled={loggingOut}
             style={[styles.logoutButton, loggingOut && styles.logoutButtonDisabled]}>
+            <Ionicons name="exit-outline" size={18} color="#ffffff" />
             <ThemedText style={styles.logoutButtonText}>{loggingOut ? 'Logging out...' : 'Logout'}</ThemedText>
           </Pressable>
         </View>
@@ -341,52 +391,78 @@ export default function SettingsScreen() {
       <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={closeModal}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <ThemedText type="subtitle" style={{ color: '#000000' }}>{profile ? 'Update Profile' : 'Create Profile'}</ThemedText>
-            <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
-              <TextInput
-                style={styles.input}
-                placeholder="First Name"
-                placeholderTextColor="#64748b"
-                value={firstName}
-                onChangeText={setFirstName}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Middle Name (optional)"
-                placeholderTextColor="#64748b"
-                value={middleName}
-                onChangeText={setMiddleName}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Last Name"
-                placeholderTextColor="#64748b"
-                value={lastName}
-                onChangeText={setLastName}
-              />
-              <View style={styles.fieldBlock}>
-                <ThemedText style={[styles.fieldLabel, { color: '#000000' }]}>
-                  Birthdate
+            <View style={styles.modalHeaderRow}>
+              <View style={styles.modalHeaderContent}>
+                <ThemedText type="code" style={styles.modalEyebrow}>
+                  Profile form
                 </ThemedText>
+                <ThemedText type="subtitle" style={styles.modalTitle}>
+                  {profile ? 'Update profile' : 'Create profile'}
+                </ThemedText>
+              </View>
+              <Pressable onPress={closeModal} style={styles.modalCloseButton}>
+                <Ionicons name="close" size={18} color="#0f172a" />
+              </Pressable>
+            </View>
+            <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
+              <View style={styles.fieldBlock}>
+                <ThemedText style={styles.fieldLabel}>First Name</ThemedText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="First Name"
+                  placeholderTextColor="#64748b"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                />
+              </View>
+              <View style={styles.fieldBlock}>
+                <ThemedText style={styles.fieldLabel}>Middle Name</ThemedText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Middle Name (optional)"
+                  placeholderTextColor="#64748b"
+                  value={middleName}
+                  onChangeText={setMiddleName}
+                />
+              </View>
+              <View style={styles.fieldBlock}>
+                <ThemedText style={styles.fieldLabel}>Last Name</ThemedText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Last Name"
+                  placeholderTextColor="#64748b"
+                  value={lastName}
+                  onChangeText={setLastName}
+                />
+              </View>
+              <View style={styles.fieldBlock}>
+                <ThemedText style={styles.fieldLabel}>Birthdate</ThemedText>
                 <Pressable onPress={openDatePicker} style={styles.dateTrigger}>
                   <ThemedText style={styles.dateTriggerText}>{birthdate || 'Select birthdate'}</ThemedText>
+                  <Ionicons name="calendar-outline" size={18} color="#0f172a" />
                 </Pressable>
               </View>
-              <TextInput
-                style={[styles.input, styles.multilineInput]}
-                multiline
-                placeholder="Home Address"
-                placeholderTextColor="#64748b"
-                value={homeAddress}
-                onChangeText={setHomeAddress}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Grade Level (e.g., Grade 9)"
-                placeholderTextColor="#64748b"
-                value={gradeLevel}
-                onChangeText={setGradeLevel}
-              />
+              <View style={styles.fieldBlock}>
+                <ThemedText style={styles.fieldLabel}>Home Address</ThemedText>
+                <TextInput
+                  style={[styles.input, styles.multilineInput]}
+                  multiline
+                  placeholder="Home Address"
+                  placeholderTextColor="#64748b"
+                  value={homeAddress}
+                  onChangeText={setHomeAddress}
+                />
+              </View>
+              <View style={styles.fieldBlock}>
+                <ThemedText style={styles.fieldLabel}>Grade Level</ThemedText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Grade Level (e.g., Grade 9)"
+                  placeholderTextColor="#64748b"
+                  value={gradeLevel}
+                  onChangeText={setGradeLevel}
+                />
+              </View>
             </ScrollView>
 
             <View style={styles.modalActions}>
@@ -404,7 +480,19 @@ export default function SettingsScreen() {
       <Modal animationType="fade" transparent visible={datePickerVisible} onRequestClose={() => setDatePickerVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.dateModalCard}>
-            <ThemedText type="subtitle" style={{ color: '#000000' }}>Select Birthdate</ThemedText>
+            <View style={styles.modalHeaderRow}>
+              <View style={styles.modalHeaderContent}>
+                <ThemedText type="code" style={styles.modalEyebrow}>
+                  Calendar
+                </ThemedText>
+                <ThemedText type="subtitle" style={styles.modalTitle}>
+                  Select birthdate
+                </ThemedText>
+              </View>
+              <Pressable onPress={() => setDatePickerVisible(false)} style={styles.modalCloseButton}>
+                <Ionicons name="close" size={18} color="#0f172a" />
+              </Pressable>
+            </View>
 
             <View style={styles.dateRow}>
               <DateAdjuster label="Year" value={String(selectedYear)} onMinus={() => updateYear(-1)} onPlus={() => updateYear(1)} />
@@ -485,25 +573,123 @@ const styles = StyleSheet.create({
     backgroundColor: '#edf4ea',
   },
   scrollContent: {
-    padding: 24,
+    padding: 20,
     paddingBottom: 12,
     gap: 16,
   },
-  card: {
+  heroCard: {
     alignSelf: 'center',
     width: '100%',
-    maxWidth: 520,
+    maxWidth: 560,
+    padding: 18,
+    borderRadius: 24,
+    gap: 14,
+    backgroundColor: '#f8fff3',
+    borderWidth: 1,
+    borderColor: 'rgba(92, 107, 97, 0.16)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  heroCardCompact: {
+    padding: 16,
+  },
+  heroContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  heroIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#dff8c8',
+  },
+  heroTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  heroEyebrow: {
+    color: '#64748b',
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+  },
+  heroTitle: {
+    color: '#0f172a',
+    fontSize: 18,
+  },
+  heroDescription: {
+    color: '#475569',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  heroButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 16,
+    paddingVertical: 13,
+    backgroundColor: '#55e10a',
+  },
+  heroButtonText: {
+    color: '#0f172a',
+    fontWeight: '700',
+  },
+  sectionCard: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 560,
     padding: 18,
     borderRadius: 24,
     gap: 12,
-    backgroundColor: 'transparent',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: 'rgba(92, 107, 97, 0.12)',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sectionIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f1f8e8',
+  },
+  sectionHeaderText: {
+    flex: 1,
+    gap: 2,
+  },
+  sectionEyebrow: {
+    color: '#64748b',
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+  },
+  sectionTitle: {
+    color: '#0f172a',
+    fontSize: 16,
+  },
+  sectionBody: {
+    color: '#475569',
+    fontSize: 14,
+    lineHeight: 20,
   },
   profileContainer: {
-    marginTop: 4,
-    borderRadius: 16,
+    marginTop: 2,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(92, 107, 97, 0.18)',
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderColor: 'rgba(92, 107, 97, 0.14)',
+    backgroundColor: '#f8fff3',
     padding: 14,
     gap: 10,
   },
@@ -514,58 +700,60 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+    color: '#64748b',
   },
   profileValue: {
     fontSize: 15,
     lineHeight: 22,
-  },
-  button: {
-    marginTop: 8,
-    borderRadius: 16,
-    paddingVertical: 15,
-    alignItems: 'center',
-    backgroundColor: '#55e10a',
-  },
-  buttonText: {
-    color: '#000',
-    fontWeight: '700',
+    color: '#0f172a',
   },
   actionCard: {
-    borderRadius: 24,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    backgroundColor: 'rgba(255, 255, 255, 0.76)',
-    padding: 16,
+    borderColor: 'rgba(92, 107, 97, 0.12)',
+    backgroundColor: '#f8fff3',
+    padding: 14,
     gap: 12,
   },
   actionHeader: {
     gap: 6,
   },
+  actionTextWrap: {
+    gap: 4,
+  },
   actionTitle: {
-    fontSize: 18,
+    fontSize: 16,
+    color: '#0f172a',
   },
   actionDescription: {
     fontSize: 14,
     lineHeight: 20,
+    color: '#475569',
   },
   primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     borderRadius: 16,
     paddingVertical: 14,
-    alignItems: 'center',
     backgroundColor: '#55e10a',
   },
   primaryButtonDisabled: {
     opacity: 0.7,
   },
   primaryButtonText: {
-    color: '#000000',
+    color: '#0f172a',
     fontWeight: '700',
   },
   logoutButton: {
-    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 2,
     borderRadius: 16,
     paddingVertical: 14,
-    alignItems: 'center',
     backgroundColor: '#b91c1c',
   },
   logoutButtonDisabled: {
@@ -606,36 +794,70 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'rgba(2, 6, 23, 0.4)',
+    backgroundColor: 'rgba(2, 6, 23, 0.45)',
   },
   modalCard: {
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 520,
     maxHeight: '88%',
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 18,
     gap: 12,
     backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: 'rgba(92, 107, 97, 0.12)',
   },
   dateModalCard: {
     width: '100%',
-    maxWidth: 500,
-    borderRadius: 20,
+    maxWidth: 520,
+    borderRadius: 24,
     padding: 18,
     gap: 12,
     backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: 'rgba(92, 107, 97, 0.12)',
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  modalHeaderContent: {
+    flex: 1,
+    gap: 2,
+  },
+  modalEyebrow: {
+    color: '#64748b',
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+  },
+  modalTitle: {
+    color: '#0f172a',
+    fontSize: 18,
+  },
+  modalCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f1f8e8',
   },
   modalScrollContent: {
     gap: 12,
+    paddingBottom: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: 'rgba(92, 107, 97, 0.18)',
+    borderColor: 'rgba(92, 107, 97, 0.16)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: '#ffffff',
+    color: '#0f172a',
   },
   fieldBlock: {
     gap: 6,
@@ -644,18 +866,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+    color: '#64748b',
   },
   dateTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: 'rgba(92, 107, 97, 0.18)',
+    borderColor: 'rgba(92, 107, 97, 0.16)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: '#ffffff',
   },
   dateTriggerText: {
     fontSize: 15,
     color: '#102318',
+    flex: 1,
   },
   dateRow: {
     flexDirection: 'row',
@@ -667,9 +894,9 @@ const styles = StyleSheet.create({
   },
   adjusterControls: {
     borderWidth: 1,
-    borderColor: 'rgba(92, 107, 97, 0.18)',
+    borderColor: 'rgba(92, 107, 97, 0.16)',
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: '#f8fff3',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -682,7 +909,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(16, 35, 24, 0.08)',
+    backgroundColor: '#e7f8d5',
   },
   adjustButtonText: {
     fontSize: 20,
@@ -696,7 +923,7 @@ const styles = StyleSheet.create({
     color: '#102318',
   },
   multilineInput: {
-    minHeight: 76,
+    minHeight: 84,
     textAlignVertical: 'top',
   },
   modalActions: {
@@ -710,7 +937,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: 'rgba(92, 107, 97, 0.18)',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: '#ffffff',
   },
   saveButton: {
     borderRadius: 12,
@@ -723,7 +950,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   saveButtonText: {
-    color: '#000',
+    color: '#0f172a',
     fontWeight: '700',
   },
 });

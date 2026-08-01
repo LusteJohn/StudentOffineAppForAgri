@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -39,6 +39,8 @@ export default function LessonScreen() {
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonRecord | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const loadData = useCallback(async () => {
     setError('');
@@ -146,7 +148,7 @@ export default function LessonScreen() {
 
   return (
     <ThemedView style={styles.screen}>
-      <Header title="Lessons" userId={activeUserId} />
+      <Header title="Lessons" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         <View style={styles.section}>
@@ -155,7 +157,7 @@ export default function LessonScreen() {
             const isExpanded = expandedModuleId === group.module_id;
 
             return (
-              <View key={group.module_id} style={styles.moduleCard}>
+              <View key={group.module_id} style={[styles.moduleCard, styles.surfaceCard, isCompact && styles.moduleCardCompact]}>
                 <Pressable onPress={() => toggleModule(group.module_id)} style={styles.moduleHeader}>
                   <View style={styles.moduleHeaderText}>
                     <Text style={styles.moduleName}>{group.module_name}</Text>
@@ -170,13 +172,13 @@ export default function LessonScreen() {
                       {group.lessons.length > 0 ? (
                         group.lessons.map((lesson) => (
                           <View key={lesson.lesson_id} style={styles.lessonItemContainer}>
-                            <Pressable onPress={() => openLessonDetail(lesson)} style={styles.lessonRow}>
+                            <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonRow, isCompact && styles.lessonRowCompact]}>
                               <View style={styles.lessonIndicator} />
                               <View style={styles.lessonTextGroup}>
                                 <Text style={styles.lessonTitle}>{lesson.lesson_name}</Text>
                                 <Text style={styles.lessonMeta}>Order: {lesson.order_number}</Text>
                               </View>
-                              <Pressable onPress={() => openLessonDetail(lesson)} style={styles.lessonViewButton}>
+                              <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonViewButton, isCompact && styles.lessonViewButtonCompact]}>
                                 <Text style={styles.lessonViewButtonText}>View</Text>
                               </Pressable>
                             </Pressable>
@@ -372,7 +374,7 @@ const styles = StyleSheet.create({
   },
   moduleCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
     overflow: 'hidden',
@@ -408,6 +410,16 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(148, 163, 184, 0.12)',
   },
+  surfaceCard: {
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
+  moduleCardCompact: {
+    borderRadius: 18,
+  },
   lessonRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -438,6 +450,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#64748b',
   },
+  lessonRowCompact: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
   lessonViewButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -445,6 +461,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f5f9',
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.2)',
+  },
+  lessonViewButtonCompact: {
+    minWidth: 56,
   },
   lessonViewButtonText: {
     fontSize: 12,

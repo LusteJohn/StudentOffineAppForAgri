@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
@@ -28,6 +28,8 @@ export default function ContentInfoListScreen() {
   const [contentInfos, setContentInfos] = useState<ContentInfoRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
 
   const loadData = useCallback(async () => {
     setError('');
@@ -117,7 +119,7 @@ export default function ContentInfoListScreen() {
         ) : (
           <View style={styles.list}>
             {rows.map((row) => (
-              <View key={`${row.module_id}-${row.lesson_id}`} style={styles.sectionCard}>
+              <View key={`${row.module_id}-${row.lesson_id}`} style={[styles.sectionCard, styles.surfaceCard, isCompact && styles.sectionCardCompact]}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>{row.module_name}</Text>
                   <Text style={styles.sectionSubtitle}>{row.lesson_name}</Text>
@@ -163,7 +165,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   sectionCard: {
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.12)',
     backgroundColor: '#ffffff',
@@ -185,6 +187,16 @@ const styles = StyleSheet.create({
   },
   itemList: {
     gap: 10,
+  },
+  surfaceCard: {
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  sectionCardCompact: {
+    padding: 12,
   },
   itemCard: {
     gap: 6,
