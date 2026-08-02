@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+
+import { useCustomAlert } from '@/lib/custom-alert';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -38,6 +40,7 @@ export default function JobSheetScreen() {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const { showAlert } = useCustomAlert();
 
   const loadJobSheet = useCallback(async () => {
     setError('');
@@ -78,7 +81,7 @@ export default function JobSheetScreen() {
     if (Number.isInteger(moduleId) && Number.isInteger(lessonId) && Number.isInteger(lessonContentId) && moduleId > 0 && lessonId > 0 && lessonContentId > 0) {
       loadJobSheet();
     } else {
-      Alert.alert('Select a lesson content first', 'Please select a module and lesson from the Lesson page before viewing the job sheet.');
+      showAlert('Select a lesson content first', 'Please select a module and lesson from the Lesson page before viewing the job sheet.');
       setError('Invalid module, lesson, or lesson content.');
       setLoading(false);
     }
@@ -100,7 +103,7 @@ export default function JobSheetScreen() {
 
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      Alert.alert('Permission required', 'Please grant camera roll permissions to upload images.');
+      showAlert('Permission required', 'Please grant camera roll permissions to upload images.');
       return;
     }
 
@@ -152,7 +155,7 @@ export default function JobSheetScreen() {
     const trimmedAnswer = answerText.trim();
 
     if (!trimmedAnswer && selectedImages.length === 0) {
-      Alert.alert('Answer required', 'Please enter a response or upload at least one image.');
+      showAlert('Answer required', 'Please enter a response or upload at least one image.');
       return;
     }
 
@@ -162,7 +165,7 @@ export default function JobSheetScreen() {
       answerTextToSave = trimmedAnswer ? `${trimmedAnswer}\nImages: ${imagePaths.join(', ')}` : `Images: ${imagePaths.join(', ')}`;
     }
 
-    Alert.alert(
+    showAlert(
       'Submit job sheet answer',
       'Are you sure you want to submit your job sheet response?',
       [
@@ -177,11 +180,11 @@ export default function JobSheetScreen() {
                 user_id: userId,
                 answer_text: answerTextToSave,
               });
-              Alert.alert('Submitted', 'Your job sheet answer has been saved.');
+              showAlert('Submitted', 'Your job sheet answer has been saved.');
               closeAnswerModal();
               loadJobSheet();
             } catch (submitError) {
-              Alert.alert('Submit failed', submitError instanceof Error ? submitError.message : 'Unable to submit job sheet answer.');
+              showAlert('Submit failed', submitError instanceof Error ? submitError.message : 'Unable to submit job sheet answer.');
             } finally {
               setSubmitting(false);
             }

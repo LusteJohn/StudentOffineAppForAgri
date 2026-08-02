@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+import { useCustomAlert } from '@/lib/custom-alert';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -31,6 +33,7 @@ export default function ContentInfoScreen() {
   const [togglingBookmark, setTogglingBookmark] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const { showAlert } = useCustomAlert();
 
   const loadContentInfo = useCallback(async () => {
     setError('');
@@ -39,6 +42,7 @@ export default function ContentInfoScreen() {
     try {
       const lessonContent = await getLessonContentById(lessonContentId);
       if (!lessonContent) {
+        showAlert('Unable to load content', 'Lesson content not found.');
         setError('Lesson content not found.');
         setLoading(false);
         return;
@@ -80,6 +84,7 @@ export default function ContentInfoScreen() {
     if (Number.isInteger(lessonContentId) && lessonContentId > 0) {
       loadContentInfo();
     } else {
+      showAlert('Unable to load content', 'Invalid content ID.');
       setError('Invalid content ID.');
       setLoading(false);
     }
@@ -88,7 +93,7 @@ export default function ContentInfoScreen() {
   const markAsRead = useCallback(async () => {
     if (markingRead) return;
     const confirmed = await new Promise<boolean>((resolve) =>
-      Alert.alert(
+      showAlert(
         isRead ? 'Mark as Unread' : 'Mark as Read',
         isRead
           ? 'Are you sure you want to mark this content as unread?'
@@ -123,7 +128,7 @@ export default function ContentInfoScreen() {
         setIsRead(true);
       }
     } catch (markError) {
-      Alert.alert('Unable to update progress', markError instanceof Error ? markError.message : 'Please try again.');
+      showAlert('Unable to update progress', markError instanceof Error ? markError.message : 'Please try again.');
     } finally {
       setMarkingRead(false);
     }
@@ -146,7 +151,7 @@ export default function ContentInfoScreen() {
         setIsBookmarked(true);
       }
     } catch (bookmarkError) {
-      Alert.alert('Unable to update bookmark', bookmarkError instanceof Error ? bookmarkError.message : 'Please try again.');
+      showAlert('Unable to update bookmark', bookmarkError instanceof Error ? bookmarkError.message : 'Please try again.');
     } finally {
       setTogglingBookmark(false);
     }

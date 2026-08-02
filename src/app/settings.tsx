@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+
+import { useCustomAlert } from '@/lib/custom-alert';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -58,6 +60,7 @@ export default function SettingsScreen() {
   const [loggingOut, setLoggingOut] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const { showAlert } = useCustomAlert();
 
   useEffect(() => {
     let isMounted = true;
@@ -160,7 +163,7 @@ export default function SettingsScreen() {
           grade_level: gradeLevel,
         });
         setProfile(updated);
-        Alert.alert('Profile updated', 'Your student profile was updated successfully.');
+        showAlert('Profile updated', 'Your student profile was updated successfully.');
       } else {
         const created = await createStudentProfile({
           user_id: activeUserId,
@@ -172,19 +175,19 @@ export default function SettingsScreen() {
           grade_level: gradeLevel,
         });
         setProfile(created);
-        Alert.alert('Profile created', 'Your student profile was saved successfully.');
+        showAlert('Profile created', 'Your student profile was saved successfully.');
       }
 
       setModalVisible(false);
     } catch (error) {
-      Alert.alert('Unable to save profile', error instanceof Error ? error.message : 'Please check your details and try again.');
+      showAlert('Unable to save profile', error instanceof Error ? error.message : 'Please check your details and try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleLogout = () => {
-    Alert.alert(
+    showAlert(
       'Logout',
       'Are you sure you want to logout?',
       [
@@ -202,7 +205,7 @@ export default function SettingsScreen() {
   };
 
   const handleImportResources = async () => {
-    Alert.alert(
+    showAlert(
       'Import offline resources',
       'This will replace your local competency, module, lesson, lesson-content, and content-info records with the default offline resources. This cannot be undone.',
       [

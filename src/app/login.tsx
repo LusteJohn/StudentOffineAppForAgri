@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
+
+import { useCustomAlert } from '@/lib/custom-alert';
 
 import { AuthLink, AuthShell, AuthNotification } from '@/components/auth-shell';
 import { ThemedText } from '@/components/themed-text';
@@ -13,6 +15,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const { showAlert } = useCustomAlert();
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -22,7 +25,7 @@ export default function LoginScreen() {
     try {
       const response = await loginStudent({ email, password });
       setMessage(response.message);
-      Alert.alert('Login successful', `${response.user.username} is logged in as a student.`);
+      showAlert('Login successful', `${response.user.username} is logged in as a student.`);
       router.replace({
         pathname: '/home',
         params: { userId: String(response.user.user_id) },

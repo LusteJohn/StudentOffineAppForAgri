@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+
+import { useCustomAlert } from '@/lib/custom-alert';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -29,6 +31,7 @@ export default function PerformanceCheckScreen() {
   const [error, setError] = useState('');
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const { showAlert } = useCustomAlert();
 
   const loadPerformanceCheck = useCallback(async () => {
     setError('');
@@ -76,7 +79,7 @@ export default function PerformanceCheckScreen() {
     if (Number.isInteger(moduleId) && Number.isInteger(lessonId) && Number.isInteger(lessonContentId) && moduleId > 0 && lessonId > 0 && lessonContentId > 0) {
       loadPerformanceCheck();
     } else {
-      Alert.alert('Select a lesson content first', 'Please select a module and lesson from the Lesson page before viewing the performance checklist.');
+      showAlert('Select a lesson content first', 'Please select a module and lesson from the Lesson page before viewing the performance checklist.');
       setError('Invalid module, lesson, or lesson content.');
       setLoading(false);
     }
@@ -99,7 +102,7 @@ export default function PerformanceCheckScreen() {
       for (const item of checklist) {
         const answer = selectedAnswers[item.performance_id];
         if (!answer) {
-          Alert.alert('Answer required', `Please select Yes or No for: ${item.performance_question}`);
+          showAlert('Answer required', `Please select Yes or No for: ${item.performance_question}`);
           setSubmitting(false);
           return;
         }
@@ -111,10 +114,10 @@ export default function PerformanceCheckScreen() {
         });
       }
 
-      Alert.alert('Submitted', 'Performance checklist submitted successfully.');
+      showAlert('Submitted', 'Performance checklist submitted successfully.');
       loadPerformanceCheck();
     } catch (submitError) {
-      Alert.alert('Submit failed', submitError instanceof Error ? submitError.message : 'Unable to submit performance checklist.');
+      showAlert('Submit failed', submitError instanceof Error ? submitError.message : 'Unable to submit performance checklist.');
     } finally {
       setSubmitting(false);
     }
