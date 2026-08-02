@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, Animated, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -39,8 +39,26 @@ export default function LessonScreen() {
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonRecord | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [expandedContentId, setExpandedContentId] = useState<number | null>(null);
+  const fadeAnims = useMemo(() => Array.from({ length: 4 }, () => new Animated.Value(0)), []);
+  const slideAnims = useMemo(() => Array.from({ length: 4 }, () => new Animated.Value(20)), []);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+
+  useEffect(() => {
+    if (expandedContentId !== null) {
+      const animations = fadeAnims.map((fade, i) =>
+        Animated.parallel([
+          Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+          Animated.timing(slideAnims[i], { toValue: 0, duration: 200, useNativeDriver: true }),
+        ])
+      );
+      Animated.stagger(120, animations).start();
+    } else {
+      fadeAnims.forEach((f) => f.setValue(0));
+      slideAnims.forEach((s) => s.setValue(20));
+    }
+  }, [expandedContentId, fadeAnims, slideAnims]);
 
   const loadData = useCallback(async () => {
     setError('');
@@ -289,18 +307,52 @@ export default function LessonScreen() {
                         <Text style={styles.contentLabel}>Objectives</Text>
                         <Text style={styles.contentValue}>{content.objectives}</Text>
                       </View>
-                      <Pressable onPress={() => openContentInfo(content.lesson_content_id)} style={styles.contentViewButton}>
-                        <Text style={styles.contentViewButtonText}>View Content Info</Text>
-                      </Pressable>
-                      <Pressable onPress={() => router.replace({ pathname: '/exercise/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })} style={styles.exerciseButton}>
-                        <Text style={styles.exerciseButtonText}>Exercise</Text>
-                      </Pressable>
-                      <Pressable onPress={() => router.replace({ pathname: '/job/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })} style={styles.jobSheetButton}>
-                        <Text style={styles.jobSheetButtonText}>Job Sheet</Text>
-                      </Pressable>
-                      <Pressable onPress={() => router.replace({ pathname: '/performance/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })} style={styles.performanceButton}>
-                        <Text style={styles.performanceButtonText}>Performance Check</Text>
-                      </Pressable>
+                      <View style={styles.contentButtonsContainer}>
+                        <Pressable
+                          onPress={() => setExpandedContentId(expandedContentId === content.lesson_content_id ? null : content.lesson_content_id)}
+                          style={styles.actionButton}
+                        >
+                          <Text style={styles.actionButtonText}>
+                            {expandedContentId === content.lesson_content_id ? '✕ Action' : 'Action'}
+                          </Text>
+                        </Pressable>
+                        {expandedContentId === content.lesson_content_id ? (
+                          <View style={styles.floatingButtonsRow}>
+                            <Animated.View style={{ opacity: fadeAnims[0], transform: [{ translateY: slideAnims[0] }] }}>
+                              <Pressable
+                                onPress={() => openContentInfo(content.lesson_content_id)}
+                                style={[styles.floatingButton, styles.floatingButton1]}
+                              >
+                                <Text style={styles.floatingButtonTextOutline}>Content Info</Text>
+                              </Pressable>
+                            </Animated.View>
+                            <Animated.View style={{ opacity: fadeAnims[1], transform: [{ translateY: slideAnims[1] }] }}>
+                              <Pressable
+                                onPress={() => router.replace({ pathname: '/exercise/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })}
+                                style={[styles.floatingButton, styles.floatingButton2]}
+                              >
+                                <Text style={styles.floatingButtonText}>Exercise</Text>
+                              </Pressable>
+                            </Animated.View>
+                            <Animated.View style={{ opacity: fadeAnims[2], transform: [{ translateY: slideAnims[2] }] }}>
+                              <Pressable
+                                onPress={() => router.replace({ pathname: '/job/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })}
+                                style={[styles.floatingButton, styles.floatingButton3]}
+                              >
+                                <Text style={styles.floatingButtonText}>Job Sheet</Text>
+                              </Pressable>
+                            </Animated.View>
+                            <Animated.View style={{ opacity: fadeAnims[3], transform: [{ translateY: slideAnims[3] }] }}>
+                              <Pressable
+                                onPress={() => router.replace({ pathname: '/performance/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })}
+                                style={[styles.floatingButton, styles.floatingButton4]}
+                              >
+                                <Text style={styles.floatingButtonText}>Performance</Text>
+                              </Pressable>
+                           </Animated.View>
+                          </View>
+                        ) : null}
+                      </View>
                     </View>
                   ))
                 ) : (
@@ -568,17 +620,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: '#000000',
   },
-  exerciseButton: {
-    borderRadius: 14,
-    paddingVertical: 13,
-    alignItems: 'center',
-    backgroundColor: '#166534',
-    marginTop: 8,
-  },
-  exerciseButtonText: {
-    color: '#ffffff',
-    fontWeight: '700',
-  },
   readBadge: {
     backgroundColor: '#5bec13',
     borderRadius: 10,
@@ -590,28 +631,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#000000',
-  },
-  jobSheetButton: {
-    borderRadius: 14,
-    paddingVertical: 13,
-    alignItems: 'center',
-    backgroundColor: '#2563eb',
-    marginTop: 8,
-  },
-  jobSheetButtonText: {
-    color: '#ffffff',
-    fontWeight: '700',
-  },
-  performanceButton: {
-    borderRadius: 14,
-    paddingVertical: 13,
-    alignItems: 'center',
-    backgroundColor: '#5bec13',
-    marginTop: 8,
-  },
-  performanceButtonText: {
-    color: '#000000',
-    fontWeight: '700',
   },
   closeButton: {
     borderRadius: 14,
@@ -689,20 +708,60 @@ const styles = StyleSheet.create({
   lessonItemContainer: {
     backgroundColor: '#ffffff',
   },
-  contentViewButton: {
-    marginTop: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+  contentButtonsContainer: {
+    flexDirection: 'column',
+    gap: 8,
+    marginTop: 8,
+  },
+  floatingButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  floatingButton: {
+    minWidth: 110,
+    height: 40,
     borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.95,
+  },
+  floatingButton1: {
     backgroundColor: '#f1f5f9',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
-    alignItems: 'center',
+    borderColor: 'rgba(148, 163, 184, 0.3)',
   },
-  contentViewButtonText: {
-    fontSize: 12,
+  floatingButton2: {
+    backgroundColor: '#166534',
+  },
+  floatingButton3: {
+    backgroundColor: '#2563eb',
+  },
+  floatingButton4: {
+    backgroundColor: '#5bec13',
+  },
+  floatingButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  floatingButtonTextOutline: {
+    fontSize: 13,
     fontWeight: '700',
     color: '#000000',
+  },
+  actionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#0f172a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   linkText: {
     fontSize: 12,
