@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, TextInput } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+
+import { useCustomAlert } from '@/lib/custom-alert';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -75,6 +77,7 @@ export default function ExerciseContentScreen() {
   const [hasExistingAnswers, setHasExistingAnswers] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const { showAlert } = useCustomAlert();
 
   const loadExercise = useCallback(async () => {
     setError('');
@@ -135,7 +138,7 @@ export default function ExerciseContentScreen() {
     if (Number.isInteger(moduleId) && Number.isInteger(lessonId) && Number.isInteger(lessonContentId) && moduleId > 0 && lessonId > 0 && lessonContentId > 0) {
       loadExercise();
     } else {
-      Alert.alert('Select a lesson content first', 'Please select a lesson content from the Lesson page before viewing the exercise.');
+       showAlert('Select a lesson content first', 'Please select a lesson content from the Lesson page before viewing the exercise.');
       setError('Invalid module, lesson, or lesson content.');
       setLoading(false);
     }
@@ -196,7 +199,7 @@ export default function ExerciseContentScreen() {
     const userId = Number(params.userId ?? '1');
 
     if (hasExistingAnswers) {
-      Alert.alert('Already submitted', 'You have already submitted answers for this lesson content. Duplicate submissions are not allowed.');
+      showAlert('Already submitted', 'You have already submitted answers for this lesson content. Duplicate submissions are not allowed.');
       return;
     }
 
@@ -209,7 +212,7 @@ export default function ExerciseContentScreen() {
 
     if (unanswered.length > 0) {
       const missingList = unanswered.map((text, index) => `${index + 1}. ${text}`).join('\n');
-      Alert.alert(
+      showAlert(
         'Please answer all questions',
         `The following questions are still unanswered:\n\n${missingList}`
       );
@@ -221,7 +224,7 @@ export default function ExerciseContentScreen() {
       answer_text,
     }));
 
-    Alert.alert(
+    showAlert(
       'Submit answers',
       'Are you sure you want to submit your answers? This will save your responses.',
       [
@@ -233,9 +236,9 @@ export default function ExerciseContentScreen() {
             try {
               await createQuestionAnswersBatch({ user_id: userId, answers: answerEntries });
               setHasExistingAnswers(true);
-              Alert.alert('Submitted', 'Your answers have been saved successfully.');
+              showAlert('Submitted', 'Your answers have been saved successfully.');
             } catch (submitError) {
-              Alert.alert('Submit failed', submitError instanceof Error ? submitError.message : 'Unable to submit answers.');
+              showAlert('Submit failed', submitError instanceof Error ? submitError.message : 'Unable to submit answers.');
             } finally {
               setSubmitting(false);
             }

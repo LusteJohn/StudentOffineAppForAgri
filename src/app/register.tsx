@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
+
+import { useCustomAlert } from '@/lib/custom-alert';
 
 import { AuthLink, AuthShell, AuthNotification } from '@/components/auth-shell';
 import { ThemedText } from '@/components/themed-text';
@@ -14,6 +16,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const { showAlert } = useCustomAlert();
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -23,7 +26,7 @@ export default function RegisterScreen() {
     try {
       const response = await registerStudent({ username, email, password });
       setMessage(response.message);
-      Alert.alert('Registration complete', `${response.user.username} was saved as a student account.`);
+      showAlert('Registration complete', `${response.user.username} was saved as a student account.`);
       router.replace({
         pathname: '/home',
         params: { userId: String(response.user.user_id) },

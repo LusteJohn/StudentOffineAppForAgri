@@ -1,9 +1,10 @@
-import { Alert, View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
+import { useCustomAlert } from '@/lib/custom-alert';
 
 type BottomNavbarProps = {
   activeTab: 'home' | 'library' | 'lesson' | 'exercise' | 'job' | 'performance' | 'content-info' | 'settings';
@@ -13,6 +14,7 @@ type BottomNavbarProps = {
 export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const { showAlert } = useCustomAlert();
   const isCompact = width < 390;
 
   const goHome = () => {
@@ -35,7 +37,7 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
 
   const goExercise = () => {
     if (activeTab !== 'exercise') {
-      Alert.alert(
+      showAlert(
         'Select a lesson first',
         'Please select a module and lesson from the Lesson page before viewing the exercise.',
         [
@@ -50,7 +52,7 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
 
   const goJob = () => {
     if (activeTab !== 'job') {
-      Alert.alert(
+      showAlert(
         'Select a lesson first',
         'Please select a module and lesson from the Lesson page before viewing the job sheet.',
         [
@@ -65,7 +67,7 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
 
   const goContentInfo = () => {
     if (activeTab !== 'content-info') {
-      Alert.alert(
+      showAlert(
         'Select a lesson first',
         'Please select a module and lesson from the Lesson page before viewing the content info.',
         [
@@ -80,7 +82,7 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
 
   const goPerformance = () => {
     if (activeTab !== 'performance') {
-      Alert.alert(
+      showAlert(
         'Select a lesson first',
         'Please select a module and lesson from the Lesson page before viewing the performance checklist.',
         [
