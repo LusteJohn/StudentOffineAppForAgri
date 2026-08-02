@@ -142,6 +142,7 @@ export default function ContentInfoScreen() {
       if (existing.length > 0) {
         await updateLessonContentBookmark(existing[0].lesson_content_bookmark_id, { is_bookmark: !isBookmarked });
         setIsBookmarked(!isBookmarked);
+        showAlert('Bookmark removed', 'Lesson content has been unbookmarked.');
       } else {
         await createLessonContentBookmark({
           lesson_content_id: lessonContentId,
@@ -149,6 +150,7 @@ export default function ContentInfoScreen() {
           is_bookmark: true,
         });
         setIsBookmarked(true);
+        showAlert('Bookmarked', 'Lesson content has been bookmarked.');
       }
     } catch (bookmarkError) {
       showAlert('Unable to update bookmark', bookmarkError instanceof Error ? bookmarkError.message : 'Please try again.');
