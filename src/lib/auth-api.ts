@@ -162,6 +162,15 @@ export type PerformanceChecklistRecord = {
   updated_at: string;
 }
 
+export type LessonContentBookmarkRecord = {
+  lesson_content_bookmark_id: number;
+  lesson_content_id: number;
+  user_id: number;
+  is_bookmark: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -605,6 +614,17 @@ async function ensureDatabase() {
         updated_at TEXT NOT NULL,
         FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS lesson_content_bookmark (
+        lesson_content_bookmark_id INTEGER PRIMARY KEY NOT NULL,
+        lesson_content_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        is_bookmark INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id),
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        UNIQUE(user_id, lesson_content_id)
     )`,
   ];
 
@@ -1210,6 +1230,45 @@ export async function listLessonContentProgressByUserAndLessonContent(userId: nu
   const db = await databasePromise;
   return db.getAllAsync<LessonContentProgressRecord>(
     'SELECT * FROM lesson_content_progress WHERE user_id = ? AND lesson_content_id = ? ORDER BY progress_lesson_id ASC',
+    [userId, lessonContentId]
+  );
+}
+
+export async function createLessonContentBookmark(payload: {
+  lesson_content_id: number;
+  user_id: number;
+  is_bookmark: boolean;
+}) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  await db.runAsync(
+    `INSERT INTO lesson_content_bookmark
+      (lesson_content_id, user_id, is_bookmark, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)`,
+    [payload.lesson_content_id, payload.user_id, payload.is_bookmark ? 1 : 0, now, now]
+  );
+}
+
+export async function updateLessonContentBookmark(lessonContentBookmarkId: number, payload: {
+  is_bookmark: boolean;
+}) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  await db.runAsync(
+    `UPDATE lesson_content_bookmark
+      SET is_bookmark = ?, updated_at = ?
+      WHERE lesson_content_bookmark_id = ?`,
+    [payload.is_bookmark ? 1 : 0, now, lessonContentBookmarkId]
+  );
+}
+
+export async function listLessonContentBookmarkByUserAndLessonContent(userId: number, lessonContentId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonContentBookmarkRecord>(
+    'SELECT * FROM lesson_content_bookmark WHERE user_id = ? AND lesson_content_id = ? ORDER BY lesson_content_bookmark_id ASC',
     [userId, lessonContentId]
   );
 }

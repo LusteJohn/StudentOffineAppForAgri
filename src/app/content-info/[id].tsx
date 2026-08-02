@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ContentInfoRecord, LessonContentRecord, LessonRecord, ModuleRecord, getLessonById, getModuleById, getLessonContentById, listContentInfoByLessonContentId, createLessonContentProgress, listLessonContentProgressByUserAndLessonContent, updateLessonContentProgress } from '@/lib/auth-api';
+import { ContentInfoRecord, LessonContentRecord, LessonRecord, ModuleRecord, createLessonContentProgress, listLessonContentProgressByUserAndLessonContent, updateLessonContentProgress, createLessonContentBookmark, updateLessonContentBookmark, listLessonContentBookmarkByUserAndLessonContent, getLessonContentById, getLessonById, getModuleById, listContentInfoByLessonContentId } from '@/lib/auth-api';
 import { resolveContentInfoAsset } from '@/lib/content-info-assets';
 
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -26,6 +27,8 @@ export default function ContentInfoScreen() {
   const [error, setError] = useState('');
   const [isRead, setIsRead] = useState(false);
   const [markingRead, setMarkingRead] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [togglingBookmark, setTogglingBookmark] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
 
@@ -63,6 +66,9 @@ export default function ContentInfoScreen() {
 
       const existingProgress = await listLessonContentProgressByUserAndLessonContent(activeUserId, lessonContentId);
       setIsRead(existingProgress.length > 0 && Boolean(existingProgress[0].is_read));
+
+      const existingBookmark = await listLessonContentBookmarkByUserAndLessonContent(activeUserId, lessonContentId);
+      setIsBookmarked(existingBookmark.length > 0 && Boolean(existingBookmark[0].is_bookmark));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load content info.');
     } finally {
@@ -123,6 +129,29 @@ export default function ContentInfoScreen() {
     }
   }, [isRead, lessonContentId, activeUserId, markingRead]);
 
+  const toggleBookmark = useCallback(async () => {
+    if (togglingBookmark) return;
+    setTogglingBookmark(true);
+    try {
+      const existing = await listLessonContentBookmarkByUserAndLessonContent(activeUserId, lessonContentId);
+      if (existing.length > 0) {
+        await updateLessonContentBookmark(existing[0].lesson_content_bookmark_id, { is_bookmark: !isBookmarked });
+        setIsBookmarked(!isBookmarked);
+      } else {
+        await createLessonContentBookmark({
+          lesson_content_id: lessonContentId,
+          user_id: activeUserId,
+          is_bookmark: true,
+        });
+        setIsBookmarked(true);
+      }
+    } catch (bookmarkError) {
+      Alert.alert('Unable to update bookmark', bookmarkError instanceof Error ? bookmarkError.message : 'Please try again.');
+    } finally {
+      setTogglingBookmark(false);
+    }
+  }, [isBookmarked, lessonContentId, activeUserId, togglingBookmark]);
+
   return (
     <ThemedView style={styles.screen}>
       <Header title="Content Info" showBack onBack={() => router.replace({ pathname: '/lesson', params: { userId: String(activeUserId) } })} />
@@ -174,16 +203,31 @@ export default function ContentInfoScreen() {
               </View>
             )}
 
-            <Pressable
-              onPress={markAsRead}
-              disabled={markingRead}
-              style={[styles.markAsReadButton, isRead && styles.markAsReadButtonOutline, isCompact && styles.markAsReadButtonCompact]}
-            >
-              <Text style={[styles.markAsReadButtonText, isRead && styles.markAsReadButtonTextOutline]}>
-                {markingRead ? 'Saving...' : isRead ? 'Mark as Unread' : 'Mark as Read'}
-              </Text>
-            </Pressable>
-          </View>
+              <Pressable
+                onPress={markAsRead}
+                disabled={markingRead}
+                style={[styles.markAsReadButton, isRead && styles.markAsReadButtonOutline, isCompact && styles.markAsReadButtonCompact]}
+              >
+                <Text style={[styles.markAsReadButtonText, isRead && styles.markAsReadButtonTextOutline]}>
+                  {markingRead ? 'Saving...' : isRead ? 'Mark as Unread' : 'Mark as Read'}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={toggleBookmark}
+                disabled={togglingBookmark}
+                style={[styles.bookmarkButton, isBookmarked && styles.bookmarkButtonActive]}
+              >
+                <MaterialCommunityIcons
+                  name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+                  size={20}
+                  color={isBookmarked ? '#ffffff' : '#166534'}
+                />
+                <Text style={[styles.bookmarkButtonText, isBookmarked && styles.bookmarkButtonTextActive]}>
+                  {togglingBookmark ? 'Saving...' : isBookmarked ? 'Bookmarked' : 'Add Bookmark'}
+                </Text>
+              </Pressable>
+            </View>
         )}
       </ScrollView>
 
@@ -320,5 +364,31 @@ const styles = StyleSheet.create({
   },
   markAsReadButtonTextOutline: {
     color: '#166534',
+  },
+  bookmarkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 999,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 6,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: 'rgba(22, 101, 52, 0.2)',
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  bookmarkButtonActive: {
+    backgroundColor: '#166534',
+    borderColor: '#166534',
+  },
+  bookmarkButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  bookmarkButtonTextActive: {
+    color: '#ffffff',
   },
 });

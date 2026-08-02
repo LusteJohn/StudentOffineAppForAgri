@@ -14,6 +14,48 @@ type QuestionWithChoices = {
   choices: any[];
 };
 
+function getCorrectAnswer(question: any, choices: any[]): string {
+  if (!choices || choices.length === 0) return 'N/A';
+
+  if (question.question_type === 'multiple_choice' || question.question_type === 'true_or_false') {
+    const correctChoice = choices.find((c) => c.is_correct === 'correct');
+    return correctChoice ? correctChoice.choice_text : 'N/A';
+  }
+
+  if (question.question_type === 'enumeration' || question.question_type === 'identification') {
+    const openEnded = choices.find((c) => c.is_correct && c.is_correct.trim().length > 0 && c.is_correct !== 'correct');
+    return openEnded ? openEnded.is_correct.trim() : 'N/A';
+  }
+
+  return 'N/A';
+}
+
+function isAnswerWrong(question: any, choices: any[], studentAnswer: string | undefined): boolean {
+  if (!studentAnswer || String(studentAnswer).trim().length === 0) {
+    return false;
+  }
+
+  if (question.question_type === 'multiple_choice') {
+    const correctChoice = choices.find((c) => c.is_correct === 'correct');
+    if (!correctChoice) return false;
+    return studentAnswer !== correctChoice.choice_label;
+  }
+
+  if (question.question_type === 'true_or_false') {
+    const correctChoice = choices.find((c) => c.is_correct === 'correct');
+    if (!correctChoice) return false;
+    return studentAnswer !== correctChoice.choice_text;
+  }
+
+  if (question.question_type === 'enumeration' || question.question_type === 'identification') {
+    const openEnded = choices.find((c) => c.is_correct && c.is_correct.trim().length > 0 && c.is_correct !== 'correct');
+    if (!openEnded) return false;
+    return studentAnswer.trim().toLowerCase() !== openEnded.is_correct.trim().toLowerCase();
+  }
+
+  return false;
+}
+
 export default function ExerciseContentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ moduleId?: string; lessonId?: string; lessonContentId?: string; userId?: string }>();
@@ -238,6 +280,12 @@ export default function ExerciseContentScreen() {
                 <View style={styles.choicesContainer}>
                   {renderChoices(q.question, q.choices, q.question.question_id)}
                 </View>
+                {hasExistingAnswers && isAnswerWrong(q.question, q.choices, answers[q.question.question_id]) ? (
+                  <View style={styles.correctAnswerContainer}>
+                    <Text style={styles.correctAnswerLabel}>Correct Answer:</Text>
+                    <Text style={styles.correctAnswerText}>{getCorrectAnswer(q.question, q.choices)}</Text>
+                  </View>
+                ) : null}
               </View>
             ))}
           </View>
@@ -461,5 +509,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 14,
     textAlign: 'center',
+  },
+  correctAnswerContainer: {
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: 'rgba(22, 101, 52, 0.18)',
+    gap: 4,
+  },
+  correctAnswerLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#166534',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  correctAnswerText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#166534',
+    lineHeight: 18,
   },
 });
