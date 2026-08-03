@@ -336,7 +336,7 @@ export default function LessonScreen() {
                             </Animated.View>
                             <Animated.View style={{ opacity: fadeAnims[2], transform: [{ translateY: slideAnims[2] }] }}>
                               <Pressable
-                                onPress={() => router.replace({ pathname: '/job/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })}
+                                onPress={() => router.replace({ pathname: '/content-info/[id]', params: { id: String(content.lesson_content_id), userId: String(activeUserId) } })}
                                 style={[styles.floatingButton, styles.floatingButton3]}
                               >
                                 <Text style={styles.floatingButtonText}>Job Sheet</Text>
@@ -344,7 +344,7 @@ export default function LessonScreen() {
                             </Animated.View>
                             <Animated.View style={{ opacity: fadeAnims[3], transform: [{ translateY: slideAnims[3] }] }}>
                               <Pressable
-                                onPress={() => router.replace({ pathname: '/performance/[moduleId]/lesson/[lessonId]/content/[lessonContentId]', params: { moduleId: String(selectedLesson?.module_id), lessonId: String(selectedLesson?.lesson_id), lessonContentId: String(content.lesson_content_id), userId: String(activeUserId) } })}
+                                onPress={() => router.replace({ pathname: '/content-info/[id]', params: { id: String(content.lesson_content_id), userId: String(activeUserId) } })}
                                 style={[styles.floatingButton, styles.floatingButton4]}
                               >
                                 <Text style={styles.floatingButtonText}>Performance</Text>
