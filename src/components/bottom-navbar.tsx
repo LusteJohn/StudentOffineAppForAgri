@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { useCustomAlert } from '@/lib/custom-alert';
 
 type BottomNavbarProps = {
-  activeTab: 'home' | 'library' | 'lesson' | 'exercise' | 'job' | 'performance' | 'content-info' | 'settings';
+  activeTab: 'home' | 'library' | 'lesson' | 'content-info' | 'settings';
   userId: number;
 };
 
@@ -35,56 +35,11 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
     }
   };
 
-  const goExercise = () => {
-    if (activeTab !== 'exercise') {
-      showAlert(
-        'Select a lesson first',
-        'Please select a module and lesson from the Lesson page before viewing the exercise.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace({ pathname: '/lesson', params: { userId: String(userId) } }),
-          },
-        ]
-      );
-    }
-  };
-
-  const goJob = () => {
-    if (activeTab !== 'job') {
-      showAlert(
-        'Select a lesson first',
-        'Please select a module and lesson from the Lesson page before viewing the job sheet.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace({ pathname: '/lesson', params: { userId: String(userId) } }),
-          },
-        ]
-      );
-    }
-  };
-
   const goContentInfo = () => {
     if (activeTab !== 'content-info') {
       showAlert(
         'Select a lesson first',
         'Please select a module and lesson from the Lesson page before viewing the content info.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace({ pathname: '/lesson', params: { userId: String(userId) } }),
-          },
-        ]
-      );
-    }
-  };
-
-  const goPerformance = () => {
-    if (activeTab !== 'performance') {
-      showAlert(
-        'Select a lesson first',
-        'Please select a module and lesson from the Lesson page before viewing the performance checklist.',
         [
           {
             text: 'OK',
@@ -132,24 +87,6 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
             <Text style={[styles.tabLabel, activeTab === 'lesson' && styles.activeTabLabel]}>Lesson</Text>
           </Pressable>
 
-          <Pressable onPress={goExercise} style={[styles.tabButton, activeTab === 'exercise' && styles.activeTabButton]}>
-            <Ionicons
-              name={activeTab === 'exercise' ? 'clipboard' : 'clipboard-outline'}
-              size={22}
-              color={activeTab === 'exercise' ? '#000000' : '#5c6b61'}
-            />
-            <Text style={[styles.tabLabel, activeTab === 'exercise' && styles.activeTabLabel]}>Exercise</Text>
-          </Pressable>
-
-          <Pressable onPress={goJob} style={[styles.tabButton, activeTab === 'job' && styles.activeTabButton]}>
-            <Ionicons
-              name={activeTab === 'job' ? 'hammer' : 'hammer-outline'}
-              size={22}
-              color={activeTab === 'job' ? '#000000' : '#5c6b61'}
-            />
-            <Text style={[styles.tabLabel, activeTab === 'job' && styles.activeTabLabel]}>Job</Text>
-          </Pressable>
-
           <Pressable onPress={goContentInfo} style={[styles.tabButton, activeTab === 'content-info' && styles.activeTabButton]}>
             <Ionicons
               name={activeTab === 'content-info' ? 'information-circle' : 'information-circle-outline'}
@@ -157,15 +94,6 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
               color={activeTab === 'content-info' ? '#000000' : '#5c6b61'}
             />
             <Text style={[styles.tabLabel, activeTab === 'content-info' && styles.activeTabLabel]}>Content Info</Text>
-          </Pressable>
-
-          <Pressable onPress={goPerformance} style={[styles.tabButton, activeTab === 'performance' && styles.activeTabButton]}>
-            <Ionicons
-              name={activeTab === 'performance' ? 'clipboard' : 'clipboard-outline'}
-              size={22}
-              color={activeTab === 'performance' ? '#000000' : '#5c6b61'}
-            />
-            <Text style={[styles.tabLabel, activeTab === 'performance' && styles.activeTabLabel]}>Performance</Text>
           </Pressable>
 
           <Pressable onPress={goSettings} style={[styles.tabButton, activeTab === 'settings' && styles.activeTabButton]}>
