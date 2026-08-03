@@ -109,23 +109,31 @@ function LineChart({ data, labels, color }: { data: number[]; labels: string[]; 
   );
 }
 
-function BarChart({ data, labels, colors, onBarPress }: { data: number[]; labels: string[]; colors: string[]; onBarPress?: (index: number) => void }) {
-  const maxValue = Math.max(...data, 1);
-  const barWidth = Math.min(40, (screenWidth - 80) / data.length - 8);
-
+function ProgressBar({ data, onPress }: { data: { module_id: number; module_name: string; total: number; completed: number }[]; onPress: (index: number) => void }) {
   return (
-    <View style={styles.barChart}>
-      <View style={styles.barChartInner}>
-        {data.map((value, index) => (
-          <Pressable key={index} onPress={() => onBarPress?.(index)} style={styles.barItem}>
-            <View style={styles.barLabelContainer}>
-              <Text style={styles.barValue}>{value}</Text>
+    <View style={styles.progressList}>
+      {data.map((item, index) => {
+        const percent = item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0;
+        return (
+          <View key={item.module_id} style={styles.progressItem}>
+            <View style={styles.progressItemHeader}>
+              <Text style={styles.progressLabel}>{item.module_name}</Text>
+              <Text style={styles.progressValue}>{item.completed}/{item.total} ({percent}%)</Text>
             </View>
-            <View style={[styles.bar, { height: (value / maxValue) * 160, backgroundColor: colors[index % colors.length] }]} />
-            <Text style={styles.barLabel}>{labels[index]}</Text>
-          </Pressable>
-        ))}
-      </View>
+            <Pressable
+              onPress={() => onPress(index)}
+              style={styles.progressBarTrack}
+            >
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${percent}%` },
+                ]}
+              />
+            </Pressable>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -215,14 +223,6 @@ export default function HomeScreen() {
     const values = [5, 12, 8, totalRecords];
     return { labels, values };
   }, [totalRecords]);
-
-  const barChartData = useMemo(() => {
-    const labels = moduleCompletionData.map((m: any) => m.module_name.slice(0, 6));
-    const values = moduleCompletionData.map((m: any) => m.completed);
-    return { labels, values };
-  }, [moduleCompletionData]);
-
-  const barColors = useMemo(() => ['#2563eb', '#55e10a', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'], []);
 
   const selectedModule = selectedModuleIndex !== null ? moduleCompletionData[selectedModuleIndex] : null;
 
@@ -339,8 +339,8 @@ export default function HomeScreen() {
 
         <View style={styles.chartContainer}>
           <Text style={styles.chartTitle}>Module Completion</Text>
-          {barChartData.values.length > 0 ? (
-            <BarChart data={barChartData.values} labels={barChartData.labels} colors={barColors} onBarPress={openModuleProgress} />
+          {moduleCompletionData.length > 0 ? (
+            <ProgressBar data={moduleCompletionData} onPress={openModuleProgress} />
           ) : (
             <Text style={styles.noDataText}>No module data yet</Text>
           )}
@@ -532,6 +532,39 @@ const styles = StyleSheet.create({
   },
   barChart: {
     gap: 8,
+  },
+  progressList: {
+    gap: 16,
+  },
+  progressItem: {
+    gap: 8,
+  },
+  progressItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0f172a',
+  },
+  progressValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  progressBarTrack: {
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#5bec13',
+    borderRadius: 12,
+    minWidth: 2,
   },
   surfaceCard: {
     shadowColor: '#0f172a',
