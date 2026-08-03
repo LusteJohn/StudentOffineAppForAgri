@@ -1273,6 +1273,15 @@ export async function listLessonContentBookmarkByUserAndLessonContent(userId: nu
   );
 }
 
+export async function listLessonContentBookmarkByUser(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonContentBookmarkRecord>(
+    'SELECT * FROM lesson_content_bookmark WHERE user_id = ? AND is_bookmark = 1 ORDER BY lesson_content_bookmark_id ASC',
+    [userId]
+  );
+}
+
 export async function resetAndSeedLocalData() {
   await ensureDatabase();
   const db = await databasePromise;

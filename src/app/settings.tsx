@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useCustomAlert } from '@/lib/custom-alert';
@@ -9,7 +9,7 @@ import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { createStudentProfile, getStudentProfileByUserId, resetAndSeedLocalData, StudentProfile, updateStudentProfile } from '@/lib/auth-api';
+import { createStudentProfile, getStudentProfileByUserId, resetAndSeedLocalData, StudentProfile, updateStudentProfile, listLessonContentBookmarkByUser, getLessonContentById, getLessonById, getModuleById, LessonContentBookmarkRecord, LessonContentRecord, LessonRecord, ModuleRecord } from '@/lib/auth-api';
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -27,6 +27,13 @@ function getDaysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate();
 }
 
+type BookmarkDetail = {
+  bookmark: LessonContentBookmarkRecord;
+  content: LessonContentRecord | null;
+  lesson: LessonRecord | null;
+  module: ModuleRecord | null;
+};
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -43,6 +50,9 @@ export default function SettingsScreen() {
 
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [bookmarks, setBookmarks] = useState<BookmarkDetail[]>([]);
+  const [bookmarksLoaded, setBookmarksLoaded] = useState(false);
+  const [bookmarksLoading, setBookmarksLoading] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -86,6 +96,45 @@ export default function SettingsScreen() {
       isMounted = false;
     };
   }, [activeUserId]);
+
+  const loadBookmarks = useCallback(async () => {
+    setBookmarksLoading(true);
+    setBookmarksLoaded(true);
+    try {
+      const bookmarkRecords = await listLessonContentBookmarkByUser(activeUserId);
+      const detailList: BookmarkDetail[] = [];
+      for (const bookmark of bookmarkRecords) {
+        const content = await getLessonContentById(bookmark.lesson_content_id);
+        const lesson = content ? await getLessonById(content.lesson_id) : null;
+        const moduleRecord = lesson ? await getModuleById(lesson.module_id) : null;
+        detailList.push({ bookmark, content, lesson, module: moduleRecord });
+      }
+      setBookmarks(detailList);
+    } catch (bookmarkError) {
+      setBookmarks([]);
+      if (bookmarkError instanceof Error) {
+        showAlert('Unable to load bookmarks', bookmarkError.message);
+      }
+    } finally {
+      setBookmarksLoading(false);
+    }
+  }, [activeUserId, showAlert]);
+
+  const navigateToBookmark = useCallback(
+    (bookmark: LessonContentBookmarkRecord) => {
+      router.replace({
+        pathname: '/content-info/[id]',
+        params: { id: String(bookmark.lesson_content_id), userId: String(activeUserId) },
+      });
+    },
+     [activeUserId]
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      loadBookmarks();
+    }, [loadBookmarks])
+  );
 
   const openModal = () => {
     if (profile) {
@@ -363,6 +412,59 @@ export default function SettingsScreen() {
               </View>
             ) : null}
           </View>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconWrap}>
+              <Ionicons name="bookmark-outline" size={18} color="#0f172a" />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={styles.sectionEyebrow}>
+                Bookmarks
+              </ThemedText>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Bookmarked lesson content
+              </ThemedText>
+            </View>
+          </View>
+          <ThemedText style={styles.sectionBody}>
+            Jump back to bookmarked lesson content.
+          </ThemedText>
+
+          {bookmarksLoading ? (
+            <ThemedText style={styles.sectionBody}>Loading bookmarks...</ThemedText>
+          ) : bookmarks.length > 0 ? (
+            <View style={styles.bookmarkList}>
+              {bookmarks.map((item) => (
+                  <View key={item.bookmark.lesson_content_bookmark_id} style={styles.bookmarkRow}>
+                  <View style={styles.bookmarkTextGroup}>
+                    <ThemedText style={styles.bookmarkContentName}>
+                      {item.content?.content_name || 'Unknown content'}
+                    </ThemedText>
+                    {item.lesson ? (
+                      <ThemedText style={styles.bookmarkLessonName}>
+                        {item.lesson.lesson_name}
+                      </ThemedText>
+                    ) : null}
+                    {item.module ? (
+                      <ThemedText style={styles.bookmarkModuleName}>
+                        {item.module.module_name}
+                      </ThemedText>
+                    ) : null}
+                  </View>
+                  <Pressable
+                    onPress={() => navigateToBookmark(item.bookmark)}
+                    style={styles.bookmarkOpenButton}
+                  >
+                    <ThemedText style={styles.bookmarkOpenButtonText}>Open</ThemedText>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          ) : bookmarksLoaded ? (
+            <ThemedText style={styles.sectionBody}>No bookmarks yet. Bookmark lesson content from the content info page.</ThemedText>
+          ) : null}
         </View>
 
         <View style={styles.sectionCard}>
@@ -765,6 +867,58 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     color: '#ffffff',
     fontWeight: '700',
+  },
+  bookmarkList: {
+    gap: 8,
+    marginTop: 4,
+  },
+  bookmarkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+    borderRadius: 16,
+    gap: 12,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  bookmarkTextGroup: {
+    flex: 1,
+    gap: 2,
+  },
+  bookmarkContentName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  bookmarkLessonName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0f172a',
+  },
+  bookmarkModuleName: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  bookmarkOpenButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#5bec13',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bookmarkOpenButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0f172a',
   },
   statusBox: {
     borderRadius: 16,
