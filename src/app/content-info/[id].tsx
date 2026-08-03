@@ -653,7 +653,12 @@ export default function ContentInfoScreen() {
               </Text>
             </View>
 
-            <View style={styles.tabHeader}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.tabHeader}
+              contentContainerStyle={styles.tabHeaderContent}
+            >
               <Pressable
                 onPress={() => { setActiveTab('content'); loadContentInfo(); }}
                 style={[styles.tabButton, activeTab === 'content' && styles.tabButtonActive]}
@@ -678,7 +683,7 @@ export default function ContentInfoScreen() {
               >
                 <Text style={[styles.tabButtonText, activeTab === 'performance' && styles.tabButtonTextActive]}>Performance</Text>
               </Pressable>
-            </View>
+            </ScrollView>
 
             {activeTab === 'content' ? (
               <>
@@ -1017,13 +1022,21 @@ const styles = StyleSheet.create({
   bookmarkButtonTextActive: {
     color: '#ffffff',
   },
-  tabHeader: {
+   tabHeader: {
+    marginTop: 4,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+  },
+  tabHeaderContent: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 4,
+    padding: 6,
+    alignItems: 'center',
   },
   tabButton: {
-    flex: 1,
+    flexShrink: 0,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
