@@ -38,6 +38,14 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
+let appVersion = '1.0.0';
+try {
+  const Constants = require('expo-constants').Constants;
+  appVersion = Constants?.manifest?.version || Constants?.expoVersion || '1.0.0';
+} catch {
+  appVersion = '1.0.0';
+}
+
 export default function SettingsScreen() {
   const params = useLocalSearchParams<{ userId?: string }>();
   const activeUserId = useMemo(() => {
@@ -465,6 +473,52 @@ export default function SettingsScreen() {
           ) : bookmarksLoaded ? (
             <ThemedText style={styles.sectionBody}>No bookmarks yet. Bookmark lesson content from the content info page.</ThemedText>
           ) : null}
+         </View>
+
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconWrap}>
+              <Ionicons name="information-circle-outline" size={18} color="#0f172a" />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={styles.sectionEyebrow}>
+                About
+              </ThemedText>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Agricultural Production Learning
+              </ThemedText>
+            </View>
+          </View>
+          <ThemedText style={styles.sectionBody}>
+            This application provides interactive learning modules for agricultural production, covering competencies, lessons, lesson content, exercises, job sheets, and performance checklists to support student learning and assessment.
+          </ThemedText>
+          <ThemedText style={styles.sectionBody}>
+            Developed for agricultural education and practical skill development in the field.
+          </ThemedText>
+          <ThemedText style={styles.sectionBody}>
+            Proposed by the student as a capstone project for the Bachelor of Science in Education, Major in Information and Communications Technology (ICT).
+          </ThemedText>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconWrap}>
+              <Ionicons name="cube-outline" size={18} color="#0f172a" />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={styles.sectionEyebrow}>
+                App info
+              </ThemedText>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Version
+              </ThemedText>
+            </View>
+          </View>
+          <View style={styles.profileContainer}>
+            <ProfileRow label="App Name" value="AgriLearn Student" />
+            <ProfileRow label="Version" value={appVersion} />
+            <ProfileRow label="Description" value="Agricultural production learning platform" />
+          </View>
         </View>
 
         <View style={styles.sectionCard}>
