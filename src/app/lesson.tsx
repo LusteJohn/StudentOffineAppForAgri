@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
@@ -272,32 +273,41 @@ export default function LessonScreen() {
                 </View>
               ) : null}
 
-              <Text style={styles.modalSection}>Lesson Contents</Text>
-              <ScrollView style={styles.contentList} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
-                {lessonContents.length > 0 ? (
-                  lessonContents.map((content) => (
-                    <View key={content.lesson_content_id} style={styles.contentCard}>
-                      <View style={styles.contentHeader}>
-                        <Text style={styles.contentName}>• {content.content_name}</Text>
-                        {progressMap[content.lesson_content_id] ? (
-                          <View style={styles.readBadge}>
-                            <Text style={styles.readBadgeText}>✓ Read</Text>
-                          </View>
-                        ) : null}
-                      </View>
-                      <View style={styles.contentBody}>
-                        <Text style={styles.contentLabel}>Objectives</Text>
-                        <Text style={styles.contentValue}>{content.objectives}</Text>
-                      </View>
-                      <Pressable
-                        onPress={() => openContentInfo(content.lesson_content_id)}
-                        style={styles.viewContentButton}
-                      >
-                        <Text style={styles.viewContentButtonText}>View Content</Text>
-                      </Pressable>
-                    </View>
-                  ))
-                ) : (
+               <Text style={styles.modalSection}>Lesson Contents</Text>
+               <ScrollView style={styles.contentList} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+                 {lessonContents.length > 0 ? (
+                   lessonContents.map((content, index) => {
+                     const isFirst = index === 0;
+                     const prevContent = lessonContents[index - 1];
+                     const isContentUnlocked = isFirst || (prevContent ? !!progressMap[prevContent.lesson_content_id] : false);
+                     return (
+                       <View key={content.lesson_content_id} style={styles.contentCard}>
+                         <View style={styles.contentHeader}>
+                           <Text style={styles.contentName}>• {content.content_name}</Text>
+                           {progressMap[content.lesson_content_id] ? (
+                             <View style={styles.readBadge}>
+                               <Text style={styles.readBadgeText}>✓ Read</Text>
+                             </View>
+                           ) : null}
+                           {!isContentUnlocked ? (
+                             <Ionicons name="lock-closed" size={14} color="#94a3b8" style={styles.lockClosed} />
+                           ) : null}
+                         </View>
+                         <View style={styles.contentBody}>
+                           <Text style={styles.contentLabel}>Objectives</Text>
+                           <Text style={styles.contentValue}>{content.objectives}</Text>
+                         </View>
+                         <Pressable
+                           onPress={() => isContentUnlocked && openContentInfo(content.lesson_content_id)}
+                           disabled={!isContentUnlocked}
+                           style={[styles.viewContentButton, !isContentUnlocked && styles.viewContentButtonDisabled]}
+                         >
+                           <Text style={styles.viewContentButtonText}>View Content</Text>
+                         </Pressable>
+                       </View>
+                     );
+                   })
+                 ) : (
                   <View style={styles.emptyContentCard}>
                     <Text style={styles.emptyContentText}>No lesson content available for this lesson.</Text>
                   </View>
@@ -574,6 +584,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000000',
   },
+  lockClosed: {
+    marginLeft: 4,
+    opacity: 0.6,
+  },
   closeButton: {
     borderRadius: 14,
     paddingVertical: 13,
@@ -658,6 +672,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  viewContentButtonDisabled: {
+    backgroundColor: '#cbd5e1',
   },
   viewContentButtonText: {
     fontSize: 13,
