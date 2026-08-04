@@ -42,9 +42,10 @@ function validatePayload(payload) {
   const birthdate = normalizeText(payload?.birthdate);
   const homeAddress = normalizeText(payload?.home_address);
   const gradeLevel = normalizeText(payload?.grade_level);
+  const studentImage = normalizeText(payload?.student_image);
 
-  if (!firstName || !lastName || !birthdate || !homeAddress || !gradeLevel) {
-    throw new Error('first_name, last_name, birthdate, home_address, and grade_level are required.');
+  if (!firstName || !lastName || !birthdate || !homeAddress || !gradeLevel || !studentImage) {
+    throw new Error('first_name, last_name, birthdate, home_address, grade_level, and student_image are required.');
   }
 
   return {
@@ -54,6 +55,7 @@ function validatePayload(payload) {
     birthdate: birthdate,
     home_address: homeAddress,
     grade_level: gradeLevel,
+    student_image: studentImage,
   };
 }
 

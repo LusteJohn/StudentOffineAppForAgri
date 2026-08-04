@@ -27,6 +27,7 @@ export type StudentProfile = {
   birthdate: string;
   home_address: string;
   grade_level: string;
+  student_image: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -451,7 +452,8 @@ async function ensureDatabase() {
       last_name TEXT NOT NULL,
       birthdate TEXT NOT NULL,
       home_address TEXT NOT NULL,
-      grade_level TEXT NOT NULL,
+       grade_level TEXT NOT NULL,
+       student_image TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -867,6 +869,7 @@ function validateProfilePayload(payload: Omit<StudentProfile, 'student_id' | 'cr
     birthdate: normalizeText(payload.birthdate || ''),
     home_address: normalizeText(payload.home_address || ''),
     grade_level: normalizeText(payload.grade_level || ''),
+    student_image: normalizeNullableText(payload.student_image),
   };
 
   if (!Number.isInteger(normalized.user_id) || normalized.user_id <= 0) {
@@ -915,11 +918,11 @@ export async function createStudentProfile(payload: Omit<StudentProfile, 'studen
   const studentId = row?.student_id ?? 1;
   const now = new Date().toISOString();
 
-  await db.runAsync(
+   await db.runAsync(
     `INSERT INTO student_info
-      (student_id, user_id, first_name, middle_name, last_name, birthdate, home_address, grade_level, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
+      (student_id, user_id, first_name, middle_name, last_name, birthdate, home_address, grade_level, student_image, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     [
       studentId,
       normalized.user_id,
       normalized.first_name,
@@ -928,6 +931,7 @@ export async function createStudentProfile(payload: Omit<StudentProfile, 'studen
       normalized.birthdate,
       normalized.home_address,
       normalized.grade_level,
+      normalized.student_image,
       now,
       now,
     ]
@@ -957,17 +961,18 @@ export async function updateStudentProfile(
 
   const now = new Date().toISOString();
 
-  await db.runAsync(
+   await db.runAsync(
     `UPDATE student_info
-      SET first_name = ?, middle_name = ?, last_name = ?, birthdate = ?, home_address = ?, grade_level = ?, updated_at = ?
+      SET first_name = ?, middle_name = ?, last_name = ?, birthdate = ?, home_address = ?, grade_level = ?, student_image = ?, updated_at = ?
       WHERE student_id = ?`,
-    [
+     [
       normalized.first_name,
       normalized.middle_name,
       normalized.last_name,
       normalized.birthdate,
       normalized.home_address,
       normalized.grade_level,
+      normalized.student_image,
       now,
       studentId,
     ]
