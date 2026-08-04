@@ -172,6 +172,15 @@ export type LessonContentBookmarkRecord = {
   updated_at: string;
 }
 
+export type ModuleAchievementRecord = {
+  module_achievement_id: number;
+  module_id: number;
+  name: string;
+  badge_image: string;
+  created_at: string;
+  updated_at: string;
+}
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -417,6 +426,14 @@ const DEFAULT_JOB_SHEET: Omit<JobSheetRecord, 'created_at' | 'updated_at'>[] = [
   { job_id: 35, lesson_content_id: 54, job_title: 'Sanitizing the bottles and containers', job_objectives: 'At the end of this module the student should be able to sanitize bottles and containers.', job_materials: 'PPE, Concoction area, sanitized bottles and plastic bottle', job_steps: 'Wear PPE. Remove the label before cleaning the plastic bottle. Unscrew the tops and of  a container of warm soapy water to avoid losing them down the drain. Fill a large pot or sink with soap and hot water  to fully submerge your bottles into the solution for a few minutes to kill any bacteria. Rinse the bottles and tops thoroughly. For the bottles, fill them with warm water from the tap until no soap residue is left over. Allow the bottles to dry overnight. Dont refill the bottles too soon; they must be completely dry before refilling to avoid bacterial buildup. Do housekeeping.', job_assesment_method: '' },
   { job_id: 36, lesson_content_id: 55, job_title: 'Proper labeling and packaging of concoctions', job_objectives: 'At the end of this module the student should be able to proper labeling and packaging of concoctions.', job_materials: 'Concoction area, various concoction, papers, ballpeen', job_steps: 'Prepare all the supplies and materials in labelling and tagging. Get your produce concoctions. Label the fermented products based on the required information. Submit your work to your trainer. Do housekeeping.', job_assesment_method: '' },
   { job_id: 37, lesson_content_id: 56, job_title: ' Appropriate place to store', job_objectives: 'At the end of this module the student should be able to appropriate storage for the various concoctions.', job_materials: 'Concoction area, various concoction', job_steps: 'Prepare the various concoctions. Determine the right temperature inside the concoction area. Sealed bottles or other package prevents contamination during storage. Do housekeeping.', job_assesment_method: '' },
+  ];
+
+const DEFAULT_MODULE_ACHIEVEMENT: Omit<ModuleAchievementRecord, 'created_at' | 'updated_at'>[] = [
+  { module_achievement_id: 1, module_id: 1, name: 'Module 1 Master', badge_image: 'assets/module_badges/badge_m1.png' },
+  { module_achievement_id: 2, module_id: 2, name: 'Module 2 Master', badge_image: 'assets/module_badges/badge_m2.png' },
+  { module_achievement_id: 3, module_id: 3, name: 'Module 3 Master', badge_image: 'assets/module_badges/badge_m3.png' },
+  { module_achievement_id: 4, module_id: 4, name: 'Module 4 Master', badge_image: 'assets/module_badges/badge_m4.png' },
+  { module_achievement_id: 5, module_id: 0, name: 'Module Master', badge_image: 'assets/module_badges/module_complete.png' },
 ];
 
 const databasePromise = SQLite.openDatabaseAsync('student-offline-auth.db');
@@ -627,6 +644,15 @@ async function ensureDatabase() {
         FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id),
         UNIQUE(user_id, lesson_content_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS module_achievement (
+      module_achievement_id INTEGER PRIMARY KEY NOT NULL,
+      module_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      badge_image TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (module_id) REFERENCES modules(module_id)
     )`,
   ];
 
@@ -1042,6 +1068,18 @@ export async function getModuleById(moduleId: number) {
   return rows[0] ?? null;
 }
 
+export async function listModuleAchievements() {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<ModuleAchievementRecord>('SELECT * FROM module_achievement ORDER BY module_achievement_id ASC');
+}
+
+export async function listModuleAchievementsByModule(moduleId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<ModuleAchievementRecord>('SELECT * FROM module_achievement WHERE module_id = ? ORDER BY module_achievement_id ASC', [moduleId]);
+}
+
 export async function listLessonContent() {
   await ensureDatabase();
   const db = await databasePromise;
@@ -1303,6 +1341,7 @@ export async function resetAndSeedLocalData() {
   const questionChoices = await db.getAllAsync<QuestionChoiceRecord>('SELECT * FROM question_choice ORDER BY choice_id ASC');
   const jobSheets = await db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet ORDER BY job_id ASC');
   const performanceChecklists = await db.getAllAsync<PerformanceChecklistRecord>('SELECT * FROM performance_checklist ORDER BY performance_id ASC');
+  const moduleAchievements = await db.getAllAsync<ModuleAchievementRecord>('SELECT * FROM module_achievement ORDER BY module_achievement_id ASC');
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
     competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
@@ -1337,12 +1376,15 @@ export async function resetAndSeedLocalData() {
   const hasDefaultJobSheet = DEFAULT_JOB_SHEET.every((expected) =>
     jobSheets.some((js) => String(js.job_id) === String(expected.job_id))
   );
-  const hasDefaultPerformanceCheck = DEFAULT_PERFORMANCE_CHECK.every((expected) =>
+   const hasDefaultPerformanceCheck = DEFAULT_PERFORMANCE_CHECK.every((expected) =>
     performanceChecklists.some((pc) => String(pc.performance_id) === String(expected.performance_id))
-  );
+   );
+   const hasDefaultModuleAchievement = DEFAULT_MODULE_ACHIEVEMENT.every((expected) =>
+    moduleAchievements.some((ma) => String(ma.module_achievement_id) === String(expected.module_achievement_id))
+   );
 
-  if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && hasDefaultQuestionInstruct && hasDefaultQuestionContent && hasDefaultQuestionChoice && hasDefaultJobSheet && hasDefaultPerformanceCheck && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
-return {
+   if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && hasDefaultQuestionInstruct && hasDefaultQuestionContent && hasDefaultQuestionChoice && hasDefaultJobSheet && hasDefaultPerformanceCheck && hasDefaultModuleAchievement && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
+ return {
       competencies: competencies.length,
       modules: modules.length,
       lessons: lessons.length,
@@ -1355,6 +1397,7 @@ return {
       questionChoice: questionChoices.length,
       jobSheet: jobSheets.length,
       performanceCheck: performanceChecklists.length,
+      moduleAchievement: moduleAchievements.length,
       alreadyImported: true,
     };
   }
@@ -1371,7 +1414,9 @@ return {
   await db.runAsync('DELETE FROM question_instruct');
   await db.runAsync('DELETE FROM question_content');
   await db.runAsync('DELETE FROM question_choice');
-  await db.runAsync('DELETE FROM job_sheet');
+   await db.runAsync('DELETE FROM job_sheet');
+   await db.runAsync('DELETE FROM module_achievement');
+   await db.runAsync('DELETE FROM performance_checklist');
   try {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_content'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
@@ -1384,6 +1429,8 @@ return {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'question_content'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'question_choice'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'job_sheet'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'module_achievement'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'performance_checklist'");
   } catch {
     // sqlite_sequence may not exist in some SQLite versions/environments.
   }
@@ -1532,6 +1579,17 @@ for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
         VALUES (?, ?, ?, ?, ?, ?)`,
       [checkItem.performance_id, checkItem.lesson_content_id, checkItem.performance_question, checkItem.performance_order, now, now]
     );
+   }
+
+  for (let index = 0; index < DEFAULT_MODULE_ACHIEVEMENT.length; index += 1) {
+    const achievement = DEFAULT_MODULE_ACHIEVEMENT[index];
+
+    await db.runAsync(
+      `INSERT INTO module_achievement
+        (module_achievement_id, module_id, name, badge_image, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)`,
+      [achievement.module_achievement_id, achievement.module_id, achievement.name, achievement.badge_image, now, now]
+    );
   }
 
   return {
@@ -1547,6 +1605,7 @@ for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
     questionChoice: DEFAULT_QUESTION_CHOICE.length,
     jobSheet: DEFAULT_JOB_SHEET.length,
     performanceCheck: DEFAULT_PERFORMANCE_CHECK.length,
+    moduleAchievement: DEFAULT_MODULE_ACHIEVEMENT.length,
     questionAnswers: 0,
     alreadyImported: false,
   };
