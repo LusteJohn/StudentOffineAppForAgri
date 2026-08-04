@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useFocusEffect, router, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useCustomAlert } from '@/lib/custom-alert';
@@ -76,6 +77,7 @@ export default function SettingsScreen() {
   const [homeAddress, setHomeAddress] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
+  const [studentImage, setStudentImage] = useState<string | null>(null);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
   const { showAlert } = useCustomAlert();
@@ -152,6 +154,7 @@ export default function SettingsScreen() {
       setBirthdate(profile.birthdate);
       setHomeAddress(profile.home_address);
       setGradeLevel(profile.grade_level);
+      setStudentImage(profile.student_image || null);
     } else {
       setFirstName('');
       setMiddleName('');
@@ -160,9 +163,22 @@ export default function SettingsScreen() {
       setBirthdate(formatDate(today));
       setHomeAddress('');
       setGradeLevel('');
+      setStudentImage(null);
     }
 
     setModalVisible(true);
+  };
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets?.length > 0) {
+      setStudentImage(result.assets[0].uri);
+    }
   };
 
   const closeModal = () => {
@@ -209,7 +225,7 @@ export default function SettingsScreen() {
     setSaving(true);
 
     try {
-      if (profile) {
+       if (profile) {
         const updated = await updateStudentProfile(profile.student_id, {
           user_id: activeUserId,
           first_name: firstName,
@@ -218,6 +234,7 @@ export default function SettingsScreen() {
           birthdate,
           home_address: homeAddress,
           grade_level: gradeLevel,
+          student_image: studentImage,
         });
         setProfile(updated);
         showAlert('Profile updated', 'Your student profile was updated successfully.');
@@ -230,6 +247,7 @@ export default function SettingsScreen() {
           birthdate,
           home_address: homeAddress,
           grade_level: gradeLevel,
+          student_image: studentImage,
         });
         setProfile(created);
         showAlert('Profile created', 'Your student profile was saved successfully.');
@@ -309,9 +327,13 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.heroCard, isCompact && styles.heroCardCompact]}>
           <View style={styles.heroContent}>
-            <View style={styles.heroIconWrap}>
-              <Ionicons name="school-outline" size={24} color="#0f172a" />
-            </View>
+             <View style={styles.heroIconWrap}>
+               {profile?.student_image ? (
+                 <Image source={{ uri: profile.student_image }} style={styles.heroProfileImage} />
+               ) : (
+                 <Ionicons name="school-outline" size={24} color="#0f172a" />
+               )}
+             </View>
             <View style={styles.heroTextWrap}>
               <ThemedText type="code" style={styles.heroEyebrow}>
                 Student profile
@@ -563,7 +585,20 @@ export default function SettingsScreen() {
                 <Ionicons name="close" size={18} color="#0f172a" />
               </Pressable>
             </View>
-            <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
+             <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
+              <View style={styles.imageUploadBlock}>
+                <ThemedText style={styles.fieldLabel}>Student Photo</ThemedText>
+                <Pressable onPress={pickImage} style={styles.imageUploadButton}>
+                  {studentImage ? (
+                    <Image source={{ uri: studentImage }} style={styles.imagePreview} />
+                  ) : (
+                    <>
+                      <Ionicons name="camera-outline" size={24} color="#64748b" />
+                      <ThemedText style={styles.imageUploadText}>Tap to upload</ThemedText>
+                    </>
+                  )}
+                </Pressable>
+              </View>
               <View style={styles.fieldBlock}>
                 <ThemedText style={styles.fieldLabel}>First Name</ThemedText>
                 <TextInput
@@ -767,6 +802,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#dff8c8',
+    overflow: 'hidden',
+  },
+  heroProfileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
   },
   heroTextWrap: {
     flex: 1,
@@ -1070,9 +1111,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     color: '#0f172a',
   },
-  fieldBlock: {
+   fieldBlock: {
     gap: 6,
-  },
+   },
+   imageUploadBlock: {
+    gap: 8,
+    marginBottom: 12,
+   },
+   imageUploadButton: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8fafc',
+    borderWidth: 2,
+    borderColor: 'rgba(92, 107, 97, 0.16)',
+    borderStyle: 'dashed',
+    overflow: 'hidden',
+   },
+   imagePreview: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 46,
+   },
+   imageUploadText: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 4,
+   },
   fieldLabel: {
     fontSize: 12,
     textTransform: 'uppercase',
