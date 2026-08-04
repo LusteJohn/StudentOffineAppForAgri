@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useFocusEffect, router, useLocalSearchParams } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useCustomAlert } from '@/lib/custom-alert';
@@ -170,14 +169,19 @@ export default function SettingsScreen() {
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets?.length > 0) {
-      setStudentImage(result.assets[0].uri);
+    try {
+      const ImagePicker = require('expo-image-picker');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets?.length > 0) {
+        setStudentImage(result.assets[0].uri);
+      }
+    } catch {
+      showAlert('Image upload unavailable', 'The image picker is not available in your current environment.');
     }
   };
 
@@ -293,15 +297,15 @@ export default function SettingsScreen() {
             setMessage('');
             try {
               const result = await resetAndSeedLocalData();
-               if (result.alreadyImported) {
-                setMessage(
-                  `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, ${result.jobSheet} job sheets, and ${result.performanceCheck} performance checks.`
-                );
-              } else {
-                setMessage(
-                  `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, ${result.jobSheet} job sheets, and ${result.performanceCheck} performance checks saved to this device.`
-                );
-              }
+              if (result.alreadyImported) {
+                 setMessage(
+                   `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, ${result.jobSheet} job sheets, ${result.performanceCheck} performance checks, and ${result.moduleAchievement} module achievements.`
+                 );
+               } else {
+                 setMessage(
+                   `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, ${result.jobSheet} job sheets, ${result.performanceCheck} performance checks, and ${result.moduleAchievement} module achievements saved to this device.`
+                 );
+               }
             } catch (importError) {
               setMessage(
                 importError instanceof Error
@@ -411,7 +415,7 @@ export default function SettingsScreen() {
                   Import offline resources
                 </ThemedText>
                 <ThemedText style={styles.actionDescription}>
-                  Replace the current local competency, module, lesson, lesson-content, content-info, lesson-info, lesson-link, question-instruct, question-content, and question-choice data with the default offline dataset.
+                   Replace the current local competency, module, lesson, lesson-content, content-info, lesson-info, lesson-link, question-instruct, question-content, question-choice, job-sheet, and performance-checklist data with the default offline dataset.
                 </ThemedText>
               </View>
             </View>
