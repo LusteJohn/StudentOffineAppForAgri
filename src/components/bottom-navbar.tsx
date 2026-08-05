@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { useCustomAlert } from '@/lib/custom-alert';
 
 type BottomNavbarProps = {
-  activeTab: 'home' | 'library' | 'lesson' | 'module-achievement' | 'content-info' | 'settings';
+  activeTab: 'home' | 'library' | 'lesson' | 'achievement' | 'content-info' | 'settings';
   userId: number;
 };
 
@@ -50,9 +50,9 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
     }
   };
 
-  const goModuleAchievement = () => {
-    if (activeTab !== 'module-achievement') {
-      router.replace({ pathname: '/module-achievement', params: { userId: String(userId) } });
+  const goAchievement = () => {
+    if (activeTab !== 'achievement') {
+      router.replace({ pathname: '/achievement', params: { userId: String(userId) } });
     }
   };
 
@@ -102,13 +102,13 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
              <Text style={[styles.tabLabel, activeTab === 'content-info' && styles.activeTabLabel]}>Content Info</Text>
           </Pressable>
 
-          <Pressable onPress={goModuleAchievement} style={[styles.tabButton, activeTab === 'module-achievement' && styles.activeTabButton]}>
+          <Pressable onPress={goAchievement} style={[styles.tabButton, activeTab === 'achievement' && styles.activeTabButton]}>
             <Ionicons
-              name={activeTab === 'module-achievement' ? 'trophy' : 'trophy-outline'}
+              name={activeTab === 'achievement' ? 'trophy' : 'trophy-outline'}
               size={22}
-              color={activeTab === 'module-achievement' ? '#000000' : '#5c6b61'}
+              color={activeTab === 'achievement' ? '#000000' : '#5c6b61'}
             />
-            <Text style={[styles.tabLabel, activeTab === 'module-achievement' && styles.activeTabLabel]}>Achievements</Text>
+            <Text style={[styles.tabLabel, activeTab === 'achievement' && styles.activeTabLabel]}>Achievements</Text>
           </Pressable>
 
           <Pressable onPress={goSettings} style={[styles.tabButton, activeTab === 'settings' && styles.activeTabButton]}>

@@ -181,6 +181,15 @@ export type ModuleAchievementRecord = {
   updated_at: string;
 }
 
+export type LessonAchievementRecord = {
+  lesson_achievement_id: number;
+  lesson_id: number;
+  name: string;
+  badge_image: string;
+  created_at: string;
+  updated_at: string;
+}
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -436,6 +445,22 @@ const DEFAULT_MODULE_ACHIEVEMENT: Omit<ModuleAchievementRecord, 'created_at' | '
   { module_achievement_id: 5, module_id: 0, name: 'Module Master', badge_image: 'assets/module_badges/module_complete.png' },
 ];
 
+const DEFAULT_LESSON_ACHIEVEMENT: Omit<LessonAchievementRecord, 'created_at' | 'updated_at'>[] = [
+  { lesson_achievement_id: 1, lesson_id: 1, name: 'Lesson 1 Master - Module 1', badge_image: 'assets/lesson_badges/badge_m1_l1.png' },
+  { lesson_achievement_id: 2, lesson_id: 2, name: 'Lesson 2 Master - Module 1', badge_image: 'assets/lesson_badges/badge_m1_l2.png' },
+  { lesson_achievement_id: 3, lesson_id: 3, name: 'Lesson 3 Master - Module 1', badge_image: 'assets/lesson_badges/badge_m1_l3.png' },
+  { lesson_achievement_id: 4, lesson_id: 4, name: 'Lesson 4 Master - Module 1', badge_image: 'assets/lesson_badges/badge_m1_l4.png' },
+  { lesson_achievement_id: 5, lesson_id: 5, name: 'Lesson 1 Master - Module 2', badge_image: 'assets/lesson_badges/badge_m2_l1.png' },
+  { lesson_achievement_id: 6, lesson_id: 6, name: 'Lesson 2 Master - Module 2', badge_image: 'assets/lesson_badges/badge_m2_l2.png' },
+  { lesson_achievement_id: 7, lesson_id: 7, name: 'Lesson 3 Master - Module 2', badge_image: 'assets/lesson_badges/badge_m2_l3.png' },
+  { lesson_achievement_id: 8, lesson_id: 8, name: 'Lesson 4 Master - Module 2', badge_image: 'assets/lesson_badges/badge_m2_l4.png' },
+  { lesson_achievement_id: 9, lesson_id: 9, name: 'Lesson 1 Master - Module 3', badge_image: 'assets/lesson_badges/badge_m3_l1.png' },
+  { lesson_achievement_id: 10, lesson_id: 10, name: 'Lesson 2 Master - Module 3', badge_image: 'assets/lesson_badges/badge_m3_l2.png' },
+  { lesson_achievement_id: 11, lesson_id: 11, name: 'Lesson 1 Master - Module 4', badge_image: 'assets/lesson_badges/badge_m4_l1.png' },
+  { lesson_achievement_id: 12, lesson_id: 12, name: 'Lesson 2 Master - Module 4', badge_image: 'assets/lesson_badges/badge_m4_l2.png' },
+  { lesson_achievement_id: 13, lesson_id: 13, name: 'Lesson 3 Master - Module 4', badge_image: 'assets/lesson_badges/badge_m4_l3.png' },
+];
+
 const databasePromise = SQLite.openDatabaseAsync('student-offline-auth.db');
 
 function toStudentUser(user: StoredStudentUser): StudentUser {
@@ -653,8 +678,17 @@ async function ensureDatabase() {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (module_id) REFERENCES modules(module_id)
-    )`,
-  ];
+     )`,
+     `CREATE TABLE IF NOT EXISTS student_lesson_achievement (
+       lesson_achievement_id INTEGER PRIMARY KEY NOT NULL,
+       lesson_id INTEGER NOT NULL,
+       name TEXT NOT NULL,
+       badge_image TEXT NOT NULL,
+       created_at TEXT NOT NULL,
+       updated_at TEXT NOT NULL,
+       FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
+     )`,
+   ];
 
   for (const sql of createStatements) {
     try {
@@ -1080,6 +1114,24 @@ export async function listModuleAchievementsByModule(moduleId: number) {
   return db.getAllAsync<ModuleAchievementRecord>('SELECT * FROM module_achievement WHERE module_id = ? ORDER BY module_achievement_id ASC', [moduleId]);
 }
 
+export async function listLessonAchievements() {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonAchievementRecord>('SELECT * FROM student_lesson_achievement ORDER BY lesson_achievement_id ASC');
+}
+
+export async function listLessonAchievementsByLesson(lessonId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<LessonAchievementRecord>('SELECT * FROM student_lesson_achievement WHERE lesson_id = ? ORDER BY lesson_achievement_id ASC', [lessonId]);
+}
+
+export async function getLessonAchievementById(achievementId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getFirstAsync<LessonAchievementRecord>('SELECT * FROM student_lesson_achievement WHERE lesson_achievement_id = ?', [achievementId]);
+}
+
 export async function listLessonContent() {
   await ensureDatabase();
   const db = await databasePromise;
@@ -1342,6 +1394,7 @@ export async function resetAndSeedLocalData() {
   const jobSheets = await db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet ORDER BY job_id ASC');
   const performanceChecklists = await db.getAllAsync<PerformanceChecklistRecord>('SELECT * FROM performance_checklist ORDER BY performance_id ASC');
   const moduleAchievements = await db.getAllAsync<ModuleAchievementRecord>('SELECT * FROM module_achievement ORDER BY module_achievement_id ASC');
+  const lessonAchievements = await db.getAllAsync<LessonAchievementRecord>('SELECT * FROM student_lesson_achievement ORDER BY lesson_achievement_id ASC');
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
     competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
@@ -1382,8 +1435,11 @@ export async function resetAndSeedLocalData() {
    const hasDefaultModuleAchievement = DEFAULT_MODULE_ACHIEVEMENT.every((expected) =>
     moduleAchievements.some((ma) => String(ma.module_achievement_id) === String(expected.module_achievement_id))
    );
+   const hasDefaultLessonAchievement = DEFAULT_LESSON_ACHIEVEMENT.every((expected) =>
+    lessonAchievements.some((la) => String(la.lesson_achievement_id) === String(expected.lesson_achievement_id))
+   );
 
-   if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && hasDefaultQuestionInstruct && hasDefaultQuestionContent && hasDefaultQuestionChoice && hasDefaultJobSheet && hasDefaultPerformanceCheck && hasDefaultModuleAchievement && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
+   if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && hasDefaultQuestionInstruct && hasDefaultQuestionContent && hasDefaultQuestionChoice && hasDefaultJobSheet && hasDefaultPerformanceCheck && hasDefaultModuleAchievement && hasDefaultLessonAchievement && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
  return {
       competencies: competencies.length,
       modules: modules.length,
@@ -1398,6 +1454,7 @@ export async function resetAndSeedLocalData() {
       jobSheet: jobSheets.length,
       performanceCheck: performanceChecklists.length,
       moduleAchievement: moduleAchievements.length,
+      lessonAchievement: lessonAchievements.length,
       alreadyImported: true,
     };
   }
@@ -1417,6 +1474,7 @@ export async function resetAndSeedLocalData() {
    await db.runAsync('DELETE FROM job_sheet');
    await db.runAsync('DELETE FROM module_achievement');
    await db.runAsync('DELETE FROM performance_checklist');
+   await db.runAsync('DELETE FROM student_lesson_achievement');
   try {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_content'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
@@ -1431,6 +1489,7 @@ export async function resetAndSeedLocalData() {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'job_sheet'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'module_achievement'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'performance_checklist'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'student_lesson_achievement'");
   } catch {
     // sqlite_sequence may not exist in some SQLite versions/environments.
   }
@@ -1590,6 +1649,17 @@ for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
         VALUES (?, ?, ?, ?, ?, ?)`,
       [achievement.module_achievement_id, achievement.module_id, achievement.name, achievement.badge_image, now, now]
     );
+   }
+
+  for (let index = 0; index < DEFAULT_LESSON_ACHIEVEMENT.length; index += 1) {
+    const achievement = DEFAULT_LESSON_ACHIEVEMENT[index];
+
+    await db.runAsync(
+      `INSERT INTO student_lesson_achievement
+        (lesson_achievement_id, lesson_id, name, badge_image, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)`,
+      [achievement.lesson_achievement_id, achievement.lesson_id, achievement.name, achievement.badge_image, now, now]
+    );
   }
 
   return {
@@ -1606,6 +1676,7 @@ for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
     jobSheet: DEFAULT_JOB_SHEET.length,
     performanceCheck: DEFAULT_PERFORMANCE_CHECK.length,
     moduleAchievement: DEFAULT_MODULE_ACHIEVEMENT.length,
+    lessonAchievement: DEFAULT_LESSON_ACHIEVEMENT.length,
     questionAnswers: 0,
     alreadyImported: false,
   };

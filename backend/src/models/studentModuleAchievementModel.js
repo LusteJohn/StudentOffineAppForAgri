@@ -75,7 +75,7 @@ async function createModuleAchievement(payload) {
         throw new Error(`Module Achievement with name "${moduleAchievementInput.name}" already exists.`);
     }
 
-    const lessonContentId = moduleAchievementInfo.length > 0 ? Math.max(...moduleAchievementInfo.map((record) => record.module_achievement_id)) + 1 : 1;
+    const moduleAchievementId = moduleAchievementInfo.length > 0 ? Math.max(...moduleAchievementInfo.map((record) => record.module_achievement_id)) + 1 : 1;
     const now = new Date().toISOString();
 
     const newAchievementInfo = {
@@ -92,7 +92,7 @@ async function createModuleAchievement(payload) {
 }
 
 async function getModuleAchievementById(moduleAchievementId) {
-    const moduleAchievementInfo = await readLessons();
+    const moduleAchievementInfo = await readModuleAchievement();
     const moduleAchievementInfos = moduleAchievementInfos.find((moduleAchievementInfos) => String(moduleAchievementInfos.module_achievement_id) === String(moduleAchievementId)) || null;
 }
 
