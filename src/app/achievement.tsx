@@ -6,7 +6,7 @@ import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
-import { ModuleAchievementRecord, ModuleRecord, LessonRecord, LessonAchievementRecord, LessonContentRecord, listModuleAchievements, listModules, listLessons, listLessonAchievements, listLessonContentByLessonId } from '@/lib/auth-api';
+import { ModuleAchievementRecord, ModuleRecord, LessonRecord, LessonAchievementRecord, LessonContentRecord, LessonContentProgressRecord, listModuleAchievements, listModules, listLessons, listLessonAchievements, listLessonContentProgressByUser, listLessonContentByLessonId } from '@/lib/auth-api';
 
 const PRIMARY = '#5bec13';
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -56,8 +56,9 @@ export default function AchievementScreen() {
   const [lessonAchievements, setLessonAchievements] = useState<LessonAchievementRecord[]>([]);
   const [modules, setModules] = useState<Record<number, ModuleRecord>>({});
   const [lessons, setLessons] = useState<LessonRecord[]>([]);
-  const [lessonContents, setLessonContents] = useState<Record<number, LessonContentRecord[]>>({});
-  const [loading, setLoading] = useState(true);
+   const [lessonContents, setLessonContents] = useState<Record<number, LessonContentRecord[]>>({});
+   const [lessonContentProgress, setLessonContentProgress] = useState<LessonContentProgressRecord[]>([]);
+   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<AchievementTab>('module');
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
@@ -124,24 +125,36 @@ export default function AchievementScreen() {
     errorTitle: {
       color: '#b91c1c',
     },
-    errorDescription: {
-      color: '#b91c1c',
-    },
-  }), [theme, isDark]);
+     errorDescription: {
+       color: '#b91c1c',
+     },
+     acquiredBadge: {
+       backgroundColor: isDark ? '#86efac' : '#166534',
+       borderColor: isDark ? '#86efac' : '#166534',
+     },
+     acquiredLabel: {
+       color: isDark ? '#86efac' : '#166534',
+     },
+     acquiredLabelPending: {
+       color: isDark ? '#94a3b8' : '#94a3b8',
+     },
+   }), [theme, isDark]);
 
-  const loadData = useCallback(async () => {
+   const loadData = useCallback(async () => {
     setError('');
     setLoading(true);
     try {
-      const [moduleAchievementRecords, lessonAchievementRecords, moduleRecords, lessonRecords] = await Promise.all([
+      const [moduleAchievementRecords, lessonAchievementRecords, moduleRecords, lessonRecords, progressRecords] = await Promise.all([
         listModuleAchievements(),
         listLessonAchievements(),
         listModules(),
         listLessons(),
+        listLessonContentProgressByUser(activeUserId),
       ]);
       setModuleAchievements(moduleAchievementRecords);
       setLessonAchievements(lessonAchievementRecords);
       setLessons(lessonRecords);
+      setLessonContentProgress(progressRecords);
       const moduleMap: Record<number, ModuleRecord> = {};
       for (const m of moduleRecords) {
         moduleMap[m.module_id] = m;
@@ -159,7 +172,7 @@ export default function AchievementScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+   }, [activeUserId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -293,6 +306,13 @@ export default function AchievementScreen() {
                 const moduleRecord = lessonRecord ? modules[lessonRecord.module_id] : null;
                 const contents = lessonContents[achievement.lesson_id] ?? [];
                 const isExpanded = expandedLessonId === achievement.lesson_achievement_id;
+                const lessonContentIds = contents.map((c) => c.lesson_content_id);
+                const readContentIds = new Set(
+                  lessonContentProgress
+                    .filter((r) => r.is_read && lessonContentIds.includes(r.lesson_content_id))
+                    .map((r) => r.lesson_content_id)
+                );
+                const isAcquired = contents.length > 0 && lessonContentIds.every((id) => readContentIds.has(id));
 
                 return (
                   <View key={achievement.lesson_achievement_id} style={styles.achievementCardContainer}>
@@ -300,27 +320,37 @@ export default function AchievementScreen() {
                       onPress={() => toggleLessonAchievement(achievement.lesson_achievement_id)}
                       style={[styles.achievementCard, isCompact && styles.achievementCardCompact]}
                     >
-                      <View style={styles.achievementImageWrap}>
-                        {getLessonBadgeImage(achievement.lesson_achievement_id) ? (
-                          <Image
-                            source={getLessonBadgeImage(achievement.lesson_achievement_id)}
-                            style={styles.achievementBadge}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Ionicons name="trophy" size={32} color={PRIMARY} />
-                        )}
-                      </View>
-                      <View style={styles.achievementTextGroup}>
-                        <Text style={[styles.achievementName, dynamicStyles.achievementName]}>{achievement.name}</Text>
-                        {lessonRecord && moduleRecord ? (
-                          <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>
-                            {moduleRecord.module_name} • {lessonRecord.lesson_name}
-                          </Text>
-                        ) : (
-                          <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>Lesson badge</Text>
-                        )}
-                      </View>
+                   <View style={[styles.achievementImageWrap, dynamicStyles.achievementImageWrap]}>
+                         {getLessonBadgeImage(achievement.lesson_achievement_id) ? (
+                           <Image
+                             source={getLessonBadgeImage(achievement.lesson_achievement_id)}
+                             style={styles.achievementBadge}
+                             resizeMode="cover"
+                           />
+                         ) : (
+                           <Ionicons name="trophy" size={32} color={PRIMARY} />
+                         )}
+                         {isAcquired ? (
+                           <View style={[styles.acquiredBadge, dynamicStyles.acquiredBadge]}>
+                             <Ionicons name="checkmark-circle" size={14} color={isDark ? '#000000' : '#ffffff'} />
+                           </View>
+                         ) : null}
+                       </View>
+                       <View style={styles.achievementTextGroup}>
+                         <Text style={[styles.achievementName, dynamicStyles.achievementName]}>{achievement.name}</Text>
+                         {lessonRecord && moduleRecord ? (
+                           <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>
+                             {moduleRecord.module_name} • {lessonRecord.lesson_name}
+                           </Text>
+                         ) : (
+                           <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>Lesson badge</Text>
+                         )}
+                         {isAcquired ? (
+                           <Text style={[styles.acquiredLabel, dynamicStyles.acquiredLabel]}>Acquired</Text>
+                         ) : (
+                           <Text style={[styles.acquiredLabel, dynamicStyles.acquiredLabelPending]}>Not acquired</Text>
+                         )}
+                       </View>
                       <Ionicons
                         name={isExpanded ? 'chevron-down' : 'chevron-forward'}
                         size={18}
@@ -521,8 +551,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  errorDescription: {
+   errorDescription: {
     fontSize: 13,
     lineHeight: 18,
+  },
+   acquiredBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+   acquiredLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 2,
   },
 });
