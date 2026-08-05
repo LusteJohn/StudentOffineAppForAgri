@@ -1,4 +1,5 @@
-import { Image, KeyboardAvoidingView, Platform, Pressable, ReactNode, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { type ReactNode } from 'react';
 import { Image as BlurImage } from 'expo-image';
 
 import { ThemedText } from '@/components/themed-text';

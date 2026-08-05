@@ -687,8 +687,12 @@ async function ensureDatabase() {
        created_at TEXT NOT NULL,
        updated_at TEXT NOT NULL,
        FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
-     )`,
-   ];
+      )`,
+      `CREATE TABLE IF NOT EXISTS app_settings (
+        setting_key TEXT PRIMARY KEY NOT NULL,
+        setting_value TEXT NOT NULL
+      )`,
+    ];
 
   for (const sql of createStatements) {
     try {
@@ -717,8 +721,8 @@ async function ensureDatabase() {
           DEFAULT_STUDENT_ACCOUNT.role,
           DEFAULT_STUDENT_ACCOUNT.created_at,
         ]
-      );
-    }
+  );
+}
   } catch (error) {
     console.error('Default student account seeding failed:', error);
   }
@@ -849,6 +853,25 @@ async function ensureDatabase() {
   } catch (error) {
     console.error('Lesson content seeding failed:', error);
   }
+}
+
+export async function getSetting(key: string): Promise<string | null> {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const row = await db.getFirstAsync<{ setting_value: string }>(
+    'SELECT setting_value FROM app_settings WHERE setting_key = ?',
+    [key]
+  );
+  return row?.setting_value ?? null;
+}
+
+export async function setSetting(key: string, value: string): Promise<void> {
+  await ensureDatabase();
+  const db = await databasePromise;
+  await db.runAsync(
+    'INSERT OR REPLACE INTO app_settings (setting_key, setting_value) VALUES (?, ?)',
+    [key, value]
+  );
 }
 
 function normalizeEmail(email: string) {
