@@ -1,0 +1,485 @@
+import { useCallback, useMemo, useState } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { BottomNavbar } from '@/components/bottom-navbar';
+import { Header } from '@/components/header';
+import { ThemedView } from '@/components/themed-view';
+import { ModuleAchievementRecord, ModuleRecord, LessonRecord, LessonAchievementRecord, LessonContentRecord, listModuleAchievements, listModules, listLessons, listLessonAchievements, listLessonContentByLessonId } from '@/lib/auth-api';
+
+const PRIMARY = '#5bec13';
+const BACKGROUND_LIGHT = '#f6f8f6';
+
+const moduleAchievementBadgeImages: Record<number, any> = {
+  1: require('@/assets/module_badges/badge_m1.png'),
+  2: require('@/assets/module_badges/badge_m2.png'),
+  3: require('@/assets/module_badges/badge_m3.png'),
+  4: require('@/assets/module_badges/badge_m4.png'),
+  5: require('@/assets/module_badges/module_complete.png'),
+};
+
+const lessonAchievementBadgeImages: Record<number, any> = {
+  1: require('@/assets/lesson_badges/badge_m1_l1.png'),
+  2: require('@/assets/lesson_badges/badge_m1_l2.png'),
+  3: require('@/assets/lesson_badges/badge_m1_l3.png'),
+  4: require('@/assets/lesson_badges/badge_m1_l4.png'),
+  5: require('@/assets/lesson_badges/badge_m2_l1.png'),
+  6: require('@/assets/lesson_badges/badge_m2_l2.png'),
+  7: require('@/assets/lesson_badges/badge_m2_l3.png'),
+  8: require('@/assets/lesson_badges/badge_m2_l4.png'),
+  9: require('@/assets/lesson_badges/badge_m3_l1.png'),
+  10: require('@/assets/lesson_badges/badge_m3_l2.png'),
+  11: require('@/assets/lesson_badges/badge_m4_l1.png'),
+  12: require('@/assets/lesson_badges/badge_m4_l2.png'),
+  13: require('@/assets/lesson_badges/badge_m4_l3.png'),
+};
+
+const getModuleBadgeImage = (achievementId: number) => {
+  return moduleAchievementBadgeImages[achievementId] ?? null;
+};
+
+const getLessonBadgeImage = (achievementId: number) => {
+  return lessonAchievementBadgeImages[achievementId] ?? null;
+};
+
+type AchievementTab = 'module' | 'lesson';
+
+export default function AchievementScreen() {
+  const params = useLocalSearchParams<{ userId?: string }>();
+  const activeUserId = useMemo(() => {
+    const parsed = Number(params.userId);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+  }, [params.userId]);
+
+  const [moduleAchievements, setModuleAchievements] = useState<ModuleAchievementRecord[]>([]);
+  const [lessonAchievements, setLessonAchievements] = useState<LessonAchievementRecord[]>([]);
+  const [modules, setModules] = useState<Record<number, ModuleRecord>>({});
+  const [lessons, setLessons] = useState<LessonRecord[]>([]);
+  const [lessonContents, setLessonContents] = useState<Record<number, LessonContentRecord[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<AchievementTab>('module');
+  const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
+  const [expandedLessonId, setExpandedLessonId] = useState<number | null>(null);
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
+
+  const loadData = useCallback(async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const [moduleAchievementRecords, lessonAchievementRecords, moduleRecords, lessonRecords] = await Promise.all([
+        listModuleAchievements(),
+        listLessonAchievements(),
+        listModules(),
+        listLessons(),
+      ]);
+      setModuleAchievements(moduleAchievementRecords);
+      setLessonAchievements(lessonAchievementRecords);
+      setLessons(lessonRecords);
+      const moduleMap: Record<number, ModuleRecord> = {};
+      for (const m of moduleRecords) {
+        moduleMap[m.module_id] = m;
+      }
+      setModules(moduleMap);
+
+      const contentMap: Record<number, LessonContentRecord[]> = {};
+      for (const la of lessonAchievementRecords) {
+        const contents = await listLessonContentByLessonId(la.lesson_id);
+        contentMap[la.lesson_id] = contents;
+      }
+      setLessonContents(contentMap);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load achievements.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
+  const toggleModuleAchievement = (achievementId: number) => {
+    setExpandedModuleId((current) => (current === achievementId ? null : achievementId));
+  };
+
+  const toggleLessonAchievement = (achievementId: number) => {
+    setExpandedLessonId((current) => (current === achievementId ? null : achievementId));
+  };
+
+  return (
+    <ThemedView style={styles.screen}>
+      <Header title="Achievements" />
+
+      <View style={styles.tabContainer}>
+        <Pressable
+          onPress={() => setActiveTab('module')}
+          style={[styles.tabButton, activeTab === 'module' && styles.tabButtonActive]}
+        >
+          <Text style={[styles.tabButtonText, activeTab === 'module' && styles.tabButtonTextActive]}>Module</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setActiveTab('lesson')}
+          style={[styles.tabButton, activeTab === 'lesson' && styles.tabButtonActive]}
+        >
+          <Text style={[styles.tabButtonText, activeTab === 'lesson' && styles.tabButtonTextActive]}>Lesson</Text>
+        </Pressable>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {error ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorTitle}>Unable to load achievements</Text>
+            <Text style={styles.errorDescription}>{error}</Text>
+          </View>
+        ) : loading ? (
+          <Text style={styles.loadingText}>Loading achievements...</Text>
+        ) : activeTab === 'module' ? (
+          moduleAchievements.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="trophy-outline" size={48} color="#94a3b8" />
+              <Text style={styles.emptyStateText}>No module achievements available yet.</Text>
+            </View>
+          ) : (
+            <View style={styles.achievementList}>
+              {moduleAchievements.map((achievement) => {
+                const moduleRecord = achievement.module_id > 0 ? modules[achievement.module_id] : null;
+                const lessonCount = moduleRecord
+                  ? lessons.filter((l) => l.module_id === moduleRecord.module_id).length
+                  : 0;
+                const isCompleteBadge = achievement.module_id === 0;
+                const isExpanded = expandedModuleId === achievement.module_achievement_id;
+                const moduleLessons = moduleRecord
+                  ? lessons.filter((l) => l.module_id === moduleRecord.module_id).sort((a, b) => a.order_number - b.order_number || a.lesson_id - b.lesson_id)
+                  : [];
+
+                return (
+                  <View key={achievement.module_achievement_id} style={styles.achievementCardContainer}>
+                    <Pressable
+                      onPress={() => toggleModuleAchievement(achievement.module_achievement_id)}
+                      style={[styles.achievementCard, isCompleteBadge && styles.achievementCardComplete, isCompact && styles.achievementCardCompact]}
+                    >
+                      <View style={styles.achievementImageWrap}>
+                        {getModuleBadgeImage(achievement.module_achievement_id) ? (
+                          <Image
+                            source={getModuleBadgeImage(achievement.module_achievement_id)}
+                            style={styles.achievementBadge}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Ionicons name="trophy" size={32} color={PRIMARY} />
+                        )}
+                      </View>
+                      <View style={styles.achievementTextGroup}>
+                        <Text style={styles.achievementName}>{achievement.name}</Text>
+                        {moduleRecord ? (
+                          <Text style={styles.achievementModule}>
+                            {moduleRecord.module_name} • {lessonCount} lessons
+                          </Text>
+                        ) : isCompleteBadge ? (
+                          <Text style={styles.achievementModule}>Overall completion badge</Text>
+                        ) : (
+                          <Text style={styles.achievementModule}>Module badge</Text>
+                        )}
+                      </View>
+                      <Ionicons
+                        name={isExpanded ? 'chevron-down' : 'chevron-forward'}
+                        size={18}
+                        color="#94a3b8"
+                        style={isExpanded ? { transform: [{ rotate: '90deg' }] } : undefined}
+                      />
+                    </Pressable>
+
+                    {isExpanded && moduleLessons.length > 0 ? (
+                      <View style={styles.lessonList}>
+                        {moduleLessons.map((lesson) => (
+                          <View key={lesson.lesson_id} style={styles.lessonItem}>
+                            <View style={styles.lessonIndicator} />
+                            <View style={styles.lessonTextGroup}>
+                              <Text style={styles.lessonTitle}>{lesson.lesson_name}</Text>
+                              <Text style={styles.lessonMeta}>Order: {lesson.order_number}</Text>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    ) : isExpanded && moduleRecord && moduleLessons.length === 0 ? (
+                      <View style={styles.emptyLessonRow}>
+                        <Text style={styles.emptyLessonText}>No lessons available for this module.</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                );
+              })}
+            </View>
+          )
+        ) : (
+          lessonAchievements.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="trophy-outline" size={48} color="#94a3b8" />
+              <Text style={styles.emptyStateText}>No lesson achievements available yet.</Text>
+            </View>
+          ) : (
+            <View style={styles.achievementList}>
+              {lessonAchievements.map((achievement) => {
+                const lessonRecord = lessons.find((l) => l.lesson_id === achievement.lesson_id) ?? null;
+                const moduleRecord = lessonRecord ? modules[lessonRecord.module_id] : null;
+                const contents = lessonContents[achievement.lesson_id] ?? [];
+                const isExpanded = expandedLessonId === achievement.lesson_achievement_id;
+
+                return (
+                  <View key={achievement.lesson_achievement_id} style={styles.achievementCardContainer}>
+                    <Pressable
+                      onPress={() => toggleLessonAchievement(achievement.lesson_achievement_id)}
+                      style={[styles.achievementCard, isCompact && styles.achievementCardCompact]}
+                    >
+                      <View style={styles.achievementImageWrap}>
+                        {getLessonBadgeImage(achievement.lesson_achievement_id) ? (
+                          <Image
+                            source={getLessonBadgeImage(achievement.lesson_achievement_id)}
+                            style={styles.achievementBadge}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Ionicons name="trophy" size={32} color={PRIMARY} />
+                        )}
+                      </View>
+                      <View style={styles.achievementTextGroup}>
+                        <Text style={styles.achievementName}>{achievement.name}</Text>
+                        {lessonRecord && moduleRecord ? (
+                          <Text style={styles.achievementModule}>
+                            {moduleRecord.module_name} • {lessonRecord.lesson_name}
+                          </Text>
+                        ) : (
+                          <Text style={styles.achievementModule}>Lesson badge</Text>
+                        )}
+                      </View>
+                      <Ionicons
+                        name={isExpanded ? 'chevron-down' : 'chevron-forward'}
+                        size={18}
+                        color="#94a3b8"
+                        style={isExpanded ? { transform: [{ rotate: '90deg' }] } : undefined}
+                      />
+                    </Pressable>
+
+                    {isExpanded && contents.length > 0 ? (
+                      <View style={styles.contentList}>
+                        {contents.map((content) => (
+                          <View key={content.lesson_content_id} style={styles.lessonItem}>
+                            <View style={styles.lessonIndicator} />
+                            <View style={styles.lessonTextGroup}>
+                              <Text style={styles.lessonTitle}>{content.content_name}</Text>
+                              <Text style={styles.lessonMeta}>Objectives: {content.objectives}</Text>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    ) : isExpanded && contents.length === 0 ? (
+                      <View style={styles.emptyLessonRow}>
+                        <Text style={styles.emptyLessonText}>No content available for this lesson.</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                );
+              })}
+            </View>
+          )
+        )}
+      </ScrollView>
+
+      <BottomNavbar activeTab="achievement" userId={activeUserId} />
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: BACKGROUND_LIGHT,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    gap: 4,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(148, 163, 184, 0.12)',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: '#f1f5f9',
+  },
+  tabButtonActive: {
+    backgroundColor: '#166534',
+  },
+  tabButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  tabButtonTextActive: {
+    color: '#ffffff',
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+  loadingText: {
+    fontSize: 15,
+    color: '#64748b',
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 32,
+  },
+  achievementList: {
+    gap: 12,
+  },
+  achievementCardContainer: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
+  achievementCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 16,
+  },
+  achievementCardComplete: {
+    backgroundColor: '#f0fdf4',
+    borderColor: 'rgba(34, 197, 94, 0.32)',
+  },
+  achievementCardCompact: {
+    padding: 14,
+    gap: 10,
+  },
+  achievementImageWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f1f8e8',
+    overflow: 'hidden',
+  },
+  achievementBadge: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 28,
+  },
+  achievementTextGroup: {
+    flex: 1,
+    gap: 2,
+  },
+  achievementName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0f172a',
+    lineHeight: 20,
+  },
+  achievementModule: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  lessonList: {
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(148, 163, 184, 0.08)',
+    gap: 4,
+  },
+  contentList: {
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(148, 163, 184, 0.08)',
+    gap: 4,
+  },
+  lessonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(148, 163, 184, 0.06)',
+  },
+  lessonIndicator: {
+    width: 4,
+    height: 24,
+    borderRadius: 4,
+    backgroundColor: PRIMARY,
+  },
+  lessonTextGroup: {
+    flex: 1,
+    gap: 2,
+  },
+  lessonTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0f172a',
+    lineHeight: 20,
+  },
+  lessonMeta: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  emptyLessonRow: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(148, 163, 184, 0.08)',
+  },
+  emptyLessonText: {
+    fontSize: 13,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  emptyState: {
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 48,
+  },
+  emptyStateText: {
+    fontSize: 15,
+    color: '#64748b',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  errorBox: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: 'rgba(185, 28, 28, 0.18)',
+    borderRadius: 16,
+    padding: 14,
+    gap: 6,
+  },
+  errorTitle: {
+    color: '#b91c1c',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  errorDescription: {
+    color: '#b91c1c',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
