@@ -4,6 +4,8 @@ import { useFocusEffect, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useCustomAlert } from '@/lib/custom-alert';
+import { useThemeContext } from '@/contexts/theme-context';
+import { useTheme } from '@/hooks/use-theme';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -80,6 +82,230 @@ export default function SettingsScreen() {
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
   const { showAlert } = useCustomAlert();
+  const themeCtx = useThemeContext();
+  const colors = useTheme();
+  const isDark = colors.text === '#ffffff';
+
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    screen: {
+      backgroundColor: colors.background,
+    },
+    heroCard: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.05)' : '#f8fff3',
+      borderColor: isDark ? 'rgba(91, 236, 19, 0.18)' : 'rgba(92, 107, 97, 0.16)',
+      shadowColor: isDark ? '#000000' : '#000',
+    },
+    heroIconWrap: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.15)' : '#dff8c8',
+    },
+    heroIcon: {
+      color: colors.text,
+    },
+    heroEyebrow: {
+      color: colors.textSecondary,
+    },
+    heroTitle: {
+      color: colors.text,
+    },
+    heroDescription: {
+      color: colors.textSecondary,
+    },
+    heroButton: {
+      backgroundColor: isDark ? '#86efac' : '#55e10a',
+    },
+    heroButtonText: {
+      color: isDark ? '#000000' : '#0f172a',
+    },
+    sectionCard: {
+      backgroundColor: colors.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(92, 107, 97, 0.12)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    sectionIconWrap: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f1f8e8',
+    },
+    sectionIcon: {
+      color: colors.text,
+    },
+    sectionEyebrow: {
+      color: colors.textSecondary,
+    },
+    sectionTitle: {
+      color: colors.text,
+    },
+    sectionBody: {
+      color: colors.textSecondary,
+    },
+    profileContainer: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.05)' : '#f8fff3',
+      borderColor: isDark ? 'rgba(91, 236, 19, 0.12)' : 'rgba(92, 107, 97, 0.14)',
+    },
+    profileLabel: {
+      color: colors.textSecondary,
+    },
+    profileValue: {
+      color: colors.text,
+    },
+    actionCard: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.05)' : '#f8fff3',
+      borderColor: isDark ? 'rgba(91, 236, 19, 0.12)' : 'rgba(92, 107, 97, 0.12)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    actionTitle: {
+      color: colors.text,
+    },
+    actionDescription: {
+      color: colors.textSecondary,
+    },
+    primaryButton: {
+      backgroundColor: isDark ? '#86efac' : '#55e10a',
+    },
+    primaryButtonIcon: {
+      color: isDark ? '#000000' : '#0f172a',
+    },
+    primaryButtonText: {
+      color: isDark ? '#000000' : '#0f172a',
+    },
+    bookmarkList: {
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    bookmarkRow: {
+      backgroundColor: colors.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.12)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    bookmarkContentName: {
+      color: isDark ? '#86efac' : '#166534',
+    },
+    bookmarkLessonName: {
+      color: colors.text,
+    },
+    bookmarkModuleName: {
+      color: colors.textSecondary,
+    },
+    bookmarkOpenButton: {
+      backgroundColor: isDark ? '#86efac' : '#5bec13',
+    },
+    bookmarkOpenButtonText: {
+      color: isDark ? '#000000' : '#0f172a',
+    },
+    statusBoxSuccess: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#ecfdf5',
+      borderColor: isDark ? 'rgba(91, 236, 19, 0.28)' : 'rgba(4, 120, 87, 0.18)',
+    },
+    statusBoxError: {
+      backgroundColor: '#fef2f2',
+      borderColor: 'rgba(185, 28, 28, 0.18)',
+    },
+    statusTextSuccess: {
+      color: isDark ? '#86efac' : '#047857',
+    },
+    statusTextError: {
+      color: '#b91c1c',
+    },
+    modalOverlay: {
+      backgroundColor: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(2, 6, 23, 0.45)',
+    },
+    modalCard: {
+      backgroundColor: colors.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(92, 107, 97, 0.12)',
+    },
+    dateModalCard: {
+      backgroundColor: colors.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(92, 107, 97, 0.12)',
+    },
+    modalEyebrow: {
+      color: colors.textSecondary,
+    },
+    modalTitle: {
+      color: colors.text,
+    },
+    modalCloseButton: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f1f8e8',
+    },
+    modalCloseIcon: {
+      color: colors.text,
+    },
+    input: {
+      backgroundColor: colors.backgroundElement,
+      color: colors.text,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.16)',
+    },
+    inputPlaceholder: {
+      color: colors.textSecondary,
+    },
+    imageUploadButton: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f8fafc',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.16)',
+    },
+    imageUploadText: {
+      color: colors.textSecondary,
+    },
+    dateTrigger: {
+      backgroundColor: colors.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.16)',
+    },
+    dateTriggerText: {
+      color: colors.text,
+    },
+    dateTriggerIcon: {
+      color: colors.text,
+    },
+    adjusterControls: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.05)' : '#f8fff3',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.16)',
+    },
+    adjustButton: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.15)' : '#e7f8d5',
+    },
+    adjustButtonText: {
+      color: colors.text,
+    },
+    adjustValue: {
+      color: colors.text,
+    },
+    cancelButton: {
+      backgroundColor: colors.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.18)',
+    },
+    cancelButtonText: {
+      color: colors.text,
+    },
+    saveButton: {
+      backgroundColor: isDark ? '#86efac' : '#55e10a',
+    },
+    saveButtonText: {
+      color: isDark ? '#000000' : '#0f172a',
+    },
+     logoutButton: {
+      backgroundColor: '#b91c1c',
+    },
+    logoutButtonText: {
+      color: '#ffffff',
+    },
+    fieldLabel: {
+      color: colors.textSecondary,
+    },
+    themeOption: {
+      backgroundColor: colors.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.16)',
+    },
+    themeOptionSelected: {
+      backgroundColor: isDark ? '#86efac' : '#166534',
+    },
+    themeOptionIcon: {
+      color: isDark ? (themeCtx.themeMode === 'light' ? '#eab308' : colors.text) : (themeCtx.themeMode === 'light' ? '#eab308' : '#0f172a'),
+    },
+    themeOptionText: {
+      color: colors.text,
+    },
+    themeOptionTextSelected: {
+      color: isDark ? '#000000' : '#ffffff',
+    },
+    themeOptionCheck: {
+      backgroundColor: isDark ? '#000000' : '#ffffff',
+    },
+  }), [colors, isDark, themeCtx.themeMode]);
 
   useEffect(() => {
     let isMounted = true;
@@ -326,57 +552,57 @@ export default function SettingsScreen() {
     : 'Create a student profile';
 
   return (
-    <ThemedView style={styles.screen}>
+    <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Settings" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.heroCard, isCompact && styles.heroCardCompact]}>
+        <View style={[styles.heroCard, isCompact && styles.heroCardCompact, dynamicStyles.heroCard]}>
           <View style={styles.heroContent}>
-             <View style={styles.heroIconWrap}>
+             <View style={[styles.heroIconWrap, dynamicStyles.heroIconWrap]}>
                {profile?.student_image ? (
                  <Image source={{ uri: profile.student_image }} style={styles.heroProfileImage} />
                ) : (
-                 <Ionicons name="school-outline" size={24} color="#0f172a" />
+                 <Ionicons name="school-outline" size={24} color={colors.text} />
                )}
              </View>
             <View style={styles.heroTextWrap}>
-              <ThemedText type="code" style={styles.heroEyebrow}>
+              <ThemedText type="code" style={[styles.heroEyebrow, dynamicStyles.heroEyebrow]}>
                 Student profile
               </ThemedText>
-              <ThemedText type="subtitle" style={styles.heroTitle}>
+              <ThemedText type="subtitle" style={[styles.heroTitle, dynamicStyles.heroTitle]}>
                 {profileDisplayName}
               </ThemedText>
-              <ThemedText style={styles.heroDescription}>
+              <ThemedText style={[styles.heroDescription, dynamicStyles.heroDescription]}>
                 {profile
                   ? `${profile.grade_level || 'Grade pending'} • ${profile.birthdate || 'Birthdate pending'}`
                   : 'Add your details once and keep your learning profile current.'}
               </ThemedText>
             </View>
           </View>
-          <Pressable onPress={openModal} style={styles.heroButton}>
-            <Ionicons name={profile ? 'create-outline' : 'add-circle-outline'} size={18} color="#0f172a" />
-            <ThemedText style={styles.heroButtonText}>{profile ? 'Edit profile' : 'Add profile'}</ThemedText>
+          <Pressable onPress={openModal} style={[styles.heroButton, dynamicStyles.heroButton]}>
+            <Ionicons name={profile ? 'create-outline' : 'add-circle-outline'} size={18} color={isDark ? '#000000' : '#0f172a'} />
+            <ThemedText style={[styles.heroButtonText, dynamicStyles.heroButtonText]}>{profile ? 'Edit profile' : 'Add profile'}</ThemedText>
           </Pressable>
         </View>
 
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
-            <View style={styles.sectionIconWrap}>
-              <Ionicons name="person-outline" size={18} color="#0f172a" />
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="person-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={styles.sectionEyebrow}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
                 Profile
               </ThemedText>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
                 Student details
               </ThemedText>
             </View>
           </View>
 
           {!profileLoaded ? (
-            <ThemedText style={styles.sectionBody}>Loading profile...</ThemedText>
+            <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Loading profile...</ThemedText>
           ) : profile ? (
-            <View style={styles.profileContainer}>
+            <View style={[styles.profileContainer, dynamicStyles.profileContainer]}>
               <ProfileRow label="Student ID" value={String(profile.student_id)} />
               <ProfileRow label="First Name" value={profile.first_name} />
               <ProfileRow label="Middle Name" value={profile.middle_name || '-'} />
@@ -388,33 +614,33 @@ export default function SettingsScreen() {
               <ProfileRow label="Updated At" value={new Date(profile.updated_at).toLocaleString()} />
             </View>
           ) : (
-            <ThemedText style={styles.sectionBody}>No profile exists yet. Tap the button to insert your student information.</ThemedText>
+            <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>No profile exists yet. Tap the button to insert your student information.</ThemedText>
           )}
         </View>
 
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
-            <View style={styles.sectionIconWrap}>
-              <Ionicons name="cloud-download-outline" size={18} color="#0f172a" />
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="cloud-download-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={styles.sectionEyebrow}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
                 Device data
               </ThemedText>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
                 Offline resources
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={styles.sectionBody}>Manage offline resources stored on this device.</ThemedText>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Manage offline resources stored on this device.</ThemedText>
 
-          <View style={styles.actionCard}>
+          <View style={[styles.actionCard, dynamicStyles.actionCard]}>
             <View style={styles.actionHeader}>
               <View style={styles.actionTextWrap}>
-                <ThemedText type="subtitle" style={styles.actionTitle}>
+                <ThemedText type="subtitle" style={[styles.actionTitle, dynamicStyles.actionTitle]}>
                   Import offline resources
                 </ThemedText>
-                <ThemedText style={styles.actionDescription}>
+                <ThemedText style={[styles.actionDescription, dynamicStyles.actionDescription]}>
                    Replace the current local competency, module, lesson, lesson-content, content-info, lesson-info, lesson-link, question-instruct, question-content, question-choice, job-sheet, and performance-checklist data with the default offline dataset.
                 </ThemedText>
               </View>
@@ -423,9 +649,9 @@ export default function SettingsScreen() {
             <Pressable
               onPress={handleImportResources}
               disabled={importing}
-              style={[styles.primaryButton, importing && styles.primaryButtonDisabled]}>
-              <Ionicons name="download-outline" size={18} color="#0f172a" />
-              <ThemedText style={styles.primaryButtonText}>{importing ? 'Importing...' : 'Import resources'}</ThemedText>
+              style={[styles.primaryButton, dynamicStyles.primaryButton, importing && styles.primaryButtonDisabled]}>
+              <Ionicons name="download-outline" size={18} color={isDark ? '#000000' : '#0f172a'} />
+              <ThemedText style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>{importing ? 'Importing...' : 'Import resources'}</ThemedText>
             </Pressable>
 
             {message ? (
@@ -433,13 +659,13 @@ export default function SettingsScreen() {
                 style={[
                   styles.statusBox,
                   message.includes('Failed')
-                    ? styles.statusBoxError
-                    : styles.statusBoxSuccess,
+                    ? dynamicStyles.statusBoxError
+                    : dynamicStyles.statusBoxSuccess,
                 ]}>
                 <ThemedText
                   style={[
                     styles.statusText,
-                    message.includes('Failed') ? styles.statusTextError : styles.statusTextSuccess,
+                    message.includes('Failed') ? dynamicStyles.statusTextError : dynamicStyles.statusTextSuccess,
                   ]}>
                   {message}
                 </ThemedText>
@@ -448,249 +674,293 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
-            <View style={styles.sectionIconWrap}>
-              <Ionicons name="bookmark-outline" size={18} color="#0f172a" />
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="bookmark-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={styles.sectionEyebrow}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
                 Bookmarks
               </ThemedText>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
                 Bookmarked lesson content
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={styles.sectionBody}>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
             Jump back to bookmarked lesson content.
           </ThemedText>
 
           {bookmarksLoading ? (
-            <ThemedText style={styles.sectionBody}>Loading bookmarks...</ThemedText>
+            <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Loading bookmarks...</ThemedText>
           ) : bookmarks.length > 0 ? (
-            <View style={styles.bookmarkList}>
+            <View style={[styles.bookmarkList, dynamicStyles.bookmarkList]}>
               {bookmarks.map((item) => (
-                  <View key={item.bookmark.lesson_content_bookmark_id} style={styles.bookmarkRow}>
+                  <View key={item.bookmark.lesson_content_bookmark_id} style={[styles.bookmarkRow, dynamicStyles.bookmarkRow]}>
                   <View style={styles.bookmarkTextGroup}>
-                    <ThemedText style={styles.bookmarkContentName}>
+                    <ThemedText style={[styles.bookmarkContentName, dynamicStyles.bookmarkContentName]}>
                       {item.content?.content_name || 'Unknown content'}
                     </ThemedText>
                     {item.lesson ? (
-                      <ThemedText style={styles.bookmarkLessonName}>
+                      <ThemedText style={[styles.bookmarkLessonName, dynamicStyles.bookmarkLessonName]}>
                         {item.lesson.lesson_name}
                       </ThemedText>
                     ) : null}
                     {item.module ? (
-                      <ThemedText style={styles.bookmarkModuleName}>
+                      <ThemedText style={[styles.bookmarkModuleName, dynamicStyles.bookmarkModuleName]}>
                         {item.module.module_name}
                       </ThemedText>
                     ) : null}
                   </View>
                   <Pressable
                     onPress={() => navigateToBookmark(item.bookmark)}
-                    style={styles.bookmarkOpenButton}
+                    style={[styles.bookmarkOpenButton, dynamicStyles.bookmarkOpenButton]}
                   >
-                    <ThemedText style={styles.bookmarkOpenButtonText}>Open</ThemedText>
+                    <ThemedText style={[styles.bookmarkOpenButtonText, dynamicStyles.bookmarkOpenButtonText]}>Open</ThemedText>
                   </Pressable>
                 </View>
               ))}
             </View>
           ) : bookmarksLoaded ? (
-            <ThemedText style={styles.sectionBody}>No bookmarks yet. Bookmark lesson content from the content info page.</ThemedText>
+            <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>No bookmarks yet. Bookmark lesson content from the content info page.</ThemedText>
           ) : null}
          </View>
 
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
-            <View style={styles.sectionIconWrap}>
-              <Ionicons name="information-circle-outline" size={18} color="#0f172a" />
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="information-circle-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={styles.sectionEyebrow}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
                 About
               </ThemedText>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
                 Agricultural Production Learning
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={styles.sectionBody}>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
             This application provides interactive learning modules for agricultural production, covering competencies, lessons, lesson content, exercises, job sheets, and performance checklists to support student learning and assessment.
           </ThemedText>
-          <ThemedText style={styles.sectionBody}>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
             Developed for agricultural education and practical skill development in the field.
           </ThemedText>
-          <ThemedText style={styles.sectionBody}>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
             Proposed by the student as a capstone project for the Bachelor of Science in Education, Major in Information and Communications Technology (ICT).
           </ThemedText>
         </View>
 
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
-            <View style={styles.sectionIconWrap}>
-              <Ionicons name="cube-outline" size={18} color="#0f172a" />
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="cube-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={styles.sectionEyebrow}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
                 App info
               </ThemedText>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
                 Version
               </ThemedText>
             </View>
           </View>
-          <View style={styles.profileContainer}>
+          <View style={[styles.profileContainer, dynamicStyles.profileContainer]}>
             <ProfileRow label="App Name" value="AgriLearn Student" />
             <ProfileRow label="Version" value={appVersion} />
             <ProfileRow label="Description" value="Agricultural production learning platform" />
           </View>
-        </View>
+         </View>
 
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
-            <View style={styles.sectionIconWrap}>
-              <Ionicons name="log-out-outline" size={18} color="#0f172a" />
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="moon-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={styles.sectionEyebrow}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
+                Appearance
+              </ThemedText>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
+                Dark mode
+              </ThemedText>
+            </View>
+          </View>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Choose how the app appearance adapts to light or dark mode.</ThemedText>
+
+          <View style={styles.themeOptionGroup}>
+            <ThemeOption
+              label="Light"
+              icon="sunny-outline"
+              value="light"
+              selected={themeCtx.themeMode === 'light'}
+              onPress={() => themeCtx.setThemeMode('light')}
+              isDark={isDark}
+            />
+            <ThemeOption
+              label="Dark"
+              icon="moon-outline"
+              value="dark"
+              selected={themeCtx.themeMode === 'dark'}
+              onPress={() => themeCtx.setThemeMode('dark')}
+              isDark={isDark}
+            />
+            <ThemeOption
+              label="System"
+              icon="phoneport-outline"
+              value="system"
+              selected={themeCtx.themeMode === 'system'}
+              onPress={() => themeCtx.setThemeMode('system')}
+              isDark={isDark}
+            />
+          </View>
+        </View>
+
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="log-out-outline" size={18} color={colors.text} />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
                 Session
               </ThemedText>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
                 Logout
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={styles.sectionBody}>Logout from your current student account on this device.</ThemedText>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Logout from your current student account on this device.</ThemedText>
 
           <Pressable
             onPress={handleLogout}
             disabled={loggingOut}
-            style={[styles.logoutButton, loggingOut && styles.logoutButtonDisabled]}>
+            style={[styles.logoutButton, dynamicStyles.logoutButton, loggingOut && styles.logoutButtonDisabled]}>
             <Ionicons name="exit-outline" size={18} color="#ffffff" />
-            <ThemedText style={styles.logoutButtonText}>{loggingOut ? 'Logging out...' : 'Logout'}</ThemedText>
+            <ThemedText style={[styles.logoutButtonText, dynamicStyles.logoutButtonText]}>{loggingOut ? 'Logging out...' : 'Logout'}</ThemedText>
           </Pressable>
         </View>
       </ScrollView>
 
       <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={closeModal}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+        <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+          <View style={[styles.modalCard, dynamicStyles.modalCard]}>
             <View style={styles.modalHeaderRow}>
               <View style={styles.modalHeaderContent}>
-                <ThemedText type="code" style={styles.modalEyebrow}>
+                <ThemedText type="code" style={[styles.modalEyebrow, dynamicStyles.modalEyebrow]}>
                   Profile form
                 </ThemedText>
-                <ThemedText type="subtitle" style={styles.modalTitle}>
+                <ThemedText type="subtitle" style={[styles.modalTitle, dynamicStyles.modalTitle]}>
                   {profile ? 'Update profile' : 'Create profile'}
                 </ThemedText>
               </View>
-              <Pressable onPress={closeModal} style={styles.modalCloseButton}>
-                <Ionicons name="close" size={18} color="#0f172a" />
+              <Pressable onPress={closeModal} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
+                <Ionicons name="close" size={18} color={colors.text} />
               </Pressable>
             </View>
              <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
-              <View style={styles.imageUploadBlock}>
-                <ThemedText style={styles.fieldLabel}>Student Photo</ThemedText>
-                <Pressable onPress={pickImage} style={styles.imageUploadButton}>
-                  {studentImage ? (
-                    <Image source={{ uri: studentImage }} style={styles.imagePreview} />
-                  ) : (
-                    <>
-                      <Ionicons name="camera-outline" size={24} color="#64748b" />
-                      <ThemedText style={styles.imageUploadText}>Tap to upload</ThemedText>
-                    </>
-                  )}
-                </Pressable>
+               <View style={styles.imageUploadBlock}>
+                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Student Photo</ThemedText>
+                 <Pressable onPress={pickImage} style={[styles.imageUploadButton, dynamicStyles.imageUploadButton]}>
+                   {studentImage ? (
+                     <Image source={{ uri: studentImage }} style={styles.imagePreview} />
+                   ) : (
+                     <>
+                       <Ionicons name="camera-outline" size={24} color={colors.textSecondary} />
+                       <ThemedText style={[styles.imageUploadText, dynamicStyles.imageUploadText]}>Tap to upload</ThemedText>
+                     </>
+                   )}
+                 </Pressable>
+               </View>
+               <View style={styles.fieldBlock}>
+                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>First Name</ThemedText>
+                 <TextInput
+                   style={[styles.input, dynamicStyles.input]}
+                   placeholder="First Name"
+                   placeholderTextColor={colors.textSecondary}
+                   value={firstName}
+                   onChangeText={setFirstName}
+                 />
+               </View>
+               <View style={styles.fieldBlock}>
+                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Middle Name</ThemedText>
+                 <TextInput
+                   style={[styles.input, dynamicStyles.input]}
+                   placeholder="Middle Name (optional)"
+                   placeholderTextColor={colors.textSecondary}
+                   value={middleName}
+                   onChangeText={setMiddleName}
+                 />
+               </View>
+               <View style={styles.fieldBlock}>
+                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Last Name</ThemedText>
+                 <TextInput
+                   style={[styles.input, dynamicStyles.input]}
+                   placeholder="Last Name"
+                   placeholderTextColor={colors.textSecondary}
+                   value={lastName}
+                   onChangeText={setLastName}
+                 />
               </View>
-              <View style={styles.fieldBlock}>
-                <ThemedText style={styles.fieldLabel}>First Name</ThemedText>
-                <TextInput
-                  style={styles.input}
-                  placeholder="First Name"
-                  placeholderTextColor="#64748b"
-                  value={firstName}
-                  onChangeText={setFirstName}
-                />
-              </View>
-              <View style={styles.fieldBlock}>
-                <ThemedText style={styles.fieldLabel}>Middle Name</ThemedText>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Middle Name (optional)"
-                  placeholderTextColor="#64748b"
-                  value={middleName}
-                  onChangeText={setMiddleName}
-                />
-              </View>
-              <View style={styles.fieldBlock}>
-                <ThemedText style={styles.fieldLabel}>Last Name</ThemedText>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Last Name"
-                  placeholderTextColor="#64748b"
-                  value={lastName}
-                  onChangeText={setLastName}
-                />
-              </View>
-              <View style={styles.fieldBlock}>
-                <ThemedText style={styles.fieldLabel}>Birthdate</ThemedText>
-                <Pressable onPress={openDatePicker} style={styles.dateTrigger}>
-                  <ThemedText style={styles.dateTriggerText}>{birthdate || 'Select birthdate'}</ThemedText>
-                  <Ionicons name="calendar-outline" size={18} color="#0f172a" />
-                </Pressable>
-              </View>
-              <View style={styles.fieldBlock}>
-                <ThemedText style={styles.fieldLabel}>Home Address</ThemedText>
-                <TextInput
-                  style={[styles.input, styles.multilineInput]}
-                  multiline
-                  placeholder="Home Address"
-                  placeholderTextColor="#64748b"
-                  value={homeAddress}
-                  onChangeText={setHomeAddress}
-                />
-              </View>
-              <View style={styles.fieldBlock}>
-                <ThemedText style={styles.fieldLabel}>Grade Level</ThemedText>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Grade Level (e.g., Grade 9)"
-                  placeholderTextColor="#64748b"
-                  value={gradeLevel}
-                  onChangeText={setGradeLevel}
-                />
-              </View>
-            </ScrollView>
+               <View style={styles.fieldBlock}>
+                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Birthdate</ThemedText>
+                 <Pressable onPress={openDatePicker} style={[styles.dateTrigger, dynamicStyles.dateTrigger]}>
+                   <ThemedText style={[styles.dateTriggerText, dynamicStyles.dateTriggerText]}>{birthdate || 'Select birthdate'}</ThemedText>
+                   <Ionicons name="calendar-outline" size={18} color={colors.text} />
+                 </Pressable>
+               </View>
+               <View style={styles.fieldBlock}>
+                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Home Address</ThemedText>
+                 <TextInput
+                   style={[styles.input, styles.multilineInput, dynamicStyles.input]}
+                   multiline
+                   placeholder="Home Address"
+                   placeholderTextColor={colors.textSecondary}
+                   value={homeAddress}
+                   onChangeText={setHomeAddress}
+                 />
+               </View>
+               <View style={styles.fieldBlock}>
+                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Grade Level</ThemedText>
+                 <TextInput
+                   style={[styles.input, dynamicStyles.input]}
+                   placeholder="Grade Level (e.g., Grade 9)"
+                   placeholderTextColor={colors.textSecondary}
+                   value={gradeLevel}
+                   onChangeText={setGradeLevel}
+                 />
+               </View>
+             </ScrollView>
 
-            <View style={styles.modalActions}>
-              <Pressable disabled={saving} onPress={closeModal} style={styles.cancelButton}>
-                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
-              </Pressable>
-              <Pressable disabled={saving} onPress={handleSaveProfile} style={styles.saveButton}>
-                <ThemedText style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</ThemedText>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+             <View style={styles.modalActions}>
+               <Pressable disabled={saving} onPress={closeModal} style={[styles.cancelButton, dynamicStyles.cancelButton]}>
+                 <ThemedText style={[styles.cancelButtonText, dynamicStyles.cancelButtonText]}>Cancel</ThemedText>
+               </Pressable>
+               <Pressable disabled={saving} onPress={handleSaveProfile} style={[styles.saveButton, dynamicStyles.saveButton]}>
+                 <ThemedText style={[styles.saveButtonText, dynamicStyles.saveButtonText]}>{saving ? 'Saving...' : 'Save'}</ThemedText>
+               </Pressable>
+             </View>
+           </View>
+         </View>
+       </Modal>
 
-      <Modal animationType="fade" transparent visible={datePickerVisible} onRequestClose={() => setDatePickerVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.dateModalCard}>
-            <View style={styles.modalHeaderRow}>
-              <View style={styles.modalHeaderContent}>
-                <ThemedText type="code" style={styles.modalEyebrow}>
-                  Calendar
-                </ThemedText>
-                <ThemedText type="subtitle" style={styles.modalTitle}>
-                  Select birthdate
-                </ThemedText>
-              </View>
-              <Pressable onPress={() => setDatePickerVisible(false)} style={styles.modalCloseButton}>
-                <Ionicons name="close" size={18} color="#0f172a" />
-              </Pressable>
-            </View>
+       <Modal animationType="fade" transparent visible={datePickerVisible} onRequestClose={() => setDatePickerVisible(false)}>
+         <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+           <View style={[styles.dateModalCard, dynamicStyles.dateModalCard]}>
+             <View style={styles.modalHeaderRow}>
+               <View style={styles.modalHeaderContent}>
+                 <ThemedText type="code" style={[styles.modalEyebrow, dynamicStyles.modalEyebrow]}>
+                   Calendar
+                 </ThemedText>
+                 <ThemedText type="subtitle" style={[styles.modalTitle, dynamicStyles.modalTitle]}>
+                   Select birthdate
+                 </ThemedText>
+               </View>
+               <Pressable onPress={() => setDatePickerVisible(false)} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
+                 <Ionicons name="close" size={18} color={colors.text} />
+               </Pressable>
+             </View>
 
             <View style={styles.dateRow}>
               <DateAdjuster label="Year" value={String(selectedYear)} onMinus={() => updateYear(-1)} onPlus={() => updateYear(1)} />
@@ -709,11 +979,11 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.modalActions}>
-              <Pressable onPress={() => setDatePickerVisible(false)} style={styles.cancelButton}>
-                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
+              <Pressable onPress={() => setDatePickerVisible(false)} style={[styles.cancelButton, dynamicStyles.cancelButton]}>
+                <ThemedText style={[styles.cancelButtonText, dynamicStyles.cancelButtonText]}>Cancel</ThemedText>
               </Pressable>
-              <Pressable onPress={applyPickedDate} style={styles.saveButton}>
-                <ThemedText style={styles.saveButtonText}>Use Date</ThemedText>
+              <Pressable onPress={applyPickedDate} style={[styles.saveButton, dynamicStyles.saveButton]}>
+                <ThemedText style={[styles.saveButtonText, dynamicStyles.saveButtonText]}>Use Date</ThemedText>
               </Pressable>
             </View>
           </View>
@@ -726,12 +996,14 @@ export default function SettingsScreen() {
 }
 
 function ProfileRow({ label, value }: { label: string; value: string }) {
+  const theme = useTheme();
+  const isDark = theme.text === '#ffffff';
   return (
     <View style={styles.profileRow}>
-      <ThemedText type="code" style={[styles.profileLabel, { color: '#000000' }]}>
+      <ThemedText type="code" style={[styles.profileLabel, { color: isDark ? theme.textSecondary : '#64748b' }]}>
         {label}
       </ThemedText>
-      <ThemedText style={[styles.profileValue, { color: '#000000' }]}>{value}</ThemedText>
+      <ThemedText style={[styles.profileValue, { color: theme.text }]}>{value}</ThemedText>
     </View>
   );
 }
@@ -747,21 +1019,55 @@ function DateAdjuster({
   onMinus: () => void;
   onPlus: () => void;
 }) {
+  const theme = useTheme();
+  const isDark = theme.text === '#ffffff';
   return (
     <View style={styles.dateAdjuster}>
-      <ThemedText style={[styles.fieldLabel, { color: '#000000' }]}>
+      <ThemedText style={[styles.fieldLabel, { color: isDark ? theme.textSecondary : '#64748b' }]}>
         {label}
       </ThemedText>
-      <View style={styles.adjusterControls}>
-        <Pressable onPress={onMinus} style={styles.adjustButton}>
-          <ThemedText style={styles.adjustButtonText}>-</ThemedText>
+      <View style={[styles.adjusterControls, {
+        backgroundColor: isDark ? 'rgba(91, 236, 19, 0.05)' : '#f8fff3',
+        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.16)',
+      }]}>
+        <Pressable onPress={onMinus} style={[styles.adjustButton, { backgroundColor: isDark ? 'rgba(91, 236, 19, 0.15)' : '#e7f8d5' }]}>
+          <ThemedText style={[styles.adjustButtonText, { color: theme.text }]}>-</ThemedText>
         </Pressable>
-        <ThemedText style={styles.adjustValue}>{value}</ThemedText>
-        <Pressable onPress={onPlus} style={styles.adjustButton}>
-          <ThemedText style={styles.adjustButtonText}>+</ThemedText>
+        <ThemedText style={[styles.adjustValue, { color: theme.text }]}>{value}</ThemedText>
+        <Pressable onPress={onPlus} style={[styles.adjustButton, { backgroundColor: isDark ? 'rgba(91, 236, 19, 0.15)' : '#e7f8d5' }]}>
+          <ThemedText style={[styles.adjustButtonText, { color: theme.text }]}>+</ThemedText>
         </Pressable>
       </View>
     </View>
+  );
+}
+
+function ThemeOption({ label, icon, value, selected, onPress, isDark }: {
+  label: string;
+  icon: string;
+  value: string;
+  selected: boolean;
+  onPress: () => void;
+  isDark: boolean;
+}) {
+  const theme = useTheme();
+  const selectedBg = isDark ? '#86efac' : '#166534';
+  const selectedText = isDark ? '#000000' : '#ffffff';
+  const inactiveText = isDark ? theme.text : '#0f172a';
+  const inactiveIcon = isDark ? theme.textSecondary : '#0f172a';
+  return (
+    <Pressable onPress={onPress} style={[styles.themeOption, selected && styles.themeOptionSelected, {
+      backgroundColor: selected ? selectedBg : theme.backgroundElement,
+      borderColor: selected ? selectedBg : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.16)'),
+    }]}>
+      <Ionicons name={icon as any} size={20} color={selected ? selectedText : inactiveIcon} />
+      <ThemedText style={[
+        styles.themeOptionText,
+        selected && styles.themeOptionTextSelected,
+        { color: selected ? selectedText : inactiveText },
+      ]}>{label}</ThemedText>
+      {selected ? <View style={[styles.themeOptionCheck, { backgroundColor: selectedText }]}><Ionicons name="checkmark" size={12} color={selected ? selectedBg : theme.text} /></View> : null}
+    </Pressable>
   );
 }
 
@@ -1234,5 +1540,41 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#0f172a',
     fontWeight: '700',
+  },
+  themeOptionGroup: {
+    gap: 8,
+    marginTop: 4,
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.16)',
+    backgroundColor: '#ffffff',
+  },
+  themeOptionSelected: {
+    backgroundColor: '#166534',
+    borderColor: '#166534',
+  },
+  themeOptionText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#0f172a',
+    flex: 1,
+  },
+  themeOptionTextSelected: {
+    color: '#ffffff',
+  },
+  themeOptionCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
   },
 });

@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
+import { useTheme } from '@/hooks/use-theme';
 import { LessonContentRecord, LessonInfoRecord, LessonLinkRecord, LessonRecord, ModuleRecord, listLessons, listLessonContentByLessonId, listModules, listLessonInfoByLessonId, listLessonLinkByLessonId, listLessonContentProgressByUser } from '@/lib/auth-api';
 
 const PRIMARY = '#5bec13';
@@ -42,6 +43,165 @@ export default function LessonScreen() {
   const [detailVisible, setDetailVisible] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const theme = useTheme();
+  const isDark = theme.text === '#ffffff';
+
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    screen: {
+      backgroundColor: theme.background,
+    },
+    header: {
+      backgroundColor: theme.backgroundElement,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    headerTitle: {
+      color: theme.text,
+    },
+    headerIcon: {
+      color: theme.text,
+    },
+    sectionTitle: {
+      color: theme.text,
+    },
+    moduleCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    moduleName: {
+      color: theme.text,
+    },
+    moduleCount: {
+      color: theme.textSecondary,
+    },
+    moduleChevron: {
+      color: theme.textSecondary,
+    },
+    lessonList: {
+      borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    lessonRow: {
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.08)',
+    },
+    lessonTitle: {
+      color: theme.text,
+    },
+    lessonMeta: {
+      color: theme.textSecondary,
+    },
+    lessonViewButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.2)',
+    },
+    lessonViewButtonText: {
+      color: theme.text,
+    },
+    emptyLessonRow: {
+      backgroundColor: theme.backgroundElement,
+    },
+    emptyLessonText: {
+      color: theme.textSecondary,
+    },
+    emptyState: {
+      backgroundColor: theme.backgroundElement,
+    },
+    emptyStateText: {
+      color: theme.textSecondary,
+    },
+    errorBox: {
+      backgroundColor: '#fef2f2',
+      borderColor: 'rgba(185, 28, 28, 0.18)',
+    },
+    errorTitle: {
+      color: '#b91c1c',
+    },
+    errorDescription: {
+      color: '#b91c1c',
+    },
+    modalOverlay: {
+      backgroundColor: 'rgba(2, 6, 23, 0.45)',
+    },
+    modalCard: {
+      backgroundColor: theme.backgroundElement,
+    },
+    modalTitle: {
+      color: theme.text,
+    },
+    modalCloseButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
+    },
+    modalCloseText: {
+      color: theme.text,
+    },
+    modalSection: {
+      color: theme.text,
+    },
+    infoLabel: {
+      color: theme.textSecondary,
+    },
+    infoValue: {
+      color: theme.text,
+    },
+    readBadge: {
+      backgroundColor: PRIMARY,
+    },
+    readBadgeText: {
+      color: theme.text,
+    },
+    lockClosed: {
+      color: theme.textSecondary,
+    },
+    closeButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#0f172a',
+    },
+    closeButtonText: {
+      color: theme.text,
+    },
+    contentCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    contentName: {
+      color: isDark ? PRIMARY : '#166534',
+    },
+    contentLabel: {
+      color: theme.textSecondary,
+    },
+    contentValue: {
+      color: theme.text,
+    },
+    emptyContentCard: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f8fafc',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    emptyContentText: {
+      color: theme.textSecondary,
+    },
+    lessonItemContainer: {
+      backgroundColor: theme.backgroundElement,
+    },
+    viewContentButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#0f172a',
+    },
+    viewContentButtonDisabled: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#cbd5e1',
+    },
+    viewContentButtonText: {
+      color: '#ffffff',
+    },
+    linkText: {
+      color: '#2563eb',
+    },
+    horizontalCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    horizontalLabel: {
+      color: theme.textSecondary,
+    },
+    horizontalContent: {
+      color: theme.text,
+    },
+  }), [theme, isDark]);
 
   const loadData = useCallback(async () => {
     setError('');
@@ -148,12 +308,12 @@ export default function LessonScreen() {
   }, [modules, lessons]);
 
   return (
-    <ThemedView style={styles.screen}>
+    <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Lessons" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Module Lessons</Text>
+          <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Module Lessons</Text>
           {lessonGroups.map((group) => {
             const isExpanded = expandedModuleId === group.module_id;
 
@@ -161,33 +321,33 @@ export default function LessonScreen() {
               <View key={group.module_id} style={[styles.moduleCard, styles.surfaceCard, isCompact && styles.moduleCardCompact]}>
                 <Pressable onPress={() => toggleModule(group.module_id)} style={styles.moduleHeader}>
                   <View style={styles.moduleHeaderText}>
-                    <Text style={styles.moduleName}>{group.module_name}</Text>
-                    <Text style={styles.moduleCount}>{group.lessons.length} lessons</Text>
+                    <Text style={[styles.moduleName, dynamicStyles.moduleName]}>{group.module_name}</Text>
+                    <Text style={[styles.moduleCount, dynamicStyles.moduleCount]}>{group.lessons.length} lessons</Text>
                   </View>
-                  <Text style={styles.moduleChevron}>{isExpanded ? '▲' : '▼'}</Text>
+                  <Text style={[styles.moduleChevron, dynamicStyles.moduleChevron]}>{isExpanded ? '▲' : '▼'}</Text>
                 </Pressable>
 
                 {isExpanded ? (
                   <View>
-                    <View style={styles.lessonList}>
+                    <View style={[styles.lessonList, dynamicStyles.lessonList]}>
                       {group.lessons.length > 0 ? (
                         group.lessons.map((lesson) => (
                           <View key={lesson.lesson_id} style={styles.lessonItemContainer}>
                             <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonRow, isCompact && styles.lessonRowCompact]}>
                               <View style={styles.lessonIndicator} />
                               <View style={styles.lessonTextGroup}>
-                                <Text style={styles.lessonTitle}>{lesson.lesson_name}</Text>
-                                <Text style={styles.lessonMeta}>Order: {lesson.order_number}</Text>
+                                <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{lesson.lesson_name}</Text>
+                                <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Order: {lesson.order_number}</Text>
                               </View>
                               <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonViewButton, isCompact && styles.lessonViewButtonCompact]}>
-                                <Text style={styles.lessonViewButtonText}>View</Text>
+                                <Text style={[styles.lessonViewButtonText, dynamicStyles.lessonViewButtonText]}>View</Text>
                               </Pressable>
                             </Pressable>
                           </View>
                         ))
                       ) : (
-                        <View style={styles.emptyLessonRow}>
-                          <Text style={styles.emptyLessonText}>No lessons available for this module.</Text>
+                        <View style={[styles.emptyLessonRow, dynamicStyles.emptyLessonRow]}>
+                          <Text style={[styles.emptyLessonText, dynamicStyles.emptyLessonText]}>No lessons available for this module.</Text>
                         </View>
                       )}
                     </View>
@@ -198,17 +358,17 @@ export default function LessonScreen() {
           })}
 
           {!lessonGroups.length && !error ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>
+            <View style={[styles.emptyState, dynamicStyles.emptyState]}>
+              <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>
                 {loading ? 'Loading lessons...' : 'No lessons available.'}
               </Text>
             </View>
           ) : null}
 
           {error ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorTitle}>Unable to load lessons</Text>
-              <Text style={styles.errorDescription}>{error}</Text>
+            <View style={[styles.errorBox, dynamicStyles.errorBox]}>
+              <Text style={[styles.errorTitle, dynamicStyles.errorTitle]}>Unable to load lessons</Text>
+              <Text style={[styles.errorDescription, dynamicStyles.errorDescription]}>{error}</Text>
             </View>
           ) : null}
         </View>
@@ -218,43 +378,43 @@ export default function LessonScreen() {
 
       <Modal transparent animationType="fade" visible={detailVisible} onRequestClose={closeLessonDetail}>
         {selectedLesson ? (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
+          <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+            <View style={[styles.modalCard, dynamicStyles.modalCard]}>
               <View style={styles.modalHeaderRow}>
-                <Text style={styles.modalTitle}>Lesson</Text>
-                <Pressable onPress={closeLessonDetail} style={styles.modalCloseButton}>
-                  <Text style={styles.modalCloseText}>✕</Text>
+                <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>Lesson</Text>
+                <Pressable onPress={closeLessonDetail} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
+                  <Text style={[styles.modalCloseText, dynamicStyles.modalCloseText]}>✕</Text>
                 </Pressable>
               </View>
 
               <ScrollView contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
               <View style={styles.infoCard}>
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Lesson ID</Text>
-                  <Text style={styles.infoValue}>#{selectedLesson?.lesson_id}</Text>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Lesson ID</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>#{selectedLesson?.lesson_id}</Text>
                 </View>
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Module ID</Text>
-                  <Text style={styles.infoValue}>#{selectedLesson?.module_id}</Text>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Module ID</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>#{selectedLesson?.module_id}</Text>
                 </View>
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Lesson Name</Text>
-                  <Text style={styles.infoValue}>{selectedLesson?.lesson_name}</Text>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Lesson Name</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedLesson?.lesson_name}</Text>
                 </View>
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Order</Text>
-                  <Text style={styles.infoValue}>{selectedLesson?.order_number}</Text>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Order</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedLesson?.order_number}</Text>
                 </View>
               </View>
 
               {lessonInfos.length > 0 ? (
                 <View style={styles.infoCard}>
-                  <Text style={styles.modalSection}>Lesson Info</Text>
+                  <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Info</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalListContent}>
                     {lessonInfos.map((info) => (
-                      <View key={info.lesson_info_id} style={styles.horizontalCard}>
-                        <Text style={styles.horizontalLabel}>{info.label}</Text>
-                        <Text style={styles.horizontalContent}>{info.content}</Text>
+                      <View key={info.lesson_info_id} style={[styles.horizontalCard, dynamicStyles.horizontalCard]}>
+                        <Text style={[styles.horizontalLabel, dynamicStyles.horizontalLabel]}>{info.label}</Text>
+                        <Text style={[styles.horizontalContent, dynamicStyles.horizontalContent]}>{info.content}</Text>
                       </View>
                     ))}
                   </ScrollView>
@@ -263,17 +423,17 @@ export default function LessonScreen() {
 
               {lessonLinks.length > 0 ? (
                 <View style={styles.infoCard}>
-                  <Text style={styles.modalSection}>Lesson Links</Text>
+                  <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Links</Text>
                   {lessonLinks.map((link) => (
                     <View key={link.lesson_link_id} style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>Link</Text>
-                      <Text style={[styles.infoValue, styles.linkText]}>{link.link}</Text>
+                      <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Link</Text>
+                      <Text style={[styles.infoValue, dynamicStyles.infoValue, styles.linkText]}>{link.link}</Text>
                     </View>
                   ))}
                 </View>
               ) : null}
 
-               <Text style={styles.modalSection}>Lesson Contents</Text>
+               <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Contents</Text>
                <ScrollView style={styles.contentList} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
                  {lessonContents.length > 0 ? (
                    lessonContents.map((content, index) => {
@@ -281,41 +441,41 @@ export default function LessonScreen() {
                      const prevContent = lessonContents[index - 1];
                      const isContentUnlocked = isFirst || (prevContent ? !!progressMap[prevContent.lesson_content_id] : false);
                      return (
-                       <View key={content.lesson_content_id} style={styles.contentCard}>
+                       <View key={content.lesson_content_id} style={[styles.contentCard, dynamicStyles.contentCard]}>
                          <View style={styles.contentHeader}>
-                           <Text style={styles.contentName}>• {content.content_name}</Text>
+                           <Text style={[styles.contentName, dynamicStyles.contentName]}>• {content.content_name}</Text>
                            {progressMap[content.lesson_content_id] ? (
-                             <View style={styles.readBadge}>
-                               <Text style={styles.readBadgeText}>✓ Read</Text>
+                             <View style={[styles.readBadge, dynamicStyles.readBadge]}>
+                               <Text style={[styles.readBadgeText, dynamicStyles.readBadgeText]}>✓ Read</Text>
                              </View>
                            ) : null}
                            {!isContentUnlocked ? (
-                             <Ionicons name="lock-closed" size={14} color="#94a3b8" style={styles.lockClosed} />
+                             <Ionicons name="lock-closed" size={14} color={theme.textSecondary} style={styles.lockClosed} />
                            ) : null}
                          </View>
                          <View style={styles.contentBody}>
-                           <Text style={styles.contentLabel}>Objectives</Text>
-                           <Text style={styles.contentValue}>{content.objectives}</Text>
+                           <Text style={[styles.contentLabel, dynamicStyles.contentLabel]}>Objectives</Text>
+                           <Text style={[styles.contentValue, dynamicStyles.contentValue]}>{content.objectives}</Text>
                          </View>
                          <Pressable
                            onPress={() => isContentUnlocked && openContentInfo(content.lesson_content_id)}
                            disabled={!isContentUnlocked}
-                           style={[styles.viewContentButton, !isContentUnlocked && styles.viewContentButtonDisabled]}
+                           style={[styles.viewContentButton, !isContentUnlocked && styles.viewContentButtonDisabled, dynamicStyles.viewContentButton]}
                          >
-                           <Text style={styles.viewContentButtonText}>View Content</Text>
+                           <Text style={[styles.viewContentButtonText, dynamicStyles.viewContentButtonText]}>View Content</Text>
                          </Pressable>
                        </View>
                      );
                    })
                  ) : (
-                  <View style={styles.emptyContentCard}>
-                    <Text style={styles.emptyContentText}>No lesson content available for this lesson.</Text>
+                  <View style={[styles.emptyContentCard, dynamicStyles.emptyContentCard]}>
+                    <Text style={[styles.emptyContentText, dynamicStyles.emptyContentText]}>No lesson content available for this lesson.</Text>
                   </View>
                 )}
-</ScrollView>
+ </ScrollView>
 
-               <Pressable onPress={closeLessonDetail} style={styles.closeButton}>
-                 <Text style={styles.closeButtonText}>Close</Text>
+               <Pressable onPress={closeLessonDetail} style={[styles.closeButton, dynamicStyles.closeButton]}>
+                 <Text style={[styles.closeButtonText, dynamicStyles.closeButtonText]}>Close</Text>
               </Pressable>
             </ScrollView>
           </View>
@@ -330,7 +490,6 @@ export default function LessonScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: BACKGROUND_LIGHT,
   },
   scrollContent: {
     padding: 16,
@@ -342,9 +501,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 4,
     paddingVertical: 12,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.12)',
   },
   headerIconButton: {
     width: 40,
@@ -356,13 +513,11 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     fontSize: 20,
-    color: '#000000',
     fontWeight: '700',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000000',
     flex: 1,
     textAlign: 'center',
   },
@@ -373,14 +528,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000000',
     marginBottom: 4,
   },
   moduleCard: {
-    backgroundColor: '#ffffff',
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.12)',
     overflow: 'hidden',
   },
   moduleHeader: {
@@ -397,22 +549,18 @@ const styles = StyleSheet.create({
   moduleName: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#000000',
     lineHeight: 20,
   },
   moduleCount: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#64748b',
   },
   moduleChevron: {
     fontSize: 12,
-    color: '#64748b',
     fontWeight: '700',
   },
   lessonList: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(148, 163, 184, 0.12)',
   },
   surfaceCard: {
     shadowColor: '#0f172a',
@@ -431,7 +579,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.08)',
   },
   lessonIndicator: {
     width: 4,
@@ -446,13 +593,11 @@ const styles = StyleSheet.create({
   lessonTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000000',
     lineHeight: 20,
   },
   lessonMeta: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#64748b',
   },
   lessonRowCompact: {
     paddingHorizontal: 12,
@@ -462,9 +607,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
-    backgroundColor: '#f1f5f9',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
   },
   lessonViewButtonCompact: {
     minWidth: 56,
@@ -472,7 +615,6 @@ const styles = StyleSheet.create({
   lessonViewButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#000000',
   },
   emptyLessonRow: {
     paddingVertical: 18,
@@ -481,33 +623,27 @@ const styles = StyleSheet.create({
   },
   emptyLessonText: {
     fontSize: 14,
-    color: '#64748b',
     fontWeight: '500',
   },
   emptyState: {
     paddingVertical: 32,
     alignItems: 'center',
+    borderRadius: 16,
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#64748b',
     fontWeight: '500',
   },
   errorBox: {
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: 'rgba(185, 28, 28, 0.18)',
     borderRadius: 16,
     padding: 14,
     gap: 6,
   },
   errorTitle: {
-    color: '#b91c1c',
     fontSize: 14,
     fontWeight: '700',
   },
   errorDescription: {
-    color: '#b91c1c',
     fontSize: 13,
     lineHeight: 18,
   },
@@ -516,7 +652,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'rgba(2, 6, 23, 0.45)',
   },
   modalCard: {
     width: '100%',
@@ -525,7 +660,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     gap: 12,
-    backgroundColor: '#ffffff',
     alignSelf: 'stretch',
   },
   modalHeaderRow: {
@@ -537,7 +671,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000000',
     flex: 1,
   },
   modalCloseButton: {
@@ -546,12 +679,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f1f5f9',
   },
   modalCloseText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000000',
+  },
+  modalSection: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 8,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  modalScrollContent: {
+    gap: 10,
+    paddingBottom: 16,
   },
   infoCard: {
     gap: 10,
@@ -563,17 +706,14 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   infoValue: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#000000',
   },
   readBadge: {
-    backgroundColor: '#5bec13',
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -582,7 +722,6 @@ const styles = StyleSheet.create({
   readBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#000000',
   },
   lockClosed: {
     marginLeft: 4,
@@ -592,25 +731,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 13,
     alignItems: 'center',
-    backgroundColor: '#0f172a',
     marginTop: 8,
   },
   closeButtonText: {
-    color: '#ffffff',
     fontWeight: '700',
-  },
-  modalSection: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#000000',
-    marginTop: 8,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  modalScrollContent: {
-    gap: 10,
-    paddingBottom: 16,
   },
   contentList: {
     maxHeight: 220,
@@ -618,8 +742,6 @@ const styles = StyleSheet.create({
   contentCard: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.12)',
-    backgroundColor: '#ffffff',
     padding: 12,
     gap: 8,
   },
@@ -629,8 +751,8 @@ const styles = StyleSheet.create({
   contentName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#166534',
     lineHeight: 20,
+    flex: 1,
   },
   contentBody: {
     gap: 4,
@@ -638,52 +760,43 @@ const styles = StyleSheet.create({
   contentLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   contentValue: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#000000',
     lineHeight: 18,
   },
   emptyContentCard: {
     paddingVertical: 24,
     alignItems: 'center',
     borderRadius: 14,
-    backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.12)',
   },
   emptyContentText: {
     fontSize: 14,
-    color: '#64748b',
     fontWeight: '500',
+    textAlign: 'center',
   },
   lessonItemContainer: {
-    backgroundColor: '#ffffff',
   },
   viewContentButton: {
     marginTop: 10,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: '#0f172a',
     alignItems: 'center',
     justifyContent: 'center',
   },
   viewContentButtonDisabled: {
-    backgroundColor: '#cbd5e1',
   },
   viewContentButtonText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#ffffff',
   },
   linkText: {
     fontSize: 12,
-    color: '#2563eb',
     textDecorationLine: 'underline',
   },
   horizontalListContent: {
@@ -695,21 +808,17 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.12)',
-    backgroundColor: '#ffffff',
     gap: 6,
   },
   horizontalLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   horizontalContent: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#000000',
     lineHeight: 18,
   },
 });

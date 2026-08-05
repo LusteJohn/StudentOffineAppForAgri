@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -6,6 +6,7 @@ import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useTheme } from '@/hooks/use-theme';
 import { listCompetencies, listModules, listLessons, listLessonContent, listPerformanceAnswersByUser, listQuestionAnswersByUser, listLessonContentProgressByUser, LessonContentProgressRecord } from '@/lib/auth-api';
 
 const { width: screenWidth } = useWindowDimensions();
@@ -110,6 +111,9 @@ function LineChart({ data, labels, color }: { data: number[]; labels: string[]; 
 }
 
 function ProgressBar({ data, onPress }: { data: { module_id: number; module_name: string; total: number; completed: number }[]; onPress: (index: number) => void }) {
+  const theme = useTheme();
+  const isDark = theme.text === '#ffffff';
+
   return (
     <View style={styles.progressList}>
       {data.map((item, index) => {
@@ -117,12 +121,12 @@ function ProgressBar({ data, onPress }: { data: { module_id: number; module_name
         return (
           <View key={item.module_id} style={styles.progressItem}>
             <View style={styles.progressItemHeader}>
-              <Text style={styles.progressLabel}>{item.module_name}</Text>
-              <Text style={styles.progressValue}>{item.completed}/{item.total} ({percent}%)</Text>
+              <Text style={[{ color: theme.text }, styles.progressLabel]}>{item.module_name}</Text>
+              <Text style={[{ color: theme.textSecondary }, styles.progressValue]}>{item.completed}/{item.total} ({percent}%)</Text>
             </View>
             <Pressable
               onPress={() => onPress(index)}
-              style={styles.progressBarTrack}
+              style={[styles.progressBarTrack, { backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9' }]}
             >
               <View
                 style={[
@@ -156,6 +160,166 @@ export default function HomeScreen() {
   const [error, setError] = useState('');
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const theme = useTheme();
+  const isDark = theme.text === '#ffffff';
+
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    screen: {
+      backgroundColor: theme.background,
+    },
+    headerCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    heroCard: {
+      backgroundColor: isDark ? '#212225' : '#f8fff3',
+      borderColor: isDark ? 'rgba(91, 236, 19, 0.18)' : 'rgba(85, 225, 10, 0.22)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    heroBadge: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.15)' : '#e4f8d6',
+    },
+    heroBadgeText: {
+      color: isDark ? '#86efac' : '#166534',
+    },
+    heroBadgeSecondary: {
+      backgroundColor: theme.backgroundElement,
+    },
+    heroBadgeSecondaryText: {
+      color: theme.text,
+    },
+    appNameText: {
+      color: theme.text,
+    },
+    welcomeText: {
+      color: theme.text,
+    },
+    chartContainer: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    chartTitle: {
+      color: theme.text,
+    },
+    noDataText: {
+      color: theme.textSecondary,
+    },
+    progressLabel: {
+      color: theme.text,
+    },
+    progressValue: {
+      color: theme.textSecondary,
+    },
+    progressBarTrack: {
+      backgroundColor: isDark ? '#2E3135' : '#f1f5f9',
+    },
+    surfaceCard: {
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    barLabelContainer: {
+      backgroundColor: isDark ? '#2E3135' : '#f1f5f9',
+    },
+    barValue: {
+      color: theme.text,
+    },
+    barLabel: {
+      color: theme.textSecondary,
+    },
+    gridLine: {
+      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
+    },
+    gridLabel: {
+      color: theme.textSecondary,
+    },
+    lineDot: {
+      borderColor: theme.backgroundElement,
+    },
+    lineChartLabel: {
+      color: theme.textSecondary,
+    },
+    tableContainer: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    tableHeader: {
+      backgroundColor: isDark ? '#2E3135' : '#f1f5f9',
+    },
+    tableHeaderCell: {
+      color: theme.textSecondary,
+    },
+    tableRow: {
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(148, 163, 184, 0.08)',
+    },
+    tableRowEven: {
+      backgroundColor: isDark ? '#1a1b1e' : '#f8fafc',
+    },
+    tableCell: {
+      color: theme.text,
+    },
+    tableCellValue: {
+      color: theme.text,
+    },
+    card: {
+      backgroundColor: isDark ? 'rgba(33, 34, 37, 0.9)' : 'rgba(255, 255, 255, 0.78)',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255, 255, 255, 0.8)',
+      shadowColor: isDark ? '#000000' : '#000',
+    },
+    secondaryButton: {
+      backgroundColor: isDark ? 'rgba(33, 34, 37, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.18)',
+    },
+    secondaryButtonText: {
+      color: theme.text,
+    },
+    loadingText: {
+      color: theme.textSecondary,
+    },
+    modalOverlay: {
+      backgroundColor: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(2, 6, 23, 0.45)',
+    },
+    modalCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    modalTitle: {
+      color: theme.text,
+    },
+    modalCloseButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
+    },
+    modalCloseText: {
+      color: theme.text,
+    },
+    modalSummaryLabel: {
+      color: theme.textSecondary,
+    },
+    progressContentCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    progressContentName: {
+      color: isDark ? '#86efac' : '#166534',
+    },
+    progressContentLabel: {
+      color: theme.textSecondary,
+    },
+    progressContentValue: {
+      color: theme.text,
+    },
+    closeButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#0f172a',
+    },
+    closeButtonText: {
+      color: isDark ? theme.text : '#ffffff',
+    },
+    emptyContentCard: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f8fafc',
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    emptyContentText: {
+      color: theme.textSecondary,
+    },
+  }), [theme, isDark]);
 
   const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(null);
   const [progressModalVisible, setProgressModalVisible] = useState(false);
@@ -275,11 +439,11 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <ThemedView style={styles.screen}>
+      <ThemedView style={[styles.screen, dynamicStyles.screen]}>
         <Header title="Student Dashboard" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading dashboard...</Text>
+            <Text style={[styles.loadingText, dynamicStyles.loadingText]}>Loading dashboard...</Text>
           </View>
         </ScrollView>
         <BottomNavbar activeTab="home" userId={userId} />
@@ -289,7 +453,7 @@ export default function HomeScreen() {
 
   if (error) {
     return (
-      <ThemedView style={styles.screen}>
+      <ThemedView style={[styles.screen, dynamicStyles.screen]}>
         <Header title="Student Dashboard" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.errorContainer}>
@@ -303,22 +467,22 @@ export default function HomeScreen() {
   }
 
   return (
-    <ThemedView style={styles.screen}>
+    <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Student Dashboard" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={[styles.headerCard, styles.heroCard]}>
+        <View style={[styles.headerCard, styles.heroCard, dynamicStyles.headerCard, dynamicStyles.heroCard]}>
           <View style={styles.heroTopRow}>
-            <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>Learning progress</Text>
+            <View style={[styles.heroBadge, dynamicStyles.heroBadge]}>
+              <Text style={[styles.heroBadgeText, dynamicStyles.heroBadgeText]}>Learning progress</Text>
             </View>
-            <View style={styles.heroBadgeSecondary}>
-              <Text style={styles.heroBadgeSecondaryText}>Offline ready</Text>
+            <View style={[styles.heroBadgeSecondary, dynamicStyles.heroBadgeSecondary]}>
+              <Text style={[styles.heroBadgeSecondaryText, dynamicStyles.heroBadgeSecondaryText]}>Offline ready</Text>
             </View>
           </View>
-          <ThemedText type="subtitle" style={styles.appNameText}>
+          <ThemedText type="subtitle" style={[styles.appNameText, dynamicStyles.appNameText]}>
             Organic Agriculture Production Learning App
           </ThemedText>
-          <ThemedText type="subtitle" style={styles.welcomeText}>
+          <ThemedText type="subtitle" style={[styles.welcomeText, dynamicStyles.welcomeText]}>
             Welcome, Student #{userId}
           </ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.progressText}>
@@ -326,43 +490,43 @@ export default function HomeScreen() {
           </ThemedText>
         </View>
 
-        <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Weekly Activity</Text>
+        <View style={[styles.chartContainer, dynamicStyles.chartContainer]}>
+          <Text style={[styles.chartTitle, dynamicStyles.chartTitle]}>Weekly Activity</Text>
           <View style={styles.chart}>
             {lineChartData.values.length > 0 ? (
               <LineChart data={lineChartData.values} labels={lineChartData.labels} color="#2563eb" />
             ) : (
-              <Text style={styles.noDataText}>No activity data yet</Text>
+              <Text style={[styles.noDataText, dynamicStyles.noDataText]}>No activity data yet</Text>
             )}
           </View>
         </View>
 
-        <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Module Completion</Text>
+        <View style={[styles.chartContainer, dynamicStyles.chartContainer]}>
+          <Text style={[styles.chartTitle, dynamicStyles.chartTitle]}>Module Completion</Text>
           {moduleCompletionData.length > 0 ? (
             <ProgressBar data={moduleCompletionData} onPress={openModuleProgress} />
           ) : (
-            <Text style={styles.noDataText}>No module data yet</Text>
+            <Text style={[styles.noDataText, dynamicStyles.noDataText]}>No module data yet</Text>
           )}
         </View>
 
-        <View style={[styles.tableContainer, styles.surfaceCard]}>
-          <Text style={styles.chartTitle}>Data Records Overview</Text>
+        <View style={[styles.tableContainer, styles.surfaceCard, dynamicStyles.tableContainer, dynamicStyles.surfaceCard]}>
+          <Text style={[styles.chartTitle, dynamicStyles.chartTitle]}>Data Records Overview</Text>
           <View style={styles.tableWrapper}>
-            <View style={styles.tableHeader}>
-              <Text style={styles.tableHeaderCell}>Record Type</Text>
-              <Text style={styles.tableHeaderCell}>Count</Text>
+            <View style={[styles.tableHeader, dynamicStyles.tableHeader]}>
+              <Text style={[styles.tableHeaderCell, dynamicStyles.tableHeaderCell]}>Record Type</Text>
+              <Text style={[styles.tableHeaderCell, dynamicStyles.tableHeaderCell]}>Count</Text>
             </View>
             {tableData.map((row, index) => (
-              <View key={index} style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}>
-                <Text style={styles.tableCell}>{row.label}</Text>
-                <Text style={[styles.tableCell, styles.tableCellValue]}>{row.value}</Text>
+              <View key={index} style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven, dynamicStyles.tableRow, index % 2 === 0 && dynamicStyles.tableRowEven]}>
+                <Text style={[styles.tableCell, dynamicStyles.tableCell]}>{row.label}</Text>
+                <Text style={[styles.tableCell, styles.tableCellValue, dynamicStyles.tableCell, dynamicStyles.tableCellValue]}>{row.value}</Text>
               </View>
             ))}
           </View>
         </View>
 
-        <View style={[styles.card, styles.surfaceCard]}>
+        <View style={[styles.card, styles.surfaceCard, dynamicStyles.card, dynamicStyles.surfaceCard]}>
           <ThemedText type="code" themeColor="textSecondary">Dashboard summary</ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.summaryText}>
             You have {totalRecords} total records across all categories.
@@ -375,35 +539,35 @@ export default function HomeScreen() {
 
       <Modal transparent animationType="fade" visible={progressModalVisible} onRequestClose={closeModuleProgress}>
         {selectedModule ? (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
+          <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+            <View style={[styles.modalCard, dynamicStyles.modalCard]}>
               <View style={styles.modalHeaderRow}>
-                <Text style={styles.modalTitle}>{selectedModule.module_name}</Text>
-                <Pressable onPress={closeModuleProgress} style={styles.modalCloseButton}>
-                  <Text style={styles.modalCloseText}>✕</Text>
+                <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>{selectedModule.module_name}</Text>
+                <Pressable onPress={closeModuleProgress} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
+                  <Text style={[styles.modalCloseText, dynamicStyles.modalCloseText]}>✕</Text>
                 </Pressable>
               </View>
 
               <View style={styles.modalSummaryRow}>
                 <View style={styles.modalSummaryItem}>
                   <Text style={styles.modalSummaryValue}>{selectedModule.completed}</Text>
-                  <Text style={styles.modalSummaryLabel}>Read</Text>
+                  <Text style={[styles.modalSummaryLabel, dynamicStyles.modalSummaryLabel]}>Read</Text>
                 </View>
                 <View style={styles.modalSummaryItem}>
                   <Text style={styles.modalSummaryValue}>{selectedModule.total}</Text>
-                  <Text style={styles.modalSummaryLabel}>Total Contents</Text>
+                  <Text style={[styles.modalSummaryLabel, dynamicStyles.modalSummaryLabel]}>Total Contents</Text>
                 </View>
               </View>
 
               <ScrollView showsVerticalScrollIndicator={false} style={styles.modalContentList}>
                 {selectedModuleContents.length > 0 ? (
                   selectedModuleContents.map((content: any) => (
-                    <View key={content.lesson_content_id} style={styles.progressContentCard}>
+                    <View key={content.lesson_content_id} style={[styles.progressContentCard, dynamicStyles.progressContentCard]}>
                       <View style={styles.progressContentHeader}>
-                        <Text style={styles.progressContentName}>• {content.content_name}</Text>
+                        <Text style={[styles.progressContentName, dynamicStyles.progressContentName]}>• {content.content_name}</Text>
                         {content.is_read ? (
                           <View style={[styles.progressBadge, styles.readBadge]}>
-                            <Text style={styles.readBadgeText}>✓ Read</Text>
+                            <Text style={[styles.readBadgeText, dynamicStyles.heroBadgeText]}>✓ Read</Text>
                           </View>
                         ) : (
                           <View style={[styles.progressBadge, styles.unreadBadge]}>
@@ -412,26 +576,26 @@ export default function HomeScreen() {
                         )}
                       </View>
                       <View style={styles.progressContentBody}>
-                        <Text style={styles.progressContentLabel}>Objectives</Text>
-                        <Text style={styles.progressContentValue}>{content.objectives}</Text>
+                        <Text style={[styles.progressContentLabel, dynamicStyles.progressContentLabel]}>Objectives</Text>
+                        <Text style={[styles.progressContentValue, dynamicStyles.progressContentValue]}>{content.objectives}</Text>
                       </View>
                       {content.is_read && content.read_at ? (
                         <View style={styles.progressContentBody}>
-                          <Text style={styles.progressContentLabel}>Read At</Text>
-                          <Text style={styles.progressContentValue}>{content.read_at}</Text>
+                          <Text style={[styles.progressContentLabel, dynamicStyles.progressContentLabel]}>Read At</Text>
+                          <Text style={[styles.progressContentValue, dynamicStyles.progressContentValue]}>{content.read_at}</Text>
                         </View>
                       ) : null}
                     </View>
                   ))
                 ) : (
-                  <View style={styles.emptyContentCard}>
-                    <Text style={styles.emptyContentText}>No lesson contents available for this module.</Text>
+                  <View style={[styles.emptyContentCard, dynamicStyles.emptyContentCard]}>
+                    <Text style={[styles.emptyContentText, dynamicStyles.emptyContentText]}>No lesson contents available for this module.</Text>
                   </View>
                 )}
               </ScrollView>
 
-              <Pressable onPress={closeModuleProgress} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>Close</Text>
+              <Pressable onPress={closeModuleProgress} style={[styles.closeButton, dynamicStyles.closeButton]}>
+                <Text style={[styles.closeButtonText, dynamicStyles.closeButtonText]}>Close</Text>
               </Pressable>
             </View>
           </View>

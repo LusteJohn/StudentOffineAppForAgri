@@ -5,6 +5,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
+import { useTheme } from '@/hooks/use-theme';
 import { CompetencyRecord, ModuleRecord, listCompetencies, listModules } from '@/lib/auth-api';
 
 const moduleImages: Record<number, any> = {
@@ -38,6 +39,142 @@ export default function ModuleScreen() {
   const [detailVisible, setDetailVisible] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const theme = useTheme();
+  const isDark = theme.text === '#ffffff';
+
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    screen: {
+      backgroundColor: theme.background,
+    },
+    header: {
+      backgroundColor: theme.backgroundElement,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    headerTitle: {
+      color: theme.text,
+    },
+    headerIcon: {
+      color: theme.text,
+    },
+    categoryTabs: {
+      backgroundColor: theme.backgroundElement,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    categoryTabText: {
+      color: theme.textSecondary,
+    },
+    categoryTabTextActive: {
+      color: theme.text,
+    },
+    section: {
+      marginTop: 20,
+      gap: 16,
+    },
+    sectionCompact: {
+      marginTop: 14,
+      gap: 12,
+    },
+    card: {
+      backgroundColor: theme.backgroundElement,
+      shadowColor: isDark ? '#000000' : '#000000',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    cardTitle: {
+      color: theme.text,
+    },
+    cardStatus: {
+      color: theme.textSecondary,
+    },
+    cardThumbnail: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#e2e8f0',
+    },
+    downloadButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#eef2f1',
+    },
+    downloadIcon: {
+      color: theme.text,
+    },
+    downloadButtonText: {
+      color: theme.text,
+    },
+    startButton: {
+      borderColor: PRIMARY,
+      backgroundColor: theme.backgroundElement,
+    },
+    startButtonText: {
+      color: theme.text,
+    },
+    emptyState: {
+      backgroundColor: theme.backgroundElement,
+    },
+    emptyStateText: {
+      color: theme.textSecondary,
+    },
+    modalOverlay: {
+      backgroundColor: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(2, 6, 23, 0.45)',
+    },
+    modalCard: {
+      backgroundColor: theme.backgroundElement,
+    },
+    modalTitle: {
+      color: theme.text,
+    },
+    modalCloseButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
+    },
+    modalCloseText: {
+      color: theme.text,
+    },
+    modalSection: {
+      color: theme.text,
+    },
+    infoLabel: {
+      color: theme.textSecondary,
+    },
+    infoValue: {
+      color: theme.text,
+    },
+    moduleCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+      shadowColor: isDark ? '#000000' : '#000000',
+    },
+    moduleName: {
+      color: theme.text,
+    },
+    moduleDescription: {
+      color: theme.textSecondary,
+    },
+    moduleThumbnailPlaceholder: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#e2e8f0',
+    },
+    moduleMetaLabel: {
+      color: theme.textSecondary,
+    },
+    moduleMetaValue: {
+      color: theme.text,
+    },
+    moduleSecondaryButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.2)',
+    },
+    moduleSecondaryButtonText: {
+      color: theme.text,
+    },
+    modulePrimaryButton: {
+      backgroundColor: PRIMARY,
+    },
+    modulePrimaryButtonText: {
+      color: theme.text,
+    },
+    noModuleCard: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f8fafc',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    noModuleText: {
+      color: theme.textSecondary,
+    },
+  }), [theme, isDark]);
 
   const handleModuleStart = (moduleItem: ModuleRecord) => {
     setDetailVisible(false);
@@ -105,31 +242,29 @@ export default function ModuleScreen() {
   const handleDownload = (competencyModule: ModuleRecord | null) => {
     if (competencyModule?.module_pdf) {
       Linking.openURL(competencyModule.module_pdf).catch(() => {
-        // no-op: surface a toast/snackbar here if you have one wired up
+        // no-op
       });
     }
   };
 
-  // Placeholder progress label until real progress-tracking data is available.
-  // Swap this out for whatever field your backend uses (e.g. competency.progress_status).
   const getProgressLabel = (competency: CompetencyRecord) => {
     return competency.status.toLowerCase() === 'active' ? 'Not started' : 'Unavailable';
   };
 
   return (
-    <ThemedView style={styles.screen}>
+    <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Competency Library" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabs}>
+         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.categoryTabs, dynamicStyles.categoryTabs]}>
           <Pressable style={styles.categoryTabActive}>
-            <Text style={styles.categoryTabTextActive}>All</Text>
+            <Text style={[styles.categoryTabTextActive, dynamicStyles.categoryTabTextActive]}>All</Text>
           </Pressable>
           <Pressable style={styles.categoryTab}>
-            <Text style={styles.categoryTabText}>Agriculture</Text>
+            <Text style={[styles.categoryTabText, dynamicStyles.categoryTabText]}>Agriculture</Text>
           </Pressable>
           <Pressable style={styles.categoryTab}>
-            <Text style={styles.categoryTabText}>Active</Text>
+            <Text style={[styles.categoryTabText, dynamicStyles.categoryTabText]}>Active</Text>
           </Pressable>
         </ScrollView>
 
@@ -141,10 +276,10 @@ export default function ModuleScreen() {
               <View key={competency.competency_id} style={[styles.card, styles.surfaceCard, isCompact && styles.cardCompact]}>
                 <View style={styles.cardTopRow}>
                   <View style={styles.cardTextGroup}>
-                    <Text style={styles.cardTitle} numberOfLines={2}>
+                    <Text style={[styles.cardTitle, dynamicStyles.cardTitle]} numberOfLines={2}>
                       {competency.competency_name}
                     </Text>
-                    <Text style={styles.cardStatus}>{getProgressLabel(competency)}</Text>
+                    <Text style={[styles.cardStatus, dynamicStyles.cardStatus]}>{getProgressLabel(competency)}</Text>
                   </View>
 
                   {(() => {
@@ -165,14 +300,14 @@ export default function ModuleScreen() {
                     style={[styles.downloadButton, isCompact && styles.downloadButtonCompact]}
                   >
                     <Text style={styles.downloadIcon}>⬇</Text>
-                    <Text style={styles.downloadButtonText}>Download</Text>
+                    <Text style={[styles.downloadButtonText, dynamicStyles.downloadButtonText]}>Download</Text>
                   </Pressable>
 
                   <Pressable
                     onPress={() => openCompetencyDetail(competency)}
                     style={[styles.startButton, isCompact && styles.startButtonCompact]}
                   >
-                    <Text style={styles.startButtonText}>Start Module</Text>
+                    <Text style={[styles.startButtonText, dynamicStyles.startButtonText]}>Start Module</Text>
                   </Pressable>
                 </View>
               </View>
@@ -180,16 +315,16 @@ export default function ModuleScreen() {
           })}
 
           {!competencies.length && !error ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>
+            <View style={[styles.emptyState, dynamicStyles.emptyState]}>
+              <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>
                 {loading ? 'Loading competencies...' : 'No competencies available.'}
               </Text>
             </View>
           ) : null}
 
           {error ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>{error}</Text>
+            <View style={[styles.emptyState, dynamicStyles.emptyState]}>
+              <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>{error}</Text>
             </View>
           ) : null}
         </View>
@@ -198,41 +333,41 @@ export default function ModuleScreen() {
       <BottomNavbar activeTab="library" userId={activeUserId} />
 
       <Modal transparent animationType="fade" visible={detailVisible} onRequestClose={closeCompetencyDetail}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+        <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+          <View style={[styles.modalCard, dynamicStyles.modalCard]}>
             <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalTitle}>{selectedCompetency?.competency_name}</Text>
-              <Pressable onPress={closeCompetencyDetail} style={styles.modalCloseButton}>
-                <Text style={styles.modalCloseText}>✕</Text>
+              <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>{selectedCompetency?.competency_name}</Text>
+              <Pressable onPress={closeCompetencyDetail} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
+                <Text style={[styles.modalCloseText, dynamicStyles.modalCloseText]}>✕</Text>
               </Pressable>
             </View>
 
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Sector</Text>
-                <Text style={styles.infoValue}>{selectedCompetency?.sector}</Text>
+                <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Sector</Text>
+                <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedCompetency?.sector}</Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Qualification</Text>
-                <Text style={styles.infoValue}>{selectedCompetency?.qualification}</Text>
+                <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Qualification</Text>
+                <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedCompetency?.qualification}</Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Status</Text>
-                <Text style={styles.infoValue}>{selectedCompetency?.status}</Text>
+                <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Status</Text>
+                <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedCompetency?.status}</Text>
               </View>
             </View>
 
-            <Text style={styles.modalSection}>Modules</Text>
+            <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Modules</Text>
             <ScrollView
               style={styles.moduleList}
               contentContainerStyle={styles.moduleListContent}
               showsVerticalScrollIndicator={false}>
               {selectedModules.length > 0 ? (
                 selectedModules.map((moduleItem) => (
-                   <View key={moduleItem.module_id} style={styles.moduleCard}>
+                   <View key={moduleItem.module_id} style={[styles.moduleCard, dynamicStyles.moduleCard]}>
                      <View style={styles.moduleInfo}>
-                       <Text style={styles.moduleName}>{moduleItem.module_name}</Text>
-                       <Text style={styles.moduleDescription} numberOfLines={3}>
+                       <Text style={[styles.moduleName, dynamicStyles.moduleName]}>{moduleItem.module_name}</Text>
+                       <Text style={[styles.moduleDescription, dynamicStyles.moduleDescription]} numberOfLines={3}>
                          {moduleItem.description}
                        </Text>
                      </View>
@@ -244,14 +379,14 @@ export default function ModuleScreen() {
                          resizeMode="cover"
                        />
                      ) : (
-                       <View style={styles.moduleThumbnailPlaceholder} />
+                       <View style={[styles.moduleThumbnailPlaceholder, dynamicStyles.moduleThumbnailPlaceholder]} />
                      )}
 
                      <View style={styles.moduleCardBody}>
                        <View style={styles.moduleMetaRow}>
                          <View style={styles.moduleMetaItem}>
-                           <Text style={styles.moduleMetaLabel}>PDF</Text>
-                           <Text style={styles.moduleMetaValue} numberOfLines={1}>
+                           <Text style={[styles.moduleMetaLabel, dynamicStyles.moduleMetaLabel]}>PDF</Text>
+                           <Text style={[styles.moduleMetaValue, dynamicStyles.moduleMetaValue]} numberOfLines={1}>
                              {moduleItem.module_pdf}
                            </Text>
                          </View>
@@ -259,15 +394,15 @@ export default function ModuleScreen() {
                      </View>
 
                       <View style={styles.moduleCardActions}>
-                        <Pressable onPress={() => handleModuleStart(moduleItem)} style={styles.modulePrimaryButton}>
-                          <Text style={styles.modulePrimaryButtonText}>Start</Text>
+                        <Pressable onPress={() => handleModuleStart(moduleItem)} style={[styles.modulePrimaryButton, dynamicStyles.modulePrimaryButton]}>
+                          <Text style={[styles.modulePrimaryButtonText, dynamicStyles.modulePrimaryButtonText]}>Start</Text>
                         </Pressable>
                       </View>
-                  </View>
+                   </View>
                 ))
               ) : (
-                <View style={styles.noModuleCard}>
-                  <Text style={styles.noModuleText}>No modules available for this competency.</Text>
+                <View style={[styles.noModuleCard, dynamicStyles.noModuleCard]}>
+                  <Text style={[styles.noModuleText, dynamicStyles.noModuleText]}>No modules available for this competency.</Text>
                 </View>
               )}
             </ScrollView>
@@ -281,7 +416,6 @@ export default function ModuleScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: BACKGROUND_LIGHT,
   },
   scrollContent: {
     padding: 16,
@@ -293,9 +427,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 4,
     paddingVertical: 12,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.12)',
   },
   headerIconButton: {
     width: 40,
@@ -307,20 +439,16 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     fontSize: 20,
-    color: '#000000',
     fontWeight: '700',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000000',
     flex: 1,
     textAlign: 'center',
   },
   categoryTabs: {
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.12)',
   },
   categoryTab: {
     paddingHorizontal: 16,
@@ -339,31 +467,26 @@ const styles = StyleSheet.create({
   categoryTabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#64748b',
   },
   categoryTabTextActive: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#000000',
   },
   section: {
-    marginTop: 20,
     gap: 16,
   },
   sectionCompact: {
-    marginTop: 14,
     gap: 12,
   },
   card: {
-    backgroundColor: '#ffffff',
     borderRadius: 22,
     padding: 16,
     gap: 16,
-    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 1,
+    borderWidth: 1,
   },
   cardTopRow: {
     flexDirection: 'row',
@@ -378,19 +501,16 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000000',
     lineHeight: 22,
   },
   cardStatus: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#64748b',
   },
   cardThumbnail: {
     width: 68,
     height: 68,
     borderRadius: 14,
-    backgroundColor: '#e2e8f0',
   },
   cardThumbnailPlaceholder: {
     alignItems: 'center',
@@ -419,11 +539,10 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 13,
     borderRadius: 14,
-    backgroundColor: '#eef2f1',
   },
   downloadIcon: {
     fontSize: 14,
-    color: '#0f172a',
+    fontWeight: '700',
   },
   downloadButtonCompact: {
     minHeight: 44,
@@ -431,7 +550,6 @@ const styles = StyleSheet.create({
   downloadButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0f172a',
   },
   startButton: {
     flex: 1,
@@ -440,8 +558,6 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: PRIMARY,
-    backgroundColor: '#ffffff',
   },
   startButtonCompact: {
     minHeight: 44,
@@ -449,17 +565,14 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0f172a',
   },
   emptyState: {
     paddingVertical: 32,
     alignItems: 'center',
-    backgroundColor: '#ffffff',
     borderRadius: 16,
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#64748b',
     fontWeight: '500',
   },
   modalOverlay: {
@@ -467,7 +580,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'rgba(2, 6, 23, 0.45)',
   },
   modalCard: {
     width: '100%',
@@ -476,7 +588,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     gap: 12,
-    backgroundColor: '#ffffff',
   },
   modalHeaderRow: {
     flexDirection: 'row',
@@ -487,7 +598,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000000',
     flex: 1,
   },
   modalCloseButton: {
@@ -496,17 +606,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f1f5f9',
   },
   modalCloseText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000000',
   },
   modalSection: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#000000',
     marginTop: 8,
     marginBottom: 4,
     textTransform: 'uppercase',
@@ -522,14 +629,12 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   infoValue: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#000000',
   },
   moduleList: {
     maxHeight: 320,
@@ -540,21 +645,12 @@ const styles = StyleSheet.create({
   moduleCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.12)',
-    backgroundColor: '#ffffff',
     padding: 14,
     gap: 10,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
-  },
-  moduleCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 12,
   },
   moduleInfo: {
     flex: 1,
@@ -563,20 +659,17 @@ const styles = StyleSheet.create({
   moduleName: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#000000',
     lineHeight: 20,
   },
   moduleDescription: {
     fontSize: 13,
     fontWeight: '400',
-    color: '#475569',
     lineHeight: 18,
   },
   moduleThumbnailPlaceholder: {
     width: '100%',
     height: 180,
     borderRadius: 12,
-    backgroundColor: '#e2e8f0',
   },
   moduleThumbnail: {
     width: '100%',
@@ -599,14 +692,12 @@ const styles = StyleSheet.create({
   moduleMetaLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   moduleMetaValue: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#000000',
   },
   moduleCardActions: {
     flexDirection: 'row',
@@ -619,38 +710,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: 12,
-    backgroundColor: '#f1f5f9',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
   },
   moduleSecondaryButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#000000',
   },
   modulePrimaryButton: {
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: 12,
-    backgroundColor: PRIMARY,
   },
   modulePrimaryButtonText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#000000',
   },
   noModuleCard: {
     paddingVertical: 28,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 16,
-    backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.12)',
   },
   noModuleText: {
     fontSize: 14,
-    color: '#64748b',
     fontWeight: '500',
   },
 });

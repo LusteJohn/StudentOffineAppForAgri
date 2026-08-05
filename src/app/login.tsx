@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { useCustomAlert } from '@/lib/custom-alert';
+import { useTheme } from '@/hooks/use-theme';
 
 import { AuthLink, AuthShell, AuthNotification } from '@/components/auth-shell';
 import { ThemedText } from '@/components/themed-text';
@@ -16,6 +17,52 @@ export default function LoginScreen() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const { showAlert } = useCustomAlert();
+  const theme = useTheme();
+  const isDark = theme.text === '#ffffff';
+
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    screen: {
+      backgroundColor: theme.background,
+    },
+    formTitle: {
+      color: theme.text,
+    },
+    formHint: {
+      color: theme.textSecondary,
+    },
+    inputLabel: {
+      color: theme.textSecondary,
+    },
+    inputContainer: {
+      backgroundColor: isDark ? 'rgba(33, 34, 37, 0.9)' : 'rgba(255, 255, 255, 0.92)',
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.22)',
+    },
+    input: {
+      color: theme.text,
+    },
+    roleTabs: {
+      backgroundColor: isDark ? 'rgba(33, 34, 37, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+    },
+    roleTab: {
+      backgroundColor: isDark ? 'rgba(33, 34, 37, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+    },
+    roleTabActiveText: {
+      color: isDark ? '#000000' : '#000000',
+    },
+    helperBox: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f8fff3',
+      borderColor: isDark ? 'rgba(91, 236, 19, 0.24)' : 'rgba(85, 225, 10, 0.18)',
+    },
+    helperTitle: {
+      color: isDark ? theme.backgroundSelected : '#166534',
+    },
+    buttonText: {
+      color: theme.text,
+    },
+    linkText: {
+      color: theme.text,
+    },
+  }), [theme, isDark]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -40,12 +87,12 @@ export default function LoginScreen() {
   return (
     <AuthShell
       eyebrow="Student access"
-      title={<ThemedText type="subtitle" style={{ color: '#000000' }}>Welcome back</ThemedText>}
+      title={<ThemedText type="subtitle" style={{ color: theme.text }}>Welcome back</ThemedText>}
       subtitle="">
       <View style={styles.formPanel}>
         <View style={styles.formHeader}>
-          <Text style={styles.formTitle}>Access your learning portal</Text>
-          <Text style={styles.formHint}>Use your saved student account to continue where you left off.</Text>
+          <Text style={dynamicStyles.formTitle}>Access your learning portal</Text>
+          <Text style={dynamicStyles.formHint}>Use your saved student account to continue where you left off.</Text>
         </View>
 
         <View style={styles.roleTabs}>
@@ -56,15 +103,15 @@ export default function LoginScreen() {
 
         <View style={styles.field}>
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email address</Text>
-            <View style={styles.inputContainer}>
+            <Text style={dynamicStyles.inputLabel}>Email address</Text>
+            <View style={[styles.inputContainer, dynamicStyles.inputContainer]}>
               <Text style={styles.inputIcon}>✉</Text>
               <TextInput
                 autoCapitalize="none"
                 keyboardType="email-address"
                 placeholder="Enter your email"
-                placeholderTextColor="#64748b"
-                style={styles.input}
+                placeholderTextColor={theme.textSecondary}
+                style={[styles.input, dynamicStyles.input]}
                 value={email}
                 onChangeText={setEmail}
               />
@@ -72,15 +119,15 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <View style={styles.inputContainer}>
+            <Text style={dynamicStyles.inputLabel}>Password</Text>
+            <View style={[styles.inputContainer, dynamicStyles.inputContainer]}>
               <Text style={styles.inputIcon}>🔒</Text>
               <TextInput
                 autoCapitalize="none"
                 placeholder="Enter your password"
-                placeholderTextColor="#64748b"
+                placeholderTextColor={theme.textSecondary}
                 secureTextEntry={!isPasswordVisible}
-                style={[styles.input, styles.inputWithIcon]}
+                style={[styles.input, styles.inputWithIcon, dynamicStyles.input]}
                 value={password}
                 onChangeText={setPassword}
               />
@@ -94,8 +141,8 @@ export default function LoginScreen() {
         {error ? <AuthNotification type="error" text={error} /> : null}
         {message ? <AuthNotification type="success" text={message} /> : null}
 
-        <View style={styles.helperBox}>
-          <Text style={styles.helperTitle}>Quick access</Text>
+        <View style={dynamicStyles.helperBox}>
+          <Text style={dynamicStyles.helperTitle}>Quick access</Text>
           <ThemedText themeColor="textSecondary" style={styles.helper}>
             Default account: student1 / example@gmail.com / 12345
           </ThemedText>
@@ -105,10 +152,10 @@ export default function LoginScreen() {
           disabled={loading}
           onPress={handleSubmit}
           style={({ pressed }) => [styles.button, loading && styles.buttonDisabled, pressed && styles.pressed]}>
-          <ThemedText style={styles.buttonText}>{loading ? 'Signing in...' : 'Login'}</ThemedText>
+          <ThemedText style={dynamicStyles.buttonText}>{loading ? 'Signing in...' : 'Login'}</ThemedText>
         </Pressable>
 
-        <AuthLink onPress={() => router.push('/register')} textStyle={{ color: '#000000' }}>Need an account? Register</AuthLink>
+        <AuthLink onPress={() => router.push('/register')} textStyle={{ color: theme.text }}>Need an account? Register</AuthLink>
       </View>
     </AuthShell>
   );
@@ -121,38 +168,20 @@ const styles = StyleSheet.create({
   formHeader: {
     gap: 4,
   },
-  formTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  formHint: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: '#64748b',
-  },
   field: {
     gap: 12,
   },
-  inputGroup: {
+   inputGroup: {
     gap: 6,
-  },
-  inputLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#334155',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.22)',
-    borderRadius: 16,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    paddingVertical: 8,
+    minHeight: 48,
   },
   inputIcon: {
     fontSize: 16,
@@ -164,7 +193,6 @@ const styles = StyleSheet.create({
     gap: 8,
     borderRadius: 18,
     padding: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
   roleTab: {
     flex: 1,
@@ -172,7 +200,6 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   roleTabActive: {
     backgroundColor: '#60ef12',
@@ -182,7 +209,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   roleTabActiveText: {
-    color: '#000000',
     fontWeight: '700',
   },
   input: {
@@ -192,7 +218,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     backgroundColor: 'transparent',
-    color: '#102318',
   },
   inputWithIcon: {
     paddingRight: 44,
@@ -213,20 +238,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 20,
   },
-  helperBox: {
-    borderRadius: 14,
-    padding: 12,
-    backgroundColor: '#f8fff3',
-    borderWidth: 1,
-    borderColor: 'rgba(85, 225, 10, 0.18)',
-    gap: 2,
-  },
-  helperTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#166534',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
+  helper: {
+    fontSize: 13,
+    lineHeight: 18,
   },
   button: {
     marginTop: 4,
@@ -242,14 +256,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.7,
-  },
-  buttonText: {
-    color: '#000000',
-    fontWeight: '700',
-  },
-  helper: {
-    fontSize: 13,
-    lineHeight: 18,
   },
   pressed: {
     opacity: 0.75,

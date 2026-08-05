@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { useCustomAlert } from '@/lib/custom-alert';
+import { useTheme } from '@/hooks/use-theme';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -12,8 +13,6 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ContentInfoRecord, LessonContentRecord, LessonRecord, ModuleRecord, JobSheetAnswerRecord, JobSheetRecord, PerformanceAnswerRecord, PerformanceChecklistRecord, createLessonContentProgress, listLessonContentProgressByUserAndLessonContent, updateLessonContentProgress, createLessonContentBookmark, updateLessonContentBookmark, listLessonContentBookmarkByUserAndLessonContent, getLessonContentById, getLessonById, getModuleById, listContentInfoByLessonContentId, createQuestionAnswersBatch, listQuestionInstructByLessonContentId, listQuestionContentByLessonContentId, listQuestionChoiceByQuestionId, listQuestionAnswersByUserAndQuestions, createJobSheetAnswer, listJobSheetByLessonContentId, listJobSheetAnswersByUserAndJob, createPerformanceAnswer, listPerformanceCheckByLessonContentId, listPerformanceAnswersByUser } from '@/lib/auth-api';
 import { resolveContentInfoAsset } from '@/lib/content-info-assets';
-
-const BACKGROUND_LIGHT = '#f6f8f6';
 
 let ImagePicker: any = null;
 try {
@@ -110,6 +109,298 @@ export default function ContentInfoScreen() {
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
   const { showAlert } = useCustomAlert();
+  const theme = useTheme();
+  const isDark = theme.text === '#ffffff';
+
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    screen: {
+      backgroundColor: theme.background,
+    },
+    breadcrumb: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    breadcrumbText: {
+      color: isDark ? '#86efac' : '#166534',
+    },
+    infoCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    infoLabel: {
+      color: theme.textSecondary,
+    },
+    infoValue: {
+      color: theme.text,
+    },
+    infoImage: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f8fafc',
+    },
+    imageContainer: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f8fafc',
+    },
+    imagePlaceholderText: {
+      color: theme.textSecondary,
+    },
+    emptyStateText: {
+      color: theme.textSecondary,
+    },
+    errorBox: {
+      backgroundColor: '#fef2f2',
+      borderColor: 'rgba(185, 28, 28, 0.18)',
+    },
+    errorTitle: {
+      color: '#b91c1c',
+    },
+    errorDescription: {
+      color: '#b91c1c',
+    },
+    markAsReadButton: {
+      backgroundColor: isDark ? theme.textSecondary : '#5bec13',
+    },
+    markAsReadButtonOutline: {
+      backgroundColor: 'transparent',
+      borderColor: isDark ? '#86efac' : '#166534',
+    },
+    markAsReadButtonText: {
+      color: isDark ? theme.text : '#000000',
+    },
+    markAsReadButtonTextOutline: {
+      color: isDark ? '#86efac' : '#166534',
+    },
+    bookmarkButton: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f0fdf4',
+      borderColor: isDark ? 'rgba(91, 236, 19, 0.28)' : 'rgba(22, 101, 52, 0.18)',
+    },
+    bookmarkButtonActive: {
+      backgroundColor: isDark ? '#86efac' : '#166534',
+      borderColor: isDark ? '#86efac' : '#166534',
+    },
+    bookmarkButtonIcon: {
+      color: isDark ? theme.text : '#166534',
+    },
+    bookmarkButtonText: {
+      color: isDark ? theme.text : '#166534',
+    },
+    bookmarkButtonTextActive: {
+      color: isDark ? '#000000' : '#ffffff',
+    },
+    tabHeader: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    tabButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    tabButtonActive: {
+      backgroundColor: isDark ? '#86efac' : '#166534',
+      borderColor: isDark ? '#86efac' : '#166534',
+    },
+    tabButtonText: {
+      color: theme.textSecondary,
+    },
+    tabButtonTextActive: {
+      color: isDark ? '#000000' : '#ffffff',
+    },
+    sheetCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    sheetTitle: {
+      color: theme.text,
+    },
+    sectionLabel: {
+      color: theme.textSecondary,
+    },
+    sectionText: {
+      color: theme.text,
+    },
+    addAnswerButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#2563eb',
+    },
+    addAnswerButtonDisabled: {
+      backgroundColor: isDark ? '#4b5563' : '#94a3b8',
+    },
+    addAnswerButtonText: {
+      color: isDark ? theme.text : '#ffffff',
+    },
+    emptyBoxText: {
+      color: theme.textSecondary,
+    },
+    modalOverlay: {
+      backgroundColor: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(2, 6, 23, 0.45)',
+    },
+    modalCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    modalTitle: {
+      color: theme.text,
+    },
+    modalSubtitle: {
+      color: theme.textSecondary,
+    },
+    jobTextInput: {
+      color: theme.text,
+      backgroundColor: isDark ? '#2E3135' : 'rgba(255, 255, 255, 0.95)',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.18)',
+    },
+    uploadButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.2)',
+    },
+    uploadButtonText: {
+      color: theme.text,
+    },
+    imagePreviewTitle: {
+      color: theme.textSecondary,
+    },
+    imagePreviewText: {
+      color: theme.text,
+    },
+    cancelButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : 'rgba(255, 255, 255, 0.95)',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.18)',
+    },
+    cancelButtonText: {
+      color: theme.text,
+    },
+    saveButton: {
+      backgroundColor: isDark ? '#86efac' : '#55e10a',
+    },
+    saveButtonText: {
+      color: isDark ? '#000000' : '#0f172a',
+    },
+    perfIntroCard: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f0fdf4',
+      borderColor: isDark ? 'rgba(91, 236, 19, 0.28)' : 'rgba(22, 101, 52, 0.18)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    perfIntroText: {
+      color: theme.text,
+    },
+    checkItem: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    checkOrder: {
+      color: isDark ? '#86efac' : '#2563eb',
+    },
+    checkQuestion: {
+      color: theme.text,
+    },
+    radioButton: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f8fafc',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.2)',
+    },
+    radioButtonSelected: {
+      backgroundColor: isDark ? '#86efac' : '#2563eb',
+      borderColor: isDark ? '#86efac' : '#2563eb',
+    },
+    radioLabel: {
+      color: theme.textSecondary,
+    },
+    radioLabelSelected: {
+      color: isDark ? '#000000' : '#ffffff',
+    },
+    perfSubmitButton: {
+      backgroundColor: isDark ? '#86efac' : '#55e10a',
+    },
+    perfSubmitButtonText: {
+      color: isDark ? '#000000' : '#0f172a',
+    },
+    alreadySubmittedCard: {
+      backgroundColor: '#fef2f2',
+      borderColor: 'rgba(185, 28, 28, 0.18)',
+    },
+    alreadySubmittedText: {
+      color: '#b91c1c',
+    },
+    choiceRow: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f8fafc',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    choiceRowSelected: {
+      borderColor: isDark ? '#86efac' : '#166534',
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f0fdf4',
+    },
+    choiceText: {
+      color: theme.text,
+    },
+    choiceTextSelected: {
+      color: isDark ? '#86efac' : '#166534',
+    },
+    radioOuter: {
+      borderColor: theme.textSecondary,
+    },
+    radioOuterSelected: {
+      borderColor: isDark ? '#86efac' : '#166534',
+    },
+    radioInner: {
+      backgroundColor: isDark ? '#86efac' : '#166534',
+    },
+    textInput: {
+      color: theme.text,
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+    },
+    questionCard: {
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    questionNumber: {
+      color: theme.text,
+    },
+    instructCard: {
+      backgroundColor: theme.backgroundElement,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    instructLabel: {
+      color: theme.textSecondary,
+    },
+    instructTitle: {
+      color: theme.text,
+    },
+    instructText: {
+      color: theme.textSecondary,
+    },
+    correctAnswerContainer: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f0fdf4',
+      borderColor: isDark ? 'rgba(91, 236, 19, 0.28)' : 'rgba(22, 101, 52, 0.18)',
+    },
+    correctAnswerLabel: {
+      color: isDark ? '#86efac' : '#166534',
+    },
+    correctAnswerText: {
+      color: isDark ? '#86efac' : '#166534',
+    },
+    submitBlockedBox: {
+      backgroundColor: '#fef2f2',
+      borderColor: 'rgba(185, 28, 28, 0.18)',
+    },
+    submitBlockedText: {
+      color: '#b91c1c',
+    },
+    exerciseSubmitButton: {
+      backgroundColor: isDark ? '#86efac' : '#55e10a',
+    },
+    exerciseSubmitButtonText: {
+      color: isDark ? '#000000' : '#0f172a',
+    },
+    surfaceCard: {
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    input: {
+      backgroundColor: theme.backgroundElement,
+      color: theme.text,
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(92, 107, 97, 0.16)',
+    },
+  }), [theme, isDark]);
 
   const loadContentInfo = useCallback(async () => {
     setError('');
@@ -331,12 +622,12 @@ export default function ContentInfoScreen() {
         return (
           <Pressable
             key={choice.choice_id}
-            style={[styles.choiceRow, isSelected && styles.choiceRowSelected]}
+            style={[styles.choiceRow, isSelected && styles.choiceRowSelected, dynamicStyles.choiceRow, isSelected && dynamicStyles.choiceRowSelected]}
             onPress={() => setExerciseAnswers((prev) => ({ ...prev, [questionId]: choice.choice_label }))}>
-            <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
-              {isSelected ? <View style={styles.radioInner} /> : null}
+            <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected, dynamicStyles.radioOuter, dynamicStyles.radioOuterSelected]}>
+              {isSelected ? <View style={[styles.radioInner, dynamicStyles.radioInner]} /> : null}
             </View>
-            <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>
+            <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected, dynamicStyles.choiceText, dynamicStyles.choiceTextSelected]}>
               {choice.choice_label} {choice.choice_text}
             </Text>
           </Pressable>
@@ -350,12 +641,12 @@ export default function ContentInfoScreen() {
         return (
           <Pressable
             key={val}
-            style={[styles.choiceRow, isSelected && styles.choiceRowSelected]}
+            style={[styles.choiceRow, isSelected && styles.choiceRowSelected, dynamicStyles.choiceRow, isSelected && dynamicStyles.choiceRowSelected]}
             onPress={() => setExerciseAnswers((prev) => ({ ...prev, [questionId]: val }))}>
-            <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
-              {isSelected ? <View style={styles.radioInner} /> : null}
+            <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected, dynamicStyles.radioOuter, dynamicStyles.radioOuterSelected]}>
+              {isSelected ? <View style={[styles.radioInner, dynamicStyles.radioInner]} /> : null}
             </View>
-            <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>
+            <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected, dynamicStyles.choiceText, dynamicStyles.choiceTextSelected]}>
               {val}
             </Text>
           </Pressable>
@@ -365,8 +656,9 @@ export default function ContentInfoScreen() {
 
     return (
       <TextInput
-        style={styles.textInput}
+        style={[styles.textInput, dynamicStyles.textInput]}
         placeholder="Type your answer here..."
+        placeholderTextColor={theme.textSecondary}
         value={selected}
         onChangeText={(text) => setExerciseAnswers((prev) => ({ ...prev, [questionId]: text }))}
       />
@@ -549,69 +841,70 @@ export default function ContentInfoScreen() {
     }
   };
 
-  const renderJobSheetSection = () => (
+   const renderJobSheetSection = () => (
     <View style={styles.jobSection}>
       {jobSheets.length > 0 ? (
         jobSheets.map((sheet) => {
           const hasAnswer = jobAnswers.some((answer) => answer.job_id === sheet.job_id);
           return (
-            <View key={sheet.job_id} style={[styles.sheetCard, styles.surfaceCard, isCompact && styles.sheetCardCompact]}>
-              <Text style={styles.sheetTitle}>{sheet.job_title}</Text>
+            <View key={sheet.job_id} style={[styles.sheetCard, styles.surfaceCard, dynamicStyles.sheetCard, dynamicStyles.surfaceCard, isCompact && styles.sheetCardCompact]}>
+              <Text style={[styles.sheetTitle, dynamicStyles.sheetTitle]}>{sheet.job_title}</Text>
               <View style={styles.jobSectionItem}>
-                <Text style={styles.sectionLabel}>Objectives</Text>
-                <Text style={styles.sectionText}>{sheet.job_objectives}</Text>
+                <Text style={[styles.sectionLabel, dynamicStyles.sectionLabel]}>Objectives</Text>
+                <Text style={[styles.sectionText, dynamicStyles.sectionText]}>{sheet.job_objectives}</Text>
               </View>
               <View style={styles.jobSectionItem}>
-                <Text style={styles.sectionLabel}>Materials</Text>
-                <Text style={styles.sectionText}>{sheet.job_materials}</Text>
+                <Text style={[styles.sectionLabel, dynamicStyles.sectionLabel]}>Materials</Text>
+                <Text style={[styles.sectionText, dynamicStyles.sectionText]}>{sheet.job_materials}</Text>
               </View>
               <View style={styles.jobSectionItem}>
-                <Text style={styles.sectionLabel}>Steps</Text>
-                <Text style={styles.sectionText}>{sheet.job_steps}</Text>
+                <Text style={[styles.sectionLabel, dynamicStyles.sectionLabel]}>Steps</Text>
+                <Text style={[styles.sectionText, dynamicStyles.sectionText]}>{sheet.job_steps}</Text>
               </View>
               <View style={styles.jobSectionItem}>
-                <Text style={styles.sectionLabel}>Assessment Method</Text>
-                <Text style={styles.sectionText}>{sheet.job_assesment_method || '-'}</Text>
+                <Text style={[styles.sectionLabel, dynamicStyles.sectionLabel]}>Assessment Method</Text>
+                <Text style={[styles.sectionText, dynamicStyles.sectionText]}>{sheet.job_assesment_method || '-'}</Text>
               </View>
               <Pressable
                 onPress={() => openAnswerModal(sheet)}
                 disabled={hasAnswer}
-                style={[styles.addAnswerButton, hasAnswer && styles.addAnswerButtonDisabled]}>
-                <Text style={styles.addAnswerButtonText}>{hasAnswer ? 'Answer Submitted' : 'Add Answer'}</Text>
+                style={[styles.addAnswerButton, dynamicStyles.addAnswerButton, hasAnswer && styles.addAnswerButtonDisabled, hasAnswer && dynamicStyles.addAnswerButtonDisabled]}>
+                <Text style={[styles.addAnswerButtonText, dynamicStyles.addAnswerButtonText]}>{hasAnswer ? 'Answer Submitted' : 'Add Answer'}</Text>
               </Pressable>
             </View>
           );
         })
       ) : (
         <View style={styles.emptyBox}>
-          <Text style={styles.emptyBoxText}>No job sheet records found for this lesson content.</Text>
+          <Text style={[styles.emptyBoxText, dynamicStyles.emptyBoxText]}>No job sheet records found for this lesson content.</Text>
         </View>
       )}
 
       <Modal animationType="slide" transparent visible={jobModalVisible} onRequestClose={closeAnswerModal}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Job Sheet Answer</Text>
-            <Text style={styles.modalSubtitle}>{selectedSheet?.job_title}</Text>
+        <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+          <View style={[styles.modalCard, dynamicStyles.modalCard]}>
+            <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>Job Sheet Answer</Text>
+            <Text style={[styles.modalSubtitle, dynamicStyles.modalSubtitle]}>{selectedSheet?.job_title}</Text>
             <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
               <TextInput
-                style={styles.jobTextInput}
+                style={[styles.jobTextInput, dynamicStyles.jobTextInput]}
                 placeholder="Type your answer here..."
+                placeholderTextColor={theme.textSecondary}
                 value={answerText}
                 onChangeText={setAnswerText}
                 multiline
                 textAlignVertical="top"
               />
               {ImagePicker ? (
-                <Pressable onPress={pickJobImages} style={styles.uploadButton}>
-                  <Text style={styles.uploadButtonText}>Upload Images</Text>
+                <Pressable onPress={pickJobImages} style={[styles.uploadButton, dynamicStyles.uploadButton]}>
+                  <Text style={[styles.uploadButtonText, dynamicStyles.uploadButtonText]}>Upload Images</Text>
                 </Pressable>
               ) : null}
               {selectedImages.length > 0 ? (
                 <View style={styles.imagePreviewContainer}>
-                  <Text style={styles.imagePreviewTitle}>Selected Images ({selectedImages.length})</Text>
+                  <Text style={[styles.imagePreviewTitle, dynamicStyles.imagePreviewTitle]}>Selected Images ({selectedImages.length})</Text>
                   {selectedImages.map((uri, index) => (
-                    <Text key={index} style={styles.imagePreviewText} numberOfLines={1}>
+                    <Text key={index} style={[styles.imagePreviewText, dynamicStyles.imagePreviewText]} numberOfLines={1}>
                       {uri.split('/').pop()}
                     </Text>
                   ))}
@@ -619,11 +912,11 @@ export default function ContentInfoScreen() {
               ) : null}
             </ScrollView>
             <View style={styles.modalActions}>
-              <Pressable disabled={jobSubmitting} onPress={closeAnswerModal} style={styles.cancelButton}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Pressable disabled={jobSubmitting} onPress={closeAnswerModal} style={[styles.cancelButton, dynamicStyles.cancelButton]}>
+                <Text style={[styles.cancelButtonText, dynamicStyles.cancelButtonText]}>Cancel</Text>
               </Pressable>
-              <Pressable disabled={jobSubmitting} onPress={handleJobSubmitAnswer} style={styles.saveButton}>
-                <Text style={styles.saveButtonText}>{jobSubmitting ? 'Submitting...' : 'Submit'}</Text>
+              <Pressable disabled={jobSubmitting} onPress={handleJobSubmitAnswer} style={[styles.saveButton, dynamicStyles.saveButton]}>
+                <Text style={[styles.saveButtonText, dynamicStyles.saveButtonText]}>{jobSubmitting ? 'Submitting...' : 'Submit'}</Text>
               </Pressable>
             </View>
           </View>
@@ -633,22 +926,22 @@ export default function ContentInfoScreen() {
   );
 
   return (
-    <ThemedView style={styles.screen}>
+    <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Content Info" showBack onBack={() => router.replace({ pathname: '/lesson', params: { userId: String(activeUserId) } })} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {loading ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>Loading content info...</Text>
+            <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>Loading content info...</Text>
           </View>
         ) : error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorTitle}>Unable to load content info</Text>
-            <Text style={styles.errorDescription}>{error}</Text>
+          <View style={[styles.errorBox, dynamicStyles.errorBox]}>
+            <Text style={[styles.errorTitle, dynamicStyles.errorTitle]}>Unable to load content info</Text>
+            <Text style={[styles.errorDescription, dynamicStyles.errorDescription]}>{error}</Text>
           </View>
         ) : (
           <View style={styles.contentContainer}>
-            <View style={[styles.breadcrumb, styles.surfaceCard]}>
-              <Text style={styles.breadcrumbText}>
+            <View style={[styles.breadcrumb, styles.surfaceCard, dynamicStyles.breadcrumb, dynamicStyles.surfaceCard]}>
+              <Text style={[styles.breadcrumbText, dynamicStyles.breadcrumbText]}>
                 {moduleItem?.module_name} {' > '} {lessonItem?.lesson_name} {' > '} {contentItem?.content_name}
               </Text>
             </View>
@@ -656,32 +949,32 @@ export default function ContentInfoScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={styles.tabHeader}
+              style={[styles.tabHeader, dynamicStyles.tabHeader]}
               contentContainerStyle={styles.tabHeaderContent}
             >
               <Pressable
                 onPress={() => { setActiveTab('content'); loadContentInfo(); }}
-                style={[styles.tabButton, activeTab === 'content' && styles.tabButtonActive]}
+                style={[styles.tabButton, activeTab === 'content' && styles.tabButtonActive, dynamicStyles.tabButton, activeTab === 'content' && dynamicStyles.tabButtonActive]}
               >
-                <Text style={[styles.tabButtonText, activeTab === 'content' && styles.tabButtonTextActive]}>Content Info</Text>
+                <Text style={[styles.tabButtonText, activeTab === 'content' && styles.tabButtonTextActive, dynamicStyles.tabButtonText, activeTab === 'content' && dynamicStyles.tabButtonTextActive]}>Content Info</Text>
               </Pressable>
               <Pressable
                 onPress={() => { setActiveTab('exercise'); loadExercise(); }}
-                style={[styles.tabButton, activeTab === 'exercise' && styles.tabButtonActive]}
+                style={[styles.tabButton, activeTab === 'exercise' && styles.tabButtonActive, dynamicStyles.tabButton, activeTab === 'exercise' && dynamicStyles.tabButtonActive]}
               >
-                <Text style={[styles.tabButtonText, activeTab === 'exercise' && styles.tabButtonTextActive]}>Exercise</Text>
+                <Text style={[styles.tabButtonText, activeTab === 'exercise' && styles.tabButtonTextActive, dynamicStyles.tabButtonText, activeTab === 'exercise' && dynamicStyles.tabButtonTextActive]}>Exercise</Text>
               </Pressable>
               <Pressable
                 onPress={() => { setActiveTab('job'); loadJobSheet(); }}
-                style={[styles.tabButton, activeTab === 'job' && styles.tabButtonActive]}
+                style={[styles.tabButton, activeTab === 'job' && styles.tabButtonActive, dynamicStyles.tabButton, activeTab === 'job' && dynamicStyles.tabButtonActive]}
               >
-                <Text style={[styles.tabButtonText, activeTab === 'job' && styles.tabButtonTextActive]}>Job Sheet</Text>
+                <Text style={[styles.tabButtonText, activeTab === 'job' && styles.tabButtonTextActive, dynamicStyles.tabButtonText, activeTab === 'job' && dynamicStyles.tabButtonTextActive]}>Job Sheet</Text>
               </Pressable>
               <Pressable
                 onPress={() => { setActiveTab('performance'); loadPerformanceCheck(); }}
-                style={[styles.tabButton, activeTab === 'performance' && styles.tabButtonActive]}
+                style={[styles.tabButton, activeTab === 'performance' && styles.tabButtonActive, dynamicStyles.tabButton, activeTab === 'performance' && dynamicStyles.tabButtonActive]}
               >
-                <Text style={[styles.tabButtonText, activeTab === 'performance' && styles.tabButtonTextActive]}>Performance</Text>
+                <Text style={[styles.tabButtonText, activeTab === 'performance' && styles.tabButtonTextActive, dynamicStyles.tabButtonText, activeTab === 'performance' && dynamicStyles.tabButtonTextActive]}>Performance</Text>
               </Pressable>
             </ScrollView>
 
@@ -689,17 +982,17 @@ export default function ContentInfoScreen() {
               <>
                 {contentInfos.length > 0 ? (
                   contentInfos.map((info) => (
-                    <View key={info.content_info_id} style={[styles.infoCard, styles.surfaceCard, isCompact && styles.infoCardCompact]}>
-                      <Text style={styles.infoLabel}>Label</Text>
-                      <Text style={styles.infoValue}>{info.label}</Text>
+                    <View key={info.content_info_id} style={[styles.infoCard, styles.surfaceCard, dynamicStyles.infoCard, dynamicStyles.surfaceCard, isCompact && styles.infoCardCompact]}>
+                      <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Label</Text>
+                      <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{info.label}</Text>
 
                       {imageUris[info.content_info_id] ? (
                         <>
-                          <Text style={styles.infoLabel}>Image</Text>
-                          <View style={styles.imageContainer}>
+                          <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Image</Text>
+                          <View style={[styles.imageContainer, dynamicStyles.imageContainer]}>
                             <Image
                               source={{ uri: imageUris[info.content_info_id] }}
-                              style={styles.infoImage}
+                              style={[styles.infoImage, dynamicStyles.infoImage]}
                               resizeMode="contain"
                               onError={(e) => console.log('Image load error:', info.content_info_id, e.nativeEvent.error)}
                             />
@@ -707,22 +1000,22 @@ export default function ContentInfoScreen() {
                         </>
                       ) : null}
 
-                      <Text style={styles.infoLabel}>Description</Text>
-                      <Text style={styles.infoValue}>{info.description}</Text>
+                      <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Description</Text>
+                      <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{info.description}</Text>
                     </View>
                   ))
                 ) : (
                   <View style={styles.emptyState}>
-                    <Text style={styles.emptyStateText}>No content info available for this lesson content.</Text>
+                    <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>No content info available for this lesson content.</Text>
                   </View>
                 )}
 
                 <Pressable
                   onPress={markAsRead}
                   disabled={markingRead}
-                  style={[styles.markAsReadButton, isRead && styles.markAsReadButtonOutline, isCompact && styles.markAsReadButtonCompact]}
+                  style={[styles.markAsReadButton, dynamicStyles.markAsReadButton, isRead && styles.markAsReadButtonOutline, isRead && dynamicStyles.markAsReadButtonOutline, isCompact && styles.markAsReadButtonCompact]}
                 >
-                  <Text style={[styles.markAsReadButtonText, isRead && styles.markAsReadButtonTextOutline]}>
+                  <Text style={[styles.markAsReadButtonText, dynamicStyles.markAsReadButtonText, isRead && styles.markAsReadButtonTextOutline, isRead && dynamicStyles.markAsReadButtonTextOutline]}>
                     {markingRead ? 'Saving...' : isRead ? 'Mark as Unread' : 'Mark as Read'}
                   </Text>
                 </Pressable>
@@ -730,14 +1023,14 @@ export default function ContentInfoScreen() {
                 <Pressable
                   onPress={toggleBookmark}
                   disabled={togglingBookmark}
-                  style={[styles.bookmarkButton, isBookmarked && styles.bookmarkButtonActive]}
+                  style={[styles.bookmarkButton, dynamicStyles.bookmarkButton, isBookmarked && styles.bookmarkButtonActive, isBookmarked && dynamicStyles.bookmarkButtonActive]}
                 >
                   <MaterialCommunityIcons
                     name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
                     size={20}
-                    color={isBookmarked ? '#ffffff' : '#166534'}
+                    color={isBookmarked ? (isDark ? '#000000' : '#ffffff') : (isDark ? '#86efac' : '#166534')}
                   />
-                  <Text style={[styles.bookmarkButtonText, isBookmarked && styles.bookmarkButtonTextActive]}>
+                  <Text style={[styles.bookmarkButtonText, dynamicStyles.bookmarkButtonText, isBookmarked && styles.bookmarkButtonTextActive, isBookmarked && dynamicStyles.bookmarkButtonTextActive]}>
                     {togglingBookmark ? 'Saving...' : isBookmarked ? 'Bookmarked' : 'Add Bookmark'}
                   </Text>
                 </Pressable>
@@ -747,23 +1040,23 @@ export default function ContentInfoScreen() {
             {activeTab === 'exercise' ? (
               <View style={styles.exerciseContainer}>
                 {exerciseInstructs.map((instruct) => (
-                  <View key={instruct.instruct_id} style={[styles.instructCard, styles.surfaceCard, isCompact && styles.instructCardCompact]}>
-                    <Text style={styles.instructLabel}>Instructions</Text>
-                    <Text style={styles.instructTitle}>{instruct.question_title}</Text>
-                    <Text style={styles.instructText}>{instruct.question_instruction}</Text>
+                  <View key={instruct.instruct_id} style={[styles.instructCard, styles.surfaceCard, dynamicStyles.instructCard, dynamicStyles.surfaceCard, isCompact && styles.instructCardCompact]}>
+                    <Text style={[styles.instructLabel, dynamicStyles.instructLabel]}>Instructions</Text>
+                    <Text style={[styles.instructTitle, dynamicStyles.instructTitle]}>{instruct.question_title}</Text>
+                    <Text style={[styles.instructText, dynamicStyles.instructText]}>{instruct.question_instruction}</Text>
                   </View>
                 ))}
 
                 {exerciseQuestions.map((q, idx) => (
-                  <View key={q.question.question_id} style={[styles.questionCard, styles.surfaceCard, isCompact && styles.questionCardCompact]}>
-                    <Text style={styles.questionNumber}>{idx + 1}. {q.question.question}</Text>
+                  <View key={q.question.question_id} style={[styles.questionCard, styles.surfaceCard, dynamicStyles.questionCard, dynamicStyles.surfaceCard, isCompact && styles.questionCardCompact]}>
+                    <Text style={[styles.questionNumber, dynamicStyles.questionNumber]}>{idx + 1}. {q.question.question}</Text>
                     <View style={styles.choicesContainer}>
                       {renderExerciseChoices(q.question, q.choices, q.question.question_id)}
                     </View>
                     {exerciseHasExistingAnswers && isAnswerWrong(q.question, q.choices, exerciseAnswers[q.question.question_id]) ? (
-                      <View style={styles.correctAnswerContainer}>
-                        <Text style={styles.correctAnswerLabel}>Correct Answer:</Text>
-                        <Text style={styles.correctAnswerText}>{getCorrectAnswer(q.question, q.choices)}</Text>
+                      <View style={[styles.correctAnswerContainer, dynamicStyles.correctAnswerContainer]}>
+                        <Text style={[styles.correctAnswerLabel, dynamicStyles.correctAnswerLabel]}>Correct Answer:</Text>
+                        <Text style={[styles.correctAnswerText, dynamicStyles.correctAnswerText]}>{getCorrectAnswer(q.question, q.choices)}</Text>
                       </View>
                     ) : null}
                   </View>
@@ -771,11 +1064,11 @@ export default function ContentInfoScreen() {
 
                 {exerciseQuestions.length === 0 && !exerciseLoaded ? (
                   <View style={styles.emptyState}>
-                    <Text style={styles.emptyStateText}>Loading exercise...</Text>
+                    <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>Loading exercise...</Text>
                   </View>
                 ) : exerciseQuestions.length === 0 && exerciseLoaded ? (
                   <View style={styles.emptyState}>
-                    <Text style={styles.emptyStateText}>No exercise questions available for this lesson content.</Text>
+                    <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>No exercise questions available for this lesson content.</Text>
                   </View>
                 ) : null}
 
@@ -783,15 +1076,15 @@ export default function ContentInfoScreen() {
                   <Pressable
                     onPress={handleExerciseSubmit}
                     disabled={exerciseSubmitting}
-                    style={[styles.exerciseSubmitButton, exerciseSubmitting && styles.exerciseSubmitButtonDisabled]}
+                    style={[styles.exerciseSubmitButton, dynamicStyles.exerciseSubmitButton, exerciseSubmitting && styles.exerciseSubmitButtonDisabled]}
                   >
-                    <Text style={styles.exerciseSubmitButtonText}>
+                    <Text style={[styles.exerciseSubmitButtonText, dynamicStyles.exerciseSubmitButtonText]}>
                       {exerciseSubmitting ? 'Submitting...' : 'Submit Answers'}
                     </Text>
                   </Pressable>
                 ) : exerciseHasExistingAnswers ? (
-                  <View style={styles.submitBlockedBox}>
-                    <Text style={styles.submitBlockedText}>You have already submitted answers for this lesson content.</Text>
+                  <View style={[styles.submitBlockedBox, dynamicStyles.submitBlockedBox]}>
+                    <Text style={[styles.submitBlockedText, dynamicStyles.submitBlockedText]}>You have already submitted answers for this lesson content.</Text>
                   </View>
                 ) : null}
               </View>
@@ -805,30 +1098,30 @@ export default function ContentInfoScreen() {
               <View style={styles.perfSection}>
                 {perfChecklist.length > 0 ? (
                   <>
-                    <View style={[styles.perfIntroCard, styles.surfaceCard]}>
-                      <Text style={styles.perfIntroText}>Did the trainee demonstrate the required performance?</Text>
+                    <View style={[styles.perfIntroCard, dynamicStyles.perfIntroCard]}>
+                      <Text style={[styles.perfIntroText, dynamicStyles.perfIntroText]}>Did the trainee demonstrate the required performance?</Text>
                     </View>
 
                     {perfChecklist.map((item) => {
                       const currentAnswer = perfSelectedAnswers[item.performance_id] ?? '';
                       return (
-                        <View key={item.performance_id} style={[styles.checkItem, styles.surfaceCard, isCompact && styles.checkItemCompact]}>
+                        <View key={item.performance_id} style={[styles.checkItem, dynamicStyles.checkItem, isCompact && styles.checkItemCompact]}>
                           <View style={styles.checkItemLeft}>
-                            <Text style={styles.checkOrder}>{item.performance_order}.</Text>
-                            <Text style={styles.checkQuestion}>{item.performance_question}</Text>
+                            <Text style={[styles.checkOrder, dynamicStyles.checkOrder]}>{item.performance_order}.</Text>
+                            <Text style={[styles.checkQuestion, dynamicStyles.checkQuestion]}>{item.performance_question}</Text>
                           </View>
                           <View style={styles.radioGroup}>
                             <Pressable
                               onPress={() => setPerfSelectedAnswers((prev) => ({ ...prev, [item.performance_id]: 'Yes' }))}
-                              style={[styles.radioButton, currentAnswer === 'Yes' && styles.radioButtonSelected]}
+                              style={[styles.radioButton, currentAnswer === 'Yes' && styles.radioButtonSelected, dynamicStyles.radioButton, currentAnswer === 'Yes' && dynamicStyles.radioButtonSelected]}
                             >
-                              <Text style={[styles.radioLabel, currentAnswer === 'Yes' && styles.radioLabelSelected]}>Yes</Text>
+                              <Text style={[styles.radioLabel, currentAnswer === 'Yes' && styles.radioLabelSelected, dynamicStyles.radioLabel, currentAnswer === 'Yes' && dynamicStyles.radioLabelSelected]}>Yes</Text>
                             </Pressable>
                             <Pressable
                               onPress={() => setPerfSelectedAnswers((prev) => ({ ...prev, [item.performance_id]: 'No' }))}
-                              style={[styles.radioButton, currentAnswer === 'No' && styles.radioButtonSelected]}
+                              style={[styles.radioButton, currentAnswer === 'No' && styles.radioButtonSelected, dynamicStyles.radioButton, currentAnswer === 'No' && dynamicStyles.radioButtonSelected]}
                             >
-                              <Text style={[styles.radioLabel, currentAnswer === 'No' && styles.radioLabelSelected]}>No</Text>
+                              <Text style={[styles.radioLabel, currentAnswer === 'No' && styles.radioLabelSelected, dynamicStyles.radioLabel, currentAnswer === 'No' && dynamicStyles.radioLabelSelected]}>No</Text>
                             </Pressable>
                           </View>
                         </View>
@@ -836,16 +1129,16 @@ export default function ContentInfoScreen() {
                     })}
 
                     {perfAlreadySubmitted ? (
-                      <View style={styles.alreadySubmittedCard}>
-                        <Text style={styles.alreadySubmittedText}>You have already submitted this performance checklist.</Text>
+                      <View style={[styles.alreadySubmittedCard, dynamicStyles.alreadySubmittedCard]}>
+                        <Text style={[styles.alreadySubmittedText, dynamicStyles.alreadySubmittedText]}>You have already submitted this performance checklist.</Text>
                       </View>
                     ) : (
                       <Pressable
                         onPress={handlePerformanceSubmit}
                         disabled={perfSubmitting}
-                        style={[styles.perfSubmitButton, perfSubmitting && styles.perfSubmitButtonDisabled]}
+                        style={[styles.perfSubmitButton, dynamicStyles.perfSubmitButton, perfSubmitting && styles.perfSubmitButtonDisabled]}
                       >
-                        <Text style={styles.perfSubmitButtonText}>
+                        <Text style={[styles.perfSubmitButtonText, dynamicStyles.perfSubmitButtonText]}>
                           {perfSubmitting ? 'Submitting...' : 'Submit Answers'}
                         </Text>
                       </Pressable>
@@ -853,7 +1146,7 @@ export default function ContentInfoScreen() {
                   </>
                 ) : (
                   <View style={styles.emptyBox}>
-                    <Text style={styles.emptyBoxText}>No performance checklist records found for this lesson content.</Text>
+                    <Text style={[styles.emptyBoxText, dynamicStyles.emptyBoxText]}>No performance checklist records found for this lesson content.</Text>
                   </View>
                 )}
               </View>
@@ -870,7 +1163,6 @@ export default function ContentInfoScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: BACKGROUND_LIGHT,
   },
   scrollContent: {
     padding: 16,
