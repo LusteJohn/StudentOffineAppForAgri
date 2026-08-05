@@ -1140,19 +1140,19 @@ export async function listModuleAchievementsByModule(moduleId: number) {
 export async function listLessonAchievements() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonAchievementRecord>('SELECT * FROM student_lesson_achievement ORDER BY lesson_achievement_id ASC');
+  return db.getAllAsync<LessonAchievementRecord>('SELECT * FROM lesson_achievement ORDER BY lesson_achievement_id ASC');
 }
 
 export async function listLessonAchievementsByLesson(lessonId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonAchievementRecord>('SELECT * FROM student_lesson_achievement WHERE lesson_id = ? ORDER BY lesson_achievement_id ASC', [lessonId]);
+  return db.getAllAsync<LessonAchievementRecord>('SELECT * FROM lesson_achievement WHERE lesson_id = ? ORDER BY lesson_achievement_id ASC', [lessonId]);
 }
 
 export async function getLessonAchievementById(achievementId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getFirstAsync<LessonAchievementRecord>('SELECT * FROM student_lesson_achievement WHERE lesson_achievement_id = ?', [achievementId]);
+  return db.getFirstAsync<LessonAchievementRecord>('SELECT * FROM lesson_achievement WHERE lesson_achievement_id = ?', [achievementId]);
 }
 
 export async function listLessonContent() {
@@ -1417,7 +1417,7 @@ export async function resetAndSeedLocalData() {
   const jobSheets = await db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet ORDER BY job_id ASC');
   const performanceChecklists = await db.getAllAsync<PerformanceChecklistRecord>('SELECT * FROM performance_checklist ORDER BY performance_id ASC');
   const moduleAchievements = await db.getAllAsync<ModuleAchievementRecord>('SELECT * FROM module_achievement ORDER BY module_achievement_id ASC');
-  const lessonAchievements = await db.getAllAsync<LessonAchievementRecord>('SELECT * FROM student_lesson_achievement ORDER BY lesson_achievement_id ASC');
+  const lessonAchievements = await db.getAllAsync<LessonAchievementRecord>('SELECT * FROM lesson_achievement ORDER BY lesson_achievement_id ASC');
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
     competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
@@ -1497,7 +1497,7 @@ export async function resetAndSeedLocalData() {
    await db.runAsync('DELETE FROM job_sheet');
    await db.runAsync('DELETE FROM module_achievement');
    await db.runAsync('DELETE FROM performance_checklist');
-   await db.runAsync('DELETE FROM student_lesson_achievement');
+   await db.runAsync('DELETE FROM lesson_achievement');
   try {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_content'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
@@ -1512,7 +1512,7 @@ export async function resetAndSeedLocalData() {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'job_sheet'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'module_achievement'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'performance_checklist'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'student_lesson_achievement'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_achievement'");
   } catch {
     // sqlite_sequence may not exist in some SQLite versions/environments.
   }
@@ -1678,7 +1678,7 @@ for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
     const achievement = DEFAULT_LESSON_ACHIEVEMENT[index];
 
     await db.runAsync(
-      `INSERT INTO student_lesson_achievement
+      `INSERT INTO lesson_achievement
         (lesson_achievement_id, lesson_id, name, badge_image, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`,
       [achievement.lesson_achievement_id, achievement.lesson_id, achievement.name, achievement.badge_image, now, now]
