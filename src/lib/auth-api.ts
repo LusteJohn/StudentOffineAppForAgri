@@ -1,15 +1,15 @@
-import * as SQLite from 'expo-sqlite';
-import { DEFAULT_CONTENT_INFO } from './content-info-seed';
-import { DEFAULT_QUESTION_INSTRUCT } from './question-instruct-seed';
-import { DEFAULT_QUESTION_CONTENT } from './question-content-seed';
-import { DEFAULT_QUESTION_CHOICE } from './question-choice-seed';
-import { DEFAULT_PERFORMANCE_CHECK } from './performance-check-seed';
+import * as SQLite from "expo-sqlite";
+import { DEFAULT_CONTENT_INFO } from "./content-info-seed";
+import { DEFAULT_QUESTION_INSTRUCT } from "./question-instruct-seed";
+import { DEFAULT_QUESTION_CONTENT } from "./question-content-seed";
+import { DEFAULT_QUESTION_CHOICE } from "./question-choice-seed";
+import { DEFAULT_PERFORMANCE_CHECK } from "./performance-check-seed";
 
 export type StudentUser = {
   user_id: number;
   username: string;
   email: string;
-  role: 'student';
+  role: "student";
   created_at: string;
 };
 
@@ -114,7 +114,7 @@ export type QuestionContentRecord = {
   questionOrder: number;
   created_at: string;
   updated_at: string;
-}
+};
 export type QuestionChoiceRecord = {
   choice_id: number;
   question_id: number;
@@ -123,7 +123,7 @@ export type QuestionChoiceRecord = {
   is_correct: string;
   created_at: string;
   updated_at: string;
-}
+};
 export type JobSheetRecord = {
   job_id: number;
   lesson_content_id: number;
@@ -134,7 +134,7 @@ export type JobSheetRecord = {
   job_assesment_method: string;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type QuestionAnswerRecord = {
   answer_id: number;
@@ -143,7 +143,7 @@ export type QuestionAnswerRecord = {
   answer_text: string;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type JobSheetAnswerRecord = {
   answer_id: number;
@@ -152,7 +152,7 @@ export type JobSheetAnswerRecord = {
   answer_text: string;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type PerformanceChecklistRecord = {
   performance_id: number;
@@ -161,7 +161,7 @@ export type PerformanceChecklistRecord = {
   performance_order: number;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type LessonContentBookmarkRecord = {
   lesson_content_bookmark_id: number;
@@ -170,7 +170,7 @@ export type LessonContentBookmarkRecord = {
   is_bookmark: boolean;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type ModuleAchievementRecord = {
   module_achievement_id: number;
@@ -179,7 +179,7 @@ export type ModuleAchievementRecord = {
   badge_image: string;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type LessonAchievementRecord = {
   lesson_achievement_id: number;
@@ -188,7 +188,7 @@ export type LessonAchievementRecord = {
   badge_image: string;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type StudentLessonAchievementRecord = {
   stud_lesson_achievement_id: number;
@@ -196,7 +196,7 @@ export type StudentLessonAchievementRecord = {
   user_id: number;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type StudentModuleAchievementRecord = {
   stud_module_achievement_id: number;
@@ -204,7 +204,7 @@ export type StudentModuleAchievementRecord = {
   user_id: number;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type StudentTutorialRecord = {
   tutorial_id: number;
@@ -215,294 +215,1389 @@ export type StudentTutorialRecord = {
   step3_done: number;
   created_at: string;
   updated_at: string;
-}
+};
 
 type StoredStudentUser = StudentUser & {
   password: string;
-}
+};
 
 type StoredCompetency = CompetencyRecord;
 
 const DEFAULT_STUDENT_ACCOUNT: StoredStudentUser = {
   user_id: 1,
-  username: 'student1',
-  email: 'example@gmail.com',
-  password: '12345',
-  role: 'student',
+  username: "student1",
+  email: "example@gmail.com",
+  password: "12345",
+  role: "student",
   created_at: new Date().toISOString(),
 };
 
-const DEFAULT_COMPETENCIES: Omit<StoredCompetency, 'competency_id' | 'created_at' | 'updated_at'>[] = [
+const DEFAULT_COMPETENCIES: Omit<
+  StoredCompetency,
+  "competency_id" | "created_at" | "updated_at"
+>[] = [
   {
-    competency_name: 'Raise Organic Chicken',
-    sector: 'Agriculture, Forestry and Fishery',
-    qualification: 'Organic Agriculture Production NC II',
-    status: 'Active',
+    competency_name: "Raise Organic Chicken",
+    sector: "Agriculture, Forestry and Fishery",
+    qualification: "Organic Agriculture Production NC II",
+    status: "Active",
   },
   {
-    competency_name: 'Produce Organic Vegetables',
-    sector: 'Agriculture, Forestry and Fishery',
-    qualification: 'Organic Agriculture Production NC II',
-    status: 'Active',
+    competency_name: "Produce Organic Vegetables",
+    sector: "Agriculture, Forestry and Fishery",
+    qualification: "Organic Agriculture Production NC II",
+    status: "Active",
   },
   {
-    competency_name: 'Produce Organic Fertilizer',
-    sector: 'Agriculture, Forestry and Fishery',
-    qualification: 'Organic Agriculture Production NC II',
-    status: 'Active',
+    competency_name: "Produce Organic Fertilizer",
+    sector: "Agriculture, Forestry and Fishery",
+    qualification: "Organic Agriculture Production NC II",
+    status: "Active",
   },
   {
-    competency_name: 'Produce Organic Concoction and Extract',
-    sector: 'Agriculture, Forestry and Fishery',
-    qualification: 'Organic Agriculture Production NC II',
-    status: 'Active',
+    competency_name: "Produce Organic Concoction and Extract",
+    sector: "Agriculture, Forestry and Fishery",
+    qualification: "Organic Agriculture Production NC II",
+    status: "Active",
   },
 ];
 
-const DEFAULT_MODULES: Omit<ModuleRecord, 'module_id' | 'created_at' | 'updated_at'>[] = [
+const DEFAULT_MODULES: Omit<
+  ModuleRecord,
+  "module_id" | "created_at" | "updated_at"
+>[] = [
   {
     competency_id: 1,
-    module_name: 'Raise Organic Chicken',
-    description: 'Welcome to the Module on Raising Organic Chicken. This module contains training materials and activities for you to complete. The unit of competency on Raise Organic Chicken contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.',
-    module_pdf: 'assets/learning-materials/module/Raising Organic Chicken.pdf',
-    thumbnail: 'assets/learning-materials/module/Raising-chicken/raise.png',
+    module_name: "Raise Organic Chicken",
+    description:
+      "Welcome to the Module on Raising Organic Chicken. This module contains training materials and activities for you to complete. The unit of competency on Raise Organic Chicken contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.",
+    module_pdf: "assets/learning-materials/module/Raising Organic Chicken.pdf",
+    thumbnail: "assets/learning-materials/module/Raising-chicken/raise.png",
   },
   {
     competency_id: 2,
-    module_name: 'Produce Organic Vegetables',
-    description: 'Welcome to the Module on Producing Organic Vegetables. This module contains training materials and activities for you to complete. The unit of competency on Produce Organic Vegetables contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.',
-    module_pdf: 'assets/learning-materials/module/Producing Organic Vegetables.pdf',
-    thumbnail: 'assets/learning-materials/module/Producing-organic-vegetables/vegetables.png',
+    module_name: "Produce Organic Vegetables",
+    description:
+      "Welcome to the Module on Producing Organic Vegetables. This module contains training materials and activities for you to complete. The unit of competency on Produce Organic Vegetables contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.",
+    module_pdf:
+      "assets/learning-materials/module/Producing Organic Vegetables.pdf",
+    thumbnail:
+      "assets/learning-materials/module/Producing-organic-vegetables/vegetables.png",
   },
   {
     competency_id: 3,
-    module_name: 'Produce Organic Fertilizer',
-    description: 'Welcome to the Module on Producing Organic Fertilizer. This module contains training materials and activities for you to complete. The unit of competency on Produce Organic Fertilizer contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.',
-    module_pdf: 'assets/learning-materials/module/Producing Organic Fertilizer.pdf',
-    thumbnail: 'assets/learning-materials/module/Producing-organic-fertilizer/fertilizer.jpg',
+    module_name: "Produce Organic Fertilizer",
+    description:
+      "Welcome to the Module on Producing Organic Fertilizer. This module contains training materials and activities for you to complete. The unit of competency on Produce Organic Fertilizer contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.",
+    module_pdf:
+      "assets/learning-materials/module/Producing Organic Fertilizer.pdf",
+    thumbnail:
+      "assets/learning-materials/module/Producing-organic-fertilizer/fertilizer.jpg",
   },
   {
     competency_id: 4,
-    module_name: 'Produce Organic Concoction and Extract',
-    description: 'Welcome to the Module on Producing Organic Concoction and Extract. This module contains training materials and activities for you to complete. The unit of competency on Produce Organic Concoction and Extract contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.',
-    module_pdf: 'assets/learning-materials/module/Producing Organic Concoction and Extract.pdf',
-    thumbnail: 'assets/learning-materials/module/Producing-organic-concoction/concoction.jpg',
+    module_name: "Produce Organic Concoction and Extract",
+    description:
+      "Welcome to the Module on Producing Organic Concoction and Extract. This module contains training materials and activities for you to complete. The unit of competency on Produce Organic Concoction and Extract contains knowledge, skills and attitudes required for an Organic Agriculture Production NC II course. You are required to go through a series of learning activities in order to complete each of the learning outcomes of the module. In each learning outcome there are Information Sheets, Operation Sheets, Job Sheets and Task Sheets. Follow these activities on your own and answer the Self-Check at the end of each learning activity.",
+    module_pdf:
+      "assets/learning-materials/module/Producing Organic Concoction and Extract.pdf",
+    thumbnail:
+      "assets/learning-materials/module/Producing-organic-concoction/concoction.jpg",
   },
 ];
 
-const DEFAULT_LESSONS: Omit<LessonRecord, 'lesson_id' | 'created_at' | 'updated_at'>[] = [
-  { module_id: 1, lesson_name: 'LO1:Select Healthy Stocks and Suitable Housing', order_number: 1 },
-  { module_id: 1, lesson_name: 'LO2:Set-up Cage Equipment', order_number: 2 },
-  { module_id: 1, lesson_name: 'LO3:Feed Chicken', order_number: 3 },
-  { module_id: 1, lesson_name: 'LO4:Grow and Harvest Chicken', order_number: 4 },
-  { module_id: 2, lesson_name: 'LO1:Establish Nursery', order_number: 1 },
-  { module_id: 2, lesson_name: 'LO2:Plant Seedlings', order_number: 2 },
-  { module_id: 2, lesson_name: 'LO3:Perform Plant Care and Management', order_number: 3 },
-  { module_id: 2, lesson_name: 'LO4:Perform Harvest and Post-Harvest Activities', order_number: 4 },
-  { module_id: 3, lesson_name: 'LO1:Prepare Composting Area and Raw Materials', order_number: 1 },
-  { module_id: 3, lesson_name: 'LO2:Compost and Harvest Fertilizer', order_number: 2 },
-  { module_id: 4, lesson_name: 'LO1:Prepare for the production of various concoctions', order_number: 1 },
-  { module_id: 4, lesson_name: 'LO2:Process concoctions', order_number: 2 },
-  { module_id: 4, lesson_name: 'LO3:Package concoctions', order_number: 3 },
+const DEFAULT_LESSONS: Omit<
+  LessonRecord,
+  "lesson_id" | "created_at" | "updated_at"
+>[] = [
+  {
+    module_id: 1,
+    lesson_name: "LO1:Select Healthy Stocks and Suitable Housing",
+    order_number: 1,
+  },
+  { module_id: 1, lesson_name: "LO2:Set-up Cage Equipment", order_number: 2 },
+  { module_id: 1, lesson_name: "LO3:Feed Chicken", order_number: 3 },
+  {
+    module_id: 1,
+    lesson_name: "LO4:Grow and Harvest Chicken",
+    order_number: 4,
+  },
+  { module_id: 2, lesson_name: "LO1:Establish Nursery", order_number: 1 },
+  { module_id: 2, lesson_name: "LO2:Plant Seedlings", order_number: 2 },
+  {
+    module_id: 2,
+    lesson_name: "LO3:Perform Plant Care and Management",
+    order_number: 3,
+  },
+  {
+    module_id: 2,
+    lesson_name: "LO4:Perform Harvest and Post-Harvest Activities",
+    order_number: 4,
+  },
+  {
+    module_id: 3,
+    lesson_name: "LO1:Prepare Composting Area and Raw Materials",
+    order_number: 1,
+  },
+  {
+    module_id: 3,
+    lesson_name: "LO2:Compost and Harvest Fertilizer",
+    order_number: 2,
+  },
+  {
+    module_id: 4,
+    lesson_name: "LO1:Prepare for the production of various concoctions",
+    order_number: 1,
+  },
+  { module_id: 4, lesson_name: "LO2:Process concoctions", order_number: 2 },
+  { module_id: 4, lesson_name: "LO3:Package concoctions", order_number: 3 },
 ];
 
-const DEFAULT_LESSON_CONTENTS: Omit<LessonContentRecord, 'lesson_content_id' | 'created_at' | 'updated_at'>[] = [
-  { lesson_id: 1, content_name: 'Chicken breeds identification', objectives: 'After reading this information sheet, you should be able to identify chicken breeds.' },
-  { lesson_id: 1, content_name: "Healthy chick's selection indicators", objectives: 'After reading this information sheet, you should be able to select healthy chicks' },
-  { lesson_id: 1, content_name: 'Determining suitable site for chicken house', objectives: 'After reading this information sheet, you should be able to determine suitable site for chicken house' },
-  { lesson_id: 1, content_name: 'Chicken house design preparation', objectives: 'After reading this information sheet, you should be able to prepare design for chicken house.' },
-  { lesson_id: 1, content_name: 'House equipment installation design', objectives: 'After reading this information sheet, you should be able to identify chicken breeds.' },
-  { lesson_id: 2, content_name: 'House equipment installation', objectives: 'After reading this information sheet, you should be able to appreciate the importance of house equipment installation.' },
-  { lesson_id: 2, content_name: 'Preparing and securing bedding materials', objectives: 'After reading this information sheet, you should be able to prepare and secure bedding materials' },
-  { lesson_id: 2, content_name: 'Setting up brooding facility', objectives: 'After reading this information sheet, you should be able to set up brooding facility.' },
-  { lesson_id: 3, content_name: 'Feed materials selection', objectives: 'After reading this information sheet, you should be able to select materials for feeds' },
-  { lesson_id: 3, content_name: 'Feeding materials preparation', objectives: 'After reading this information sheet, you should be able to prepare feeding materials.' },
-  { lesson_id: 3, content_name: 'Feeding management program', objectives: 'After reading this information sheet, you should be able to differentiate different feeding program.' },
-  { lesson_id: 3, content_name: 'Monitoring feeding', objectives: 'After reading this information sheet, you should be able to monitor feeding.' },
-  { lesson_id: 4, content_name: 'Monitor growth rate', objectives: 'After reading this information sheet, you should be able to monitor growth rate of a broiler' },
-  { lesson_id: 4, content_name: 'Healthcare program implementation', objectives: 'After reading this information sheet, you should be able to appreciate healthcare program.' },
-  { lesson_id: 4, content_name: 'Sanitation and cleanliness program', objectives: 'After reading this information sheet, you should be able to appreciate the importance of sanitation and cleanliness program' },
-  { lesson_id: 4, content_name: 'Organic waste collection for fertilizer formulation', objectives: 'After reading this information sheet, you should be able to collect organic waste.' },
-  { lesson_id: 4, content_name: 'Suitable chicken for harvest selection', objectives: 'After reading this information sheet, you should be able to select Suitable chicken for harvest.' },
-  { lesson_id: 4, content_name: 'Production record', objectives: 'After reading this information sheet, you should be able to appreciate the importance of production record.' },
-  { lesson_id: 5, content_name: 'Selection of Seeds', objectives: 'After reading this information sheet, you should be able to select viable seeds.' },
-  { lesson_id: 5, content_name: 'Seedbed Preparation', objectives: 'After reading this information sheet, you should be able to prepare seedbed.' },
-  { lesson_id: 5, content_name: 'Maintaining Seedling', objectives: 'After reading this information sheet, you should be able to care and maintain seedlings.' },
-  { lesson_id: 5, content_name: 'Prepare Growing Media', objectives: 'After reading this information sheet, you should be able prepare the different growing media.' },
-  { lesson_id: 6, content_name: 'Land Preparation', objectives: 'After reading this information sheet, you should be able to perform land preparation.' },
-  { lesson_id: 6, content_name: 'Beneficial Microorganisms', objectives: 'After reading this information sheet, you should be able to identify the different types beneficial microorganism.' },
-  { lesson_id: 6, content_name: 'Planting/Transplanting Seedlings', objectives: 'After reading this information sheet, you should be able to plant/transplant vegetable seedlings.' },
-  { lesson_id: 6, content_name: 'Water Seedlings', objectives: 'After reading this information sheet, you should be able to water seedlings.' },
-  { lesson_id: 7, content_name: 'Water Management Implementation', objectives: 'After reading this information sheet, you should be able to appreciate the importance of proper water management.' },
-  { lesson_id: 7, content_name: 'Pest and Diseases Control Measures', objectives: 'After reading this information sheet, you should be able to apply control measures on pest and diseases.' },
-  { lesson_id: 7, content_name: 'Replanting Missing Hills', objectives: 'After reading this information sheet, you should be able to do replanting.' },
-  { lesson_id: 7, content_name: 'Plant Rationing (Rejuvenation)', objectives: 'After reading this information sheet, you should be able identify the number of sow to be served per boar.' },
-  { lesson_id: 7, content_name: 'Organic Fertilizers Application', objectives: 'After reading this information sheet, you should be able identify organic fertilizers.' },
-  { lesson_id: 8, content_name: 'Maturity Indices', objectives: 'After reading this information sheet, you should be able identify the maturity indices of fruits of vegetables.' },
-  { lesson_id: 8, content_name: 'Harvest Marketable Products', objectives: 'After reading this information sheet, you should be able to harvest marketable products.' },
-  { lesson_id: 8, content_name: 'Classify Marketable Products', objectives: 'After reading this information sheet, you should be able to classify marketable products.' },
-  { lesson_id: 8, content_name: 'Harvesting Tools and Materials', objectives: 'After reading this information sheet, you should be able identify the best tools for harvesting.' },
-  { lesson_id: 8, content_name: 'Post-harvest practices', objectives: 'After reading this information sheet, you should be able to learn harvesting practices.' },
-  { lesson_id: 8, content_name: 'Record Keeping', objectives: 'After reading this information sheet, you should be able to learn record keeping of harvest.' },
-  { lesson_id: 9, content_name: 'Site Selection', objectives: 'After reading this information sheet, you should be able to select composting site.' },
-  { lesson_id: 9, content_name: 'Prepare Site Layout', objectives: 'After reading this information sheet, you should be able to prepare composting site layout.' },
-  { lesson_id: 9, content_name: 'Prepare Bed', objectives: 'After reading this information sheet, you should be able to prepare bed for composting.' },
-  { lesson_id: 9, content_name: 'Gather Materials', objectives: 'After reading this information sheet, you should be able to gather the raw materials for composting.' },
-  { lesson_id: 9, content_name: 'Raw Materials', objectives: 'After reading this information sheet, you should be able to identify the raw materials uses for composting.' },
-  { lesson_id: 10, content_name: 'Composting Method', objectives: 'After reading this information sheet, you should be able to identify the different types of composting method.' },
-  { lesson_id: 10, content_name: 'Monitor Decomposition Process', objectives: 'After reading this information sheet, you should be able to monitor the decomposition process of organic fertilizer.' },
-  { lesson_id: 10, content_name: 'Harvest Quality', objectives: 'After reading this information sheet, you should be able to identify the quality of a good harvest.' },
-  { lesson_id: 10, content_name: 'Processing of Compost Fertilizer', objectives: 'After reading this information sheet, you should be able to identify processes of composting fertilizer.' },
-  { lesson_id: 10, content_name: 'Record Keeping', objectives: 'After reading this information sheet, you should be able to perform record keeping.' },
-  { lesson_id: 11, content_name: 'Storage Area', objectives: 'After reading this information sheet, you should be able to secure the Storage Areas.' },
-  { lesson_id: 11, content_name: 'Raw materials', objectives: 'After reading this information sheet, you should be able to determine the clean raw materials free from chemicals.' },
-  { lesson_id: 11, content_name: 'Tools, Materials and Equipment', objectives: 'After reading this information sheet, you should be able to identify the tools, materials and equipment.' },
-  { lesson_id: 11, content_name: 'Personal Hygiene', objectives: 'None' },
-  { lesson_id: 12, content_name: 'Prepare Raw Materials', objectives: 'After reading this information sheet, you should be able to prepare raw materials when producing organic concoction and extract.' },
-  { lesson_id: 12, content_name: 'Fermentation period', objectives: 'After reading this information sheet, you should be able to determine the period of fermentation process.' },
-  { lesson_id: 12, content_name: 'Various concoctions', objectives: 'After reading this information sheet, you should be able to identify various type of concoctions.' },
-  { lesson_id: 12, content_name: 'Period of harvest', objectives: 'After reading this information sheet, you should be able to identify harvesting time of concoction.' },
-  { lesson_id: 13, content_name: 'Sanitize bottles and containers', objectives: 'After reading this information sheet, you should be able to sanitize the bottles and containers for concoctions.' },
-  { lesson_id: 13, content_name: 'Package concoctions', objectives: 'After reading this information sheet, you should be able to appreciate the proper labeling and packaging of concoctions.' },
-  { lesson_id: 13, content_name: 'Appropriate place to store', objectives: 'After reading this information sheet, you should be able to determine the appropriate storage for the various concoctionss.' },
+const DEFAULT_LESSON_CONTENTS: Omit<
+  LessonContentRecord,
+  "lesson_content_id" | "created_at" | "updated_at"
+>[] = [
+  {
+    lesson_id: 1,
+    content_name: "Chicken breeds identification",
+    objectives:
+      "After reading this information sheet, you should be able to identify chicken breeds.",
+  },
+  {
+    lesson_id: 1,
+    content_name: "Healthy chick's selection indicators",
+    objectives:
+      "After reading this information sheet, you should be able to select healthy chicks",
+  },
+  {
+    lesson_id: 1,
+    content_name: "Determining suitable site for chicken house",
+    objectives:
+      "After reading this information sheet, you should be able to determine suitable site for chicken house",
+  },
+  {
+    lesson_id: 1,
+    content_name: "Chicken house design preparation",
+    objectives:
+      "After reading this information sheet, you should be able to prepare design for chicken house.",
+  },
+  {
+    lesson_id: 1,
+    content_name: "House equipment installation design",
+    objectives:
+      "After reading this information sheet, you should be able to identify chicken breeds.",
+  },
+  {
+    lesson_id: 2,
+    content_name: "House equipment installation",
+    objectives:
+      "After reading this information sheet, you should be able to appreciate the importance of house equipment installation.",
+  },
+  {
+    lesson_id: 2,
+    content_name: "Preparing and securing bedding materials",
+    objectives:
+      "After reading this information sheet, you should be able to prepare and secure bedding materials",
+  },
+  {
+    lesson_id: 2,
+    content_name: "Setting up brooding facility",
+    objectives:
+      "After reading this information sheet, you should be able to set up brooding facility.",
+  },
+  {
+    lesson_id: 3,
+    content_name: "Feed materials selection",
+    objectives:
+      "After reading this information sheet, you should be able to select materials for feeds",
+  },
+  {
+    lesson_id: 3,
+    content_name: "Feeding materials preparation",
+    objectives:
+      "After reading this information sheet, you should be able to prepare feeding materials.",
+  },
+  {
+    lesson_id: 3,
+    content_name: "Feeding management program",
+    objectives:
+      "After reading this information sheet, you should be able to differentiate different feeding program.",
+  },
+  {
+    lesson_id: 3,
+    content_name: "Monitoring feeding",
+    objectives:
+      "After reading this information sheet, you should be able to monitor feeding.",
+  },
+  {
+    lesson_id: 4,
+    content_name: "Monitor growth rate",
+    objectives:
+      "After reading this information sheet, you should be able to monitor growth rate of a broiler",
+  },
+  {
+    lesson_id: 4,
+    content_name: "Healthcare program implementation",
+    objectives:
+      "After reading this information sheet, you should be able to appreciate healthcare program.",
+  },
+  {
+    lesson_id: 4,
+    content_name: "Sanitation and cleanliness program",
+    objectives:
+      "After reading this information sheet, you should be able to appreciate the importance of sanitation and cleanliness program",
+  },
+  {
+    lesson_id: 4,
+    content_name: "Organic waste collection for fertilizer formulation",
+    objectives:
+      "After reading this information sheet, you should be able to collect organic waste.",
+  },
+  {
+    lesson_id: 4,
+    content_name: "Suitable chicken for harvest selection",
+    objectives:
+      "After reading this information sheet, you should be able to select Suitable chicken for harvest.",
+  },
+  {
+    lesson_id: 4,
+    content_name: "Production record",
+    objectives:
+      "After reading this information sheet, you should be able to appreciate the importance of production record.",
+  },
+  {
+    lesson_id: 5,
+    content_name: "Selection of Seeds",
+    objectives:
+      "After reading this information sheet, you should be able to select viable seeds.",
+  },
+  {
+    lesson_id: 5,
+    content_name: "Seedbed Preparation",
+    objectives:
+      "After reading this information sheet, you should be able to prepare seedbed.",
+  },
+  {
+    lesson_id: 5,
+    content_name: "Maintaining Seedling",
+    objectives:
+      "After reading this information sheet, you should be able to care and maintain seedlings.",
+  },
+  {
+    lesson_id: 5,
+    content_name: "Prepare Growing Media",
+    objectives:
+      "After reading this information sheet, you should be able prepare the different growing media.",
+  },
+  {
+    lesson_id: 6,
+    content_name: "Land Preparation",
+    objectives:
+      "After reading this information sheet, you should be able to perform land preparation.",
+  },
+  {
+    lesson_id: 6,
+    content_name: "Beneficial Microorganisms",
+    objectives:
+      "After reading this information sheet, you should be able to identify the different types beneficial microorganism.",
+  },
+  {
+    lesson_id: 6,
+    content_name: "Planting/Transplanting Seedlings",
+    objectives:
+      "After reading this information sheet, you should be able to plant/transplant vegetable seedlings.",
+  },
+  {
+    lesson_id: 6,
+    content_name: "Water Seedlings",
+    objectives:
+      "After reading this information sheet, you should be able to water seedlings.",
+  },
+  {
+    lesson_id: 7,
+    content_name: "Water Management Implementation",
+    objectives:
+      "After reading this information sheet, you should be able to appreciate the importance of proper water management.",
+  },
+  {
+    lesson_id: 7,
+    content_name: "Pest and Diseases Control Measures",
+    objectives:
+      "After reading this information sheet, you should be able to apply control measures on pest and diseases.",
+  },
+  {
+    lesson_id: 7,
+    content_name: "Replanting Missing Hills",
+    objectives:
+      "After reading this information sheet, you should be able to do replanting.",
+  },
+  {
+    lesson_id: 7,
+    content_name: "Plant Rationing (Rejuvenation)",
+    objectives:
+      "After reading this information sheet, you should be able identify the number of sow to be served per boar.",
+  },
+  {
+    lesson_id: 7,
+    content_name: "Organic Fertilizers Application",
+    objectives:
+      "After reading this information sheet, you should be able identify organic fertilizers.",
+  },
+  {
+    lesson_id: 8,
+    content_name: "Maturity Indices",
+    objectives:
+      "After reading this information sheet, you should be able identify the maturity indices of fruits of vegetables.",
+  },
+  {
+    lesson_id: 8,
+    content_name: "Harvest Marketable Products",
+    objectives:
+      "After reading this information sheet, you should be able to harvest marketable products.",
+  },
+  {
+    lesson_id: 8,
+    content_name: "Classify Marketable Products",
+    objectives:
+      "After reading this information sheet, you should be able to classify marketable products.",
+  },
+  {
+    lesson_id: 8,
+    content_name: "Harvesting Tools and Materials",
+    objectives:
+      "After reading this information sheet, you should be able identify the best tools for harvesting.",
+  },
+  {
+    lesson_id: 8,
+    content_name: "Post-harvest practices",
+    objectives:
+      "After reading this information sheet, you should be able to learn harvesting practices.",
+  },
+  {
+    lesson_id: 8,
+    content_name: "Record Keeping",
+    objectives:
+      "After reading this information sheet, you should be able to learn record keeping of harvest.",
+  },
+  {
+    lesson_id: 9,
+    content_name: "Site Selection",
+    objectives:
+      "After reading this information sheet, you should be able to select composting site.",
+  },
+  {
+    lesson_id: 9,
+    content_name: "Prepare Site Layout",
+    objectives:
+      "After reading this information sheet, you should be able to prepare composting site layout.",
+  },
+  {
+    lesson_id: 9,
+    content_name: "Prepare Bed",
+    objectives:
+      "After reading this information sheet, you should be able to prepare bed for composting.",
+  },
+  {
+    lesson_id: 9,
+    content_name: "Gather Materials",
+    objectives:
+      "After reading this information sheet, you should be able to gather the raw materials for composting.",
+  },
+  {
+    lesson_id: 9,
+    content_name: "Raw Materials",
+    objectives:
+      "After reading this information sheet, you should be able to identify the raw materials uses for composting.",
+  },
+  {
+    lesson_id: 10,
+    content_name: "Composting Method",
+    objectives:
+      "After reading this information sheet, you should be able to identify the different types of composting method.",
+  },
+  {
+    lesson_id: 10,
+    content_name: "Monitor Decomposition Process",
+    objectives:
+      "After reading this information sheet, you should be able to monitor the decomposition process of organic fertilizer.",
+  },
+  {
+    lesson_id: 10,
+    content_name: "Harvest Quality",
+    objectives:
+      "After reading this information sheet, you should be able to identify the quality of a good harvest.",
+  },
+  {
+    lesson_id: 10,
+    content_name: "Processing of Compost Fertilizer",
+    objectives:
+      "After reading this information sheet, you should be able to identify processes of composting fertilizer.",
+  },
+  {
+    lesson_id: 10,
+    content_name: "Record Keeping",
+    objectives:
+      "After reading this information sheet, you should be able to perform record keeping.",
+  },
+  {
+    lesson_id: 11,
+    content_name: "Storage Area",
+    objectives:
+      "After reading this information sheet, you should be able to secure the Storage Areas.",
+  },
+  {
+    lesson_id: 11,
+    content_name: "Raw materials",
+    objectives:
+      "After reading this information sheet, you should be able to determine the clean raw materials free from chemicals.",
+  },
+  {
+    lesson_id: 11,
+    content_name: "Tools, Materials and Equipment",
+    objectives:
+      "After reading this information sheet, you should be able to identify the tools, materials and equipment.",
+  },
+  { lesson_id: 11, content_name: "Personal Hygiene", objectives: "None" },
+  {
+    lesson_id: 12,
+    content_name: "Prepare Raw Materials",
+    objectives:
+      "After reading this information sheet, you should be able to prepare raw materials when producing organic concoction and extract.",
+  },
+  {
+    lesson_id: 12,
+    content_name: "Fermentation period",
+    objectives:
+      "After reading this information sheet, you should be able to determine the period of fermentation process.",
+  },
+  {
+    lesson_id: 12,
+    content_name: "Various concoctions",
+    objectives:
+      "After reading this information sheet, you should be able to identify various type of concoctions.",
+  },
+  {
+    lesson_id: 12,
+    content_name: "Period of harvest",
+    objectives:
+      "After reading this information sheet, you should be able to identify harvesting time of concoction.",
+  },
+  {
+    lesson_id: 13,
+    content_name: "Sanitize bottles and containers",
+    objectives:
+      "After reading this information sheet, you should be able to sanitize the bottles and containers for concoctions.",
+  },
+  {
+    lesson_id: 13,
+    content_name: "Package concoctions",
+    objectives:
+      "After reading this information sheet, you should be able to appreciate the proper labeling and packaging of concoctions.",
+  },
+  {
+    lesson_id: 13,
+    content_name: "Appropriate place to store",
+    objectives:
+      "After reading this information sheet, you should be able to determine the appropriate storage for the various concoctionss.",
+  },
 ];
 
-const DEFAULT_LESSON_INFO: Omit<LessonInfoRecord, 'created_at' | 'updated_at'>[] = [
-  { lesson_info_id: 1, lesson_id: 1, label: 'Assessment Criteria', content: 'Breed/strains breeds are identified as per PNS-Organic Agriculture-Livestock and GAHP Guidelines. Healthy chicks are selected based on industry acceptable indicator for healthy chicks. Suitable site for chicken house are determined based on PNS recommendations. Chicken house design is prepared based PNS recommendations. House equipment installation design is prepared in line with PNS recommendation and actual scenario.' },
-  { lesson_info_id: 2, lesson_id: 1, label: 'Contents', content: 'Chicken breeds Identification, Healthy chick\'s selection, Determining suitable site for chicken house, Chicken house design preparation, and House equipment installation' },
-  { lesson_info_id: 3, lesson_id: 1, label: 'Tools, Materials and Equipment and Facilities', content: 'Farm, Feeding troughs, Waterers, Containers of concoction, Chicken/ chicks, Rice hull, Saw dust, Coco coir, Rice straw, and PPE ( Boots, surgical masks, disposable gloves, overall)' },
-  { lesson_info_id: 4, lesson_id: 2, label: 'Assessment Criteria', content: 'House equipment are installed in line with housing equipment installation design. Bedding materials are secured based on availability in the locality. Bedding is prepared in accordance with housing equipment housing design. Brooding facility is set-up in accordance with the housing equipment installation design.' },
-  { lesson_info_id: 5, lesson_id: 2, label: 'Contents', content: 'House equipment installation, Prepare and secure bedding materials, and Set-up brooding facility.' },
-  { lesson_info_id: 6, lesson_id: 2, label: 'Tools, Materials and Equipment and Facilities', content: 'Farm, Housing, Bedding materials, Brooding facility, PPE (Boots, surgical masks, disposable gloves, overall.' },
-  { lesson_info_id: 7, lesson_id: 3, label: 'Assessment Criteria', content: 'Suitable feed materials are selected based on availability in the locality and nutrient requirements of chicken. Feed materials are prepared following enterprise prescribed formulation. Animals are fed based on feeding management program. Feeding is monitored following enterprise procedure.' },
-  { lesson_info_id: 8, lesson_id: 3, label: 'Contents', content: 'Feed materials selection. feeding materials preparation. Feeding management program. Monitoring feeding' },
-  { lesson_info_id: 9, lesson_id: 3, label: 'Tools, Materials and Equipment and Facilities', content: 'PPE, Feeding trough, Chopping board, Knife, and Plant material' },
-  { lesson_info_id: 10, lesson_id: 4, label: 'Assessment Criteria', content: 'Growth rate is monitored based on enterprise procedures. Health care program are implemented based on enterprise procedures. Sanitation and cleanliness program are implemented based on enterprise procedure. Organic waste for fertilizer formulation are collected. Suitable chicken for harvest are selected based on market specifications. Production record is accomplished according to enterprise procedure.' },
-  { lesson_info_id: 11, lesson_id: 4, label: 'Contents', content: 'Monitor growth rate, Healthcare program, Sanitation and cleanliness program, Organic waste collection, Suitable chicken for harvest selection, and Production record' },
-  { lesson_info_id: 12, lesson_id: 4, label: 'Tools, Materials and Equipment and Facilities', content: 'Poultry farm, Fully grown broilers, Paper, Pen, Calculator, and Weighing scale' },
-  { lesson_info_id: 13, lesson_id: 5, label: 'Assessment Criteria', content: 'Seeds are selected in accordance with the PNS, and NSQCS/BPI. Seedbeds are prepared in accordance with planting requirements based on Vegetable Production manual (VPM). Care and maintenance of seedlings are done in accordance with enterprise practice. Potting media are prepared in accordance with enterprise procedure.' },
-  { lesson_info_id: 14, lesson_id: 5, label: 'Contents', content: 'Selection of Seeds. Seed bed Preparation. Maintaining Seedling. Prepare growing media' },
-  { lesson_info_id: 15, lesson_id: 5, label: 'Tools, Materials and Equipment and Facilities', content: 'Farm, Different vegetable seeds, Seed bed, Carbonized rice hull, Compost, Animal manure, and PPE' },
-  { lesson_info_id: 16, lesson_id: 6, label: 'Assessment Criteria', content: 'Land preparation is carried out in accordance with enterprise practice. Beneficial micro-organisms are introduced prior to planting in accordance with enterprise procedure. Seedlings are transplanted/planted based on VPM recommendations. Seedlings are watered based on VPM recommendations' },
-  { lesson_info_id: 17, lesson_id: 6, label: 'Contents', content: 'Land Preparation, Beneficial microorganisms, Planting/transplanting seedlings, and Water seedlings' },
-  { lesson_info_id: 18, lesson_id: 6, label: 'Tools, Materials and Equipment and Facilities', content: 'Farm/filed, Seedlings, Trowel, Sprinkler, water, andPPE' },
-  { lesson_info_id: 19, lesson_id: 7, label: 'Assessment Criteria', content: 'Water management is implemented according to plan. Effective control measures are determined on specific pest and diseases as described under the "pest, disease and weed management" of the PNS. All missing hills are replanted to maintain the desired plant population of the area. Plant rejuvenation/rationing are maintained according to PNS. Organic fertilizers are applied in accordance with fertilization policy of the PNS.' },
-  { lesson_info_id: 20, lesson_id: 7, label: 'Contents', content: 'Water management implementation, Pest and diseases control measures, Replanting missing hills, Plant rationing and Organic fertilizer application' },
-  { lesson_info_id: 21, lesson_id: 7, label: 'Tools, Materials and Equipment and Facilities', content: 'Seedlings, Organic fertilizer (compost, animal manure), botanical repellants, hose, and water source' },
-  { lesson_info_id: 22, lesson_id: 8, label: 'Assessment Criteria', content: 'Products are checked using maturity indices according to PNS, PNS-organic agriculture and enterprise practice. Marketable products are harvested according to PNS, PNSorganic agriculture and enterprise practice. Harvested vegetables are classified according to PNS, PNSorganic agriculture and enterprise practice. Appropriate harvesting tools and materials are used according to PNS. Post-harvest practices are applied according to PNS and GAP recommendation. Production record is accomplished according to enterprise procedures.' },
-  { lesson_info_id: 23, lesson_id: 8, label: 'Contents', content: 'maturity indices, harvest marketable products, classify marketable products, harvesting tools and materials, Post-harvest practices, and Record Keeping' },
-  { lesson_info_id: 24, lesson_id: 8, label: 'Tools, Materials and Equipment and Facilities', content: 'Ladder, Basket, Scissors, Scythe, and Notebook and pen' },
-  { lesson_info_id: 25, lesson_id: 9, label: 'Assessment Criteria', content: 'Site is selected based on compost fertilizer production requirements and Site lay-out is prepared based on location. Bed is prepared in accordance with production requirements. Materials are gather based on production requirements and PNS for organic fertilizer. Prepare raw materials following enterprise procedure and PNS for organic fertilizer.' },
-  { lesson_info_id: 26, lesson_id: 9, label: 'Contents', content: 'Site Selection, Prepare site layout, Prepare bed, Gather material, and Prepare raw materials' },
-  { lesson_info_id: 27, lesson_id: 9, label: 'Tools, Materials and Equipment and Facilities', content: 'Composting shed using locally available materials, Shredder, Drums for water storage, Flat and pointed shovels, Hoe, Wheelbarrow, Sieve, and Water hose' },
-  { lesson_info_id: 28, lesson_id: 10, label: 'Assessment Criteria', content: 'Appropriate composting methods are applied based on production requirements. Compost is monitored based PNS indicators of fully decomposed fertilizer. Quality of harvest is checked based on PNS indicators of fully decomposed fertilizer. Processing of compost fertilizer are carried- out based on production requirement. Record keeping is performed according to enterprise procedure.' },
-  { lesson_info_id: 29, lesson_id: 10, label: 'Contents', content: 'Composting methods, Decomposed fertilizer, Quality of harvest, Processing of compost fertilizer, and Record keeping' },
-  { lesson_info_id: 30, lesson_id: 10, label: 'Tools, Materials and Equipment and Facilities', content: 'Composting area and PPE (Boots, surgical masks, disposable gloves, overall)' },
-  { lesson_info_id: 31, lesson_id: 11, label: 'Assessment Criteria', content: 'Work and storage areas are cleaned, sanitized and secured. Raw materials used are cleaned and freed from synthetic chemicals. Tools, materials and equipment used are cleaned, freed from contaminations and must be of "food grade" quality. Personal hygiene are observed according to OHS procedures.' },
-  { lesson_info_id: 32, lesson_id: 11, label: 'Contents', content: 'Storage Areas, Raw materials Tools, materials and equipment, and Personal hygiene' },
-  { lesson_info_id: 33, lesson_id: 11, label: 'Tools, Materials and Equipment and Facilities', content: 'kangkong, camote tops, alugbati, malunggay, banana trunks, bamboo shoots and other fast growing green plants, Molasses/mascuvado/ brown sugar Ripe and sweet fruits but not limited to banana, papaya, watermelon, ampalaya , tomato Trash Fish and gills, scales, offal of big fishes, golden kuhol meat Garlic, ginger, Pure coconut vinegar animal bones, egg shell, sea shell, kuhol shell 1 kl. Cooked, cool rice900 ml. fresh milk, 100 ml clear liquid from fermented rice, Plastic pail, Wooden ladle, Manila paper or cheese cloth, String or rubber bands, Weighing scale,  Chopping board,  Knife  Marker,  Strainer or nylon screen,' },
-  { lesson_info_id: 34, lesson_id: 12, label: 'Assessment Criteria', content: 'Raw materials are prepared in accordance with enterprise practice. Fermentation period is set based on enterprise practice. Various concoctions are fermented following to organic practices. Concoctions are harvested based on fermentation period of the concoction.' },
-  { lesson_info_id: 35, lesson_id: 12, label: 'Contents', content: 'Prepare raw materials, Fermentation period, Various concoctions, and Period of harvest' },
-  { lesson_info_id: 36, lesson_id: 12, label: 'Tools Materials and Equipment', content: 'Storage area, kangkong, camote tops, alugbati, malunggay, banana trunks, bamboo shoots and other fast growing green plants, Molasse/mascuvado/ brown sugar Ripe and sweet fruits but not limited to banana, papaya, watermelon, ampalaya , tomato Trash Fish and gills, scales, offal of big fishes, golden kuhol, meat, Garlic, ginger, Pure coconut vinegar animal bones, egg shell, sea shell, kuhol shell 1 kl. Cooked, cool rice900 ml. fresh milk, 100 ml clear liquid from fermented rice, Plastic pail, Wooden ladle, Manila paper or cheese cloth, String or rubber bands, Weighing scale, chopping board,  Knife  Marker,  Strainer or nylon screen.' },
-  { lesson_info_id: 37, lesson_id: 13, label: 'Assessment Criteria', content: 'Concoctions are contained in sanitized bottles and containers. Packaged concoctions are labeled and tagged in accordance with enterprise practice. Packaged concoctions are stored in appropriate place and temperature following organic practices. Production of concoctions are recorded using enterprise procedures.' },
-  { lesson_info_id: 38, lesson_id: 13, label: 'Contents', content: 'Sanitize bottles and containers, Package concoctions, Appropriate place to store, and Production Record' },
-  { lesson_info_id: 39, lesson_id: 13, label: 'Tools materials and equipment', content: 'Various concoctions, Concoction area, sanitized bottles, Labelling, and Storing area' },
+const DEFAULT_LESSON_INFO: Omit<
+  LessonInfoRecord,
+  "created_at" | "updated_at"
+>[] = [
+  {
+    lesson_info_id: 1,
+    lesson_id: 1,
+    label: "Assessment Criteria",
+    content:
+      "Breed/strains breeds are identified as per PNS-Organic Agriculture-Livestock and GAHP Guidelines. Healthy chicks are selected based on industry acceptable indicator for healthy chicks. Suitable site for chicken house are determined based on PNS recommendations. Chicken house design is prepared based PNS recommendations. House equipment installation design is prepared in line with PNS recommendation and actual scenario.",
+  },
+  {
+    lesson_info_id: 2,
+    lesson_id: 1,
+    label: "Contents",
+    content:
+      "Chicken breeds Identification, Healthy chick's selection, Determining suitable site for chicken house, Chicken house design preparation, and House equipment installation",
+  },
+  {
+    lesson_info_id: 3,
+    lesson_id: 1,
+    label: "Tools, Materials and Equipment and Facilities",
+    content:
+      "Farm, Feeding troughs, Waterers, Containers of concoction, Chicken/ chicks, Rice hull, Saw dust, Coco coir, Rice straw, and PPE ( Boots, surgical masks, disposable gloves, overall)",
+  },
+  {
+    lesson_info_id: 4,
+    lesson_id: 2,
+    label: "Assessment Criteria",
+    content:
+      "House equipment are installed in line with housing equipment installation design. Bedding materials are secured based on availability in the locality. Bedding is prepared in accordance with housing equipment housing design. Brooding facility is set-up in accordance with the housing equipment installation design.",
+  },
+  {
+    lesson_info_id: 5,
+    lesson_id: 2,
+    label: "Contents",
+    content:
+      "House equipment installation, Prepare and secure bedding materials, and Set-up brooding facility.",
+  },
+  {
+    lesson_info_id: 6,
+    lesson_id: 2,
+    label: "Tools, Materials and Equipment and Facilities",
+    content:
+      "Farm, Housing, Bedding materials, Brooding facility, PPE (Boots, surgical masks, disposable gloves, overall.",
+  },
+  {
+    lesson_info_id: 7,
+    lesson_id: 3,
+    label: "Assessment Criteria",
+    content:
+      "Suitable feed materials are selected based on availability in the locality and nutrient requirements of chicken. Feed materials are prepared following enterprise prescribed formulation. Animals are fed based on feeding management program. Feeding is monitored following enterprise procedure.",
+  },
+  {
+    lesson_info_id: 8,
+    lesson_id: 3,
+    label: "Contents",
+    content:
+      "Feed materials selection. feeding materials preparation. Feeding management program. Monitoring feeding",
+  },
+  {
+    lesson_info_id: 9,
+    lesson_id: 3,
+    label: "Tools, Materials and Equipment and Facilities",
+    content: "PPE, Feeding trough, Chopping board, Knife, and Plant material",
+  },
+  {
+    lesson_info_id: 10,
+    lesson_id: 4,
+    label: "Assessment Criteria",
+    content:
+      "Growth rate is monitored based on enterprise procedures. Health care program are implemented based on enterprise procedures. Sanitation and cleanliness program are implemented based on enterprise procedure. Organic waste for fertilizer formulation are collected. Suitable chicken for harvest are selected based on market specifications. Production record is accomplished according to enterprise procedure.",
+  },
+  {
+    lesson_info_id: 11,
+    lesson_id: 4,
+    label: "Contents",
+    content:
+      "Monitor growth rate, Healthcare program, Sanitation and cleanliness program, Organic waste collection, Suitable chicken for harvest selection, and Production record",
+  },
+  {
+    lesson_info_id: 12,
+    lesson_id: 4,
+    label: "Tools, Materials and Equipment and Facilities",
+    content:
+      "Poultry farm, Fully grown broilers, Paper, Pen, Calculator, and Weighing scale",
+  },
+  {
+    lesson_info_id: 13,
+    lesson_id: 5,
+    label: "Assessment Criteria",
+    content:
+      "Seeds are selected in accordance with the PNS, and NSQCS/BPI. Seedbeds are prepared in accordance with planting requirements based on Vegetable Production manual (VPM). Care and maintenance of seedlings are done in accordance with enterprise practice. Potting media are prepared in accordance with enterprise procedure.",
+  },
+  {
+    lesson_info_id: 14,
+    lesson_id: 5,
+    label: "Contents",
+    content:
+      "Selection of Seeds. Seed bed Preparation. Maintaining Seedling. Prepare growing media",
+  },
+  {
+    lesson_info_id: 15,
+    lesson_id: 5,
+    label: "Tools, Materials and Equipment and Facilities",
+    content:
+      "Farm, Different vegetable seeds, Seed bed, Carbonized rice hull, Compost, Animal manure, and PPE",
+  },
+  {
+    lesson_info_id: 16,
+    lesson_id: 6,
+    label: "Assessment Criteria",
+    content:
+      "Land preparation is carried out in accordance with enterprise practice. Beneficial micro-organisms are introduced prior to planting in accordance with enterprise procedure. Seedlings are transplanted/planted based on VPM recommendations. Seedlings are watered based on VPM recommendations",
+  },
+  {
+    lesson_info_id: 17,
+    lesson_id: 6,
+    label: "Contents",
+    content:
+      "Land Preparation, Beneficial microorganisms, Planting/transplanting seedlings, and Water seedlings",
+  },
+  {
+    lesson_info_id: 18,
+    lesson_id: 6,
+    label: "Tools, Materials and Equipment and Facilities",
+    content: "Farm/filed, Seedlings, Trowel, Sprinkler, water, andPPE",
+  },
+  {
+    lesson_info_id: 19,
+    lesson_id: 7,
+    label: "Assessment Criteria",
+    content:
+      'Water management is implemented according to plan. Effective control measures are determined on specific pest and diseases as described under the "pest, disease and weed management" of the PNS. All missing hills are replanted to maintain the desired plant population of the area. Plant rejuvenation/rationing are maintained according to PNS. Organic fertilizers are applied in accordance with fertilization policy of the PNS.',
+  },
+  {
+    lesson_info_id: 20,
+    lesson_id: 7,
+    label: "Contents",
+    content:
+      "Water management implementation, Pest and diseases control measures, Replanting missing hills, Plant rationing and Organic fertilizer application",
+  },
+  {
+    lesson_info_id: 21,
+    lesson_id: 7,
+    label: "Tools, Materials and Equipment and Facilities",
+    content:
+      "Seedlings, Organic fertilizer (compost, animal manure), botanical repellants, hose, and water source",
+  },
+  {
+    lesson_info_id: 22,
+    lesson_id: 8,
+    label: "Assessment Criteria",
+    content:
+      "Products are checked using maturity indices according to PNS, PNS-organic agriculture and enterprise practice. Marketable products are harvested according to PNS, PNSorganic agriculture and enterprise practice. Harvested vegetables are classified according to PNS, PNSorganic agriculture and enterprise practice. Appropriate harvesting tools and materials are used according to PNS. Post-harvest practices are applied according to PNS and GAP recommendation. Production record is accomplished according to enterprise procedures.",
+  },
+  {
+    lesson_info_id: 23,
+    lesson_id: 8,
+    label: "Contents",
+    content:
+      "maturity indices, harvest marketable products, classify marketable products, harvesting tools and materials, Post-harvest practices, and Record Keeping",
+  },
+  {
+    lesson_info_id: 24,
+    lesson_id: 8,
+    label: "Tools, Materials and Equipment and Facilities",
+    content: "Ladder, Basket, Scissors, Scythe, and Notebook and pen",
+  },
+  {
+    lesson_info_id: 25,
+    lesson_id: 9,
+    label: "Assessment Criteria",
+    content:
+      "Site is selected based on compost fertilizer production requirements and Site lay-out is prepared based on location. Bed is prepared in accordance with production requirements. Materials are gather based on production requirements and PNS for organic fertilizer. Prepare raw materials following enterprise procedure and PNS for organic fertilizer.",
+  },
+  {
+    lesson_info_id: 26,
+    lesson_id: 9,
+    label: "Contents",
+    content:
+      "Site Selection, Prepare site layout, Prepare bed, Gather material, and Prepare raw materials",
+  },
+  {
+    lesson_info_id: 27,
+    lesson_id: 9,
+    label: "Tools, Materials and Equipment and Facilities",
+    content:
+      "Composting shed using locally available materials, Shredder, Drums for water storage, Flat and pointed shovels, Hoe, Wheelbarrow, Sieve, and Water hose",
+  },
+  {
+    lesson_info_id: 28,
+    lesson_id: 10,
+    label: "Assessment Criteria",
+    content:
+      "Appropriate composting methods are applied based on production requirements. Compost is monitored based PNS indicators of fully decomposed fertilizer. Quality of harvest is checked based on PNS indicators of fully decomposed fertilizer. Processing of compost fertilizer are carried- out based on production requirement. Record keeping is performed according to enterprise procedure.",
+  },
+  {
+    lesson_info_id: 29,
+    lesson_id: 10,
+    label: "Contents",
+    content:
+      "Composting methods, Decomposed fertilizer, Quality of harvest, Processing of compost fertilizer, and Record keeping",
+  },
+  {
+    lesson_info_id: 30,
+    lesson_id: 10,
+    label: "Tools, Materials and Equipment and Facilities",
+    content:
+      "Composting area and PPE (Boots, surgical masks, disposable gloves, overall)",
+  },
+  {
+    lesson_info_id: 31,
+    lesson_id: 11,
+    label: "Assessment Criteria",
+    content:
+      'Work and storage areas are cleaned, sanitized and secured. Raw materials used are cleaned and freed from synthetic chemicals. Tools, materials and equipment used are cleaned, freed from contaminations and must be of "food grade" quality. Personal hygiene are observed according to OHS procedures.',
+  },
+  {
+    lesson_info_id: 32,
+    lesson_id: 11,
+    label: "Contents",
+    content:
+      "Storage Areas, Raw materials Tools, materials and equipment, and Personal hygiene",
+  },
+  {
+    lesson_info_id: 33,
+    lesson_id: 11,
+    label: "Tools, Materials and Equipment and Facilities",
+    content:
+      "kangkong, camote tops, alugbati, malunggay, banana trunks, bamboo shoots and other fast growing green plants, Molasses/mascuvado/ brown sugar Ripe and sweet fruits but not limited to banana, papaya, watermelon, ampalaya , tomato Trash Fish and gills, scales, offal of big fishes, golden kuhol meat Garlic, ginger, Pure coconut vinegar animal bones, egg shell, sea shell, kuhol shell 1 kl. Cooked, cool rice900 ml. fresh milk, 100 ml clear liquid from fermented rice, Plastic pail, Wooden ladle, Manila paper or cheese cloth, String or rubber bands, Weighing scale,  Chopping board,  Knife  Marker,  Strainer or nylon screen,",
+  },
+  {
+    lesson_info_id: 34,
+    lesson_id: 12,
+    label: "Assessment Criteria",
+    content:
+      "Raw materials are prepared in accordance with enterprise practice. Fermentation period is set based on enterprise practice. Various concoctions are fermented following to organic practices. Concoctions are harvested based on fermentation period of the concoction.",
+  },
+  {
+    lesson_info_id: 35,
+    lesson_id: 12,
+    label: "Contents",
+    content:
+      "Prepare raw materials, Fermentation period, Various concoctions, and Period of harvest",
+  },
+  {
+    lesson_info_id: 36,
+    lesson_id: 12,
+    label: "Tools Materials and Equipment",
+    content:
+      "Storage area, kangkong, camote tops, alugbati, malunggay, banana trunks, bamboo shoots and other fast growing green plants, Molasse/mascuvado/ brown sugar Ripe and sweet fruits but not limited to banana, papaya, watermelon, ampalaya , tomato Trash Fish and gills, scales, offal of big fishes, golden kuhol, meat, Garlic, ginger, Pure coconut vinegar animal bones, egg shell, sea shell, kuhol shell 1 kl. Cooked, cool rice900 ml. fresh milk, 100 ml clear liquid from fermented rice, Plastic pail, Wooden ladle, Manila paper or cheese cloth, String or rubber bands, Weighing scale, chopping board,  Knife  Marker,  Strainer or nylon screen.",
+  },
+  {
+    lesson_info_id: 37,
+    lesson_id: 13,
+    label: "Assessment Criteria",
+    content:
+      "Concoctions are contained in sanitized bottles and containers. Packaged concoctions are labeled and tagged in accordance with enterprise practice. Packaged concoctions are stored in appropriate place and temperature following organic practices. Production of concoctions are recorded using enterprise procedures.",
+  },
+  {
+    lesson_info_id: 38,
+    lesson_id: 13,
+    label: "Contents",
+    content:
+      "Sanitize bottles and containers, Package concoctions, Appropriate place to store, and Production Record",
+  },
+  {
+    lesson_info_id: 39,
+    lesson_id: 13,
+    label: "Tools materials and equipment",
+    content:
+      "Various concoctions, Concoction area, sanitized bottles, Labelling, and Storing area",
+  },
 ];
 
-const DEFAULT_LESSON_LINK: Omit<LessonLinkRecord, 'created_at' | 'updated_at'>[] = [
-  { lesson_link_id: 1, lesson_id: 1, link: 'https://starmilling.com/poultry-chicken-breeds, https://www.google.com/search?sxsrf=AOaemvKfBotEpb8oaDfLzaZm4Le020JS1w:1631077568545&q=suitable+site+for+chicken+house&spell=1&sa=X&ved=2ahUKEwjGuMu4ze7yAhXNAogKHQSLCcoQBSgAegQIAhAx&biw=1367&bih=630, https://the-chicken-chick.com/tips-for-choosing-healthy-chicks/, https://poultrymanual.com/philippines-chicken-house-design' },
-  { lesson_link_id: 2, lesson_id: 2, link: 'https://www.thepoultrysite.com/articles/putting-down-perfect-bedding-for-your-poultry, https://www.agriculturediary.com/poultry-farming-poultry-housing-equipment, https://www.farmanddairy.com/top-stories/how-to-set-up-a-brooder-for-baby-chicks/469356.html' },
-  { lesson_link_id: 3, lesson_id: 3, link: 'https://agronomag.com/organic-chicken-feed-short-guide-on-the-nutrition-of-organic-chickens/, https://thefrugalchicken.com/organic-homemade-chicken-feed/, http://www.fao.org/3/t0207e/T0207E0a.htm, https://www.wikihow.com/Make-Feed-for-Chickens, https://petkeen.com/feeding-chicken-how-much-how-often/, https://www.sciencedirect.com/topics/agricultural-and-biological-sciences/ad-libitum-feeding' },
-  { lesson_link_id: 4, lesson_id: 4, link: 'https://www.researchgate.net/post/How-do-I-measure-the-growth-rate-and-feed-conversion-rates-of-poultry-birds, https://www.val-co.com/management-minute-broiler-weight-monitoring/, https://www.poultryhub.org/all-about-poultry/health-management, https://en.engormix.com/poultry-industry/articles/sanitation-cleaning-disinfecting-poultry-t34212.htm, https://www.hazardouswasteexperts.com/what-you-need-to-know-about-organic-waste/, https://thepoultrypunch.com/2020/09/poultry-farm-waste-disposal-management/, https://rapidcityjournal.com/lifestyles/food-and-cooking/raising-chickens-for-meat-know-your-breeds-and-how-to-harvest-humanely/article_b0740f44-11eb-5b20-8233-67e6ece30993.html, https://newsfromthecoop.hoovershatchery.com/harvestingmeatchickens/' },
-  { lesson_link_id: 5, lesson_id: 5, link: 'https://www.hortmag.com/weekly-tips/how-to-know-if-garden-seed-is-viable, https://www.gardenersworld.com/how-to/grow-plants/how-to-test-seed-viability/, https://www.nrcs.usda.gov/Internet/FSE_PLANTMATERIALS/publications/idpmctn10748.pdf, https://smartlivingidea.com/how-to-prepare-a-seedbed/, http://www.heirloom-organics.com/guide/seedstartingcare.html, https://askinglot.com/how-do-you-maintain-seedlings, https://avrdc.org/prepare-growing-medium-seedling-production/' },
-  { lesson_link_id: 6, lesson_id: 6, link: 'https://www.agrifarming.in/land-preparation-types-methods-objectives-advantages, http://www.knowledgebank.irri.org/step-by-step-production/pre-planting/land-preparation, https://www.sciencedirect.com/topics/agricultural-and-biological-sciences/beneficial-microorganisms, https://knoji.com/article/examples-of-beneficial-microorganisms-and-what-they-do/, https://www.nrcs.usda.gov/Internet/FSE_DOCUMENTS/nrcs144p2_002239.pdf, https://www.bootstrapfarmer.com/blogs/how-to-grow-seedlings/easiest-way-to-water-your-seedlings, https://balconygardenweb.com/how-to-water-seedlings/' },
-  { lesson_link_id: 7, lesson_id: 7, link: 'https://www.un.org/waterforlifedecade/iwrm.shtml, https://www.growpittsburgh.org/garden-and-farm-resources/info-hub/pest-disease-management/, https://www.hortweek.com/plant-rationing-comes-sales-fly/ornamentals/article/1710204, https://ph.search.yahoo.com/yhs/search?hspart=trp&hsimp=yhs-001&type=64891_070717&p=organic+fertilizer+application' },
-  { lesson_link_id: 8, lesson_id: 8, link: 'https://agriculturistmusa.com/maturity-indices-types-and-determination/, https://morningchores.com/most-profitable-crops/, https://www.indeed.com/career-advice/career-development/classification-of-consumer-products, https://horticulture.ucdavis.edu/postharvest' },
-  { lesson_link_id: 9, lesson_id: 9, link: 'https://www.progressivegardening.com/waste-management/siting-and-area-considerations.html' },
-  { lesson_link_id: 10, lesson_id: 10, link: 'https://aseq-ehaq.ca/en/composting-101, https://directcompostsolutions.com/8-methods-composting/' },
-  { lesson_link_id: 11, lesson_id: 11, link: 'https://www.youtube.com/watch?v=GouWt_DM544, https://www.youtube.com/watch?v=Qr3gZAbnrHM, https://www.youtube.com/watch?v=W58mZaJCArA, https://www.youtube.com/watch?v=peJeyMV2Plc, https://www.youtube.com/watch?v=lspuVsEW3vY, https://www.youtube.com/watch?v=6a1YezkoLjs, https://www.youtube.com/watch?v=A40KLz6fRk8, https://www.youtube.com/watch?v=UXysXSFuME0, https://www.youtube.com/watch?v=vCFkmuUL-S0, https://www.youtube.com/watch?v=XzdeuMz3MZ4, http://organic.da.gov.ph/images/IECs/FPJ.pdf' },
-  { lesson_link_id: 12, lesson_id: 12, link: 'https://www.ctahr.hawaii.edu/oc/freepubs/pdf/SA-8.pdf /, Making Culturing Lactic Acid Bacteria (LAB) http://www.cgnfindia.com/lab.html, (3) Lactobacillus Serum http://theunconventionalfarmer.com/recipes/lactobacillus-serum/, https://businessdiary.com.ph/3470/how-to-make-fermented-fruit-juice-or-ff' },
+const DEFAULT_LESSON_LINK: Omit<
+  LessonLinkRecord,
+  "created_at" | "updated_at"
+>[] = [
+  {
+    lesson_link_id: 1,
+    lesson_id: 1,
+    link: "https://starmilling.com/poultry-chicken-breeds, https://www.google.com/search?sxsrf=AOaemvKfBotEpb8oaDfLzaZm4Le020JS1w:1631077568545&q=suitable+site+for+chicken+house&spell=1&sa=X&ved=2ahUKEwjGuMu4ze7yAhXNAogKHQSLCcoQBSgAegQIAhAx&biw=1367&bih=630, https://the-chicken-chick.com/tips-for-choosing-healthy-chicks/, https://poultrymanual.com/philippines-chicken-house-design",
+  },
+  {
+    lesson_link_id: 2,
+    lesson_id: 2,
+    link: "https://www.thepoultrysite.com/articles/putting-down-perfect-bedding-for-your-poultry, https://www.agriculturediary.com/poultry-farming-poultry-housing-equipment, https://www.farmanddairy.com/top-stories/how-to-set-up-a-brooder-for-baby-chicks/469356.html",
+  },
+  {
+    lesson_link_id: 3,
+    lesson_id: 3,
+    link: "https://agronomag.com/organic-chicken-feed-short-guide-on-the-nutrition-of-organic-chickens/, https://thefrugalchicken.com/organic-homemade-chicken-feed/, http://www.fao.org/3/t0207e/T0207E0a.htm, https://www.wikihow.com/Make-Feed-for-Chickens, https://petkeen.com/feeding-chicken-how-much-how-often/, https://www.sciencedirect.com/topics/agricultural-and-biological-sciences/ad-libitum-feeding",
+  },
+  {
+    lesson_link_id: 4,
+    lesson_id: 4,
+    link: "https://www.researchgate.net/post/How-do-I-measure-the-growth-rate-and-feed-conversion-rates-of-poultry-birds, https://www.val-co.com/management-minute-broiler-weight-monitoring/, https://www.poultryhub.org/all-about-poultry/health-management, https://en.engormix.com/poultry-industry/articles/sanitation-cleaning-disinfecting-poultry-t34212.htm, https://www.hazardouswasteexperts.com/what-you-need-to-know-about-organic-waste/, https://thepoultrypunch.com/2020/09/poultry-farm-waste-disposal-management/, https://rapidcityjournal.com/lifestyles/food-and-cooking/raising-chickens-for-meat-know-your-breeds-and-how-to-harvest-humanely/article_b0740f44-11eb-5b20-8233-67e6ece30993.html, https://newsfromthecoop.hoovershatchery.com/harvestingmeatchickens/",
+  },
+  {
+    lesson_link_id: 5,
+    lesson_id: 5,
+    link: "https://www.hortmag.com/weekly-tips/how-to-know-if-garden-seed-is-viable, https://www.gardenersworld.com/how-to/grow-plants/how-to-test-seed-viability/, https://www.nrcs.usda.gov/Internet/FSE_PLANTMATERIALS/publications/idpmctn10748.pdf, https://smartlivingidea.com/how-to-prepare-a-seedbed/, http://www.heirloom-organics.com/guide/seedstartingcare.html, https://askinglot.com/how-do-you-maintain-seedlings, https://avrdc.org/prepare-growing-medium-seedling-production/",
+  },
+  {
+    lesson_link_id: 6,
+    lesson_id: 6,
+    link: "https://www.agrifarming.in/land-preparation-types-methods-objectives-advantages, http://www.knowledgebank.irri.org/step-by-step-production/pre-planting/land-preparation, https://www.sciencedirect.com/topics/agricultural-and-biological-sciences/beneficial-microorganisms, https://knoji.com/article/examples-of-beneficial-microorganisms-and-what-they-do/, https://www.nrcs.usda.gov/Internet/FSE_DOCUMENTS/nrcs144p2_002239.pdf, https://www.bootstrapfarmer.com/blogs/how-to-grow-seedlings/easiest-way-to-water-your-seedlings, https://balconygardenweb.com/how-to-water-seedlings/",
+  },
+  {
+    lesson_link_id: 7,
+    lesson_id: 7,
+    link: "https://www.un.org/waterforlifedecade/iwrm.shtml, https://www.growpittsburgh.org/garden-and-farm-resources/info-hub/pest-disease-management/, https://www.hortweek.com/plant-rationing-comes-sales-fly/ornamentals/article/1710204, https://ph.search.yahoo.com/yhs/search?hspart=trp&hsimp=yhs-001&type=64891_070717&p=organic+fertilizer+application",
+  },
+  {
+    lesson_link_id: 8,
+    lesson_id: 8,
+    link: "https://agriculturistmusa.com/maturity-indices-types-and-determination/, https://morningchores.com/most-profitable-crops/, https://www.indeed.com/career-advice/career-development/classification-of-consumer-products, https://horticulture.ucdavis.edu/postharvest",
+  },
+  {
+    lesson_link_id: 9,
+    lesson_id: 9,
+    link: "https://www.progressivegardening.com/waste-management/siting-and-area-considerations.html",
+  },
+  {
+    lesson_link_id: 10,
+    lesson_id: 10,
+    link: "https://aseq-ehaq.ca/en/composting-101, https://directcompostsolutions.com/8-methods-composting/",
+  },
+  {
+    lesson_link_id: 11,
+    lesson_id: 11,
+    link: "https://www.youtube.com/watch?v=GouWt_DM544, https://www.youtube.com/watch?v=Qr3gZAbnrHM, https://www.youtube.com/watch?v=W58mZaJCArA, https://www.youtube.com/watch?v=peJeyMV2Plc, https://www.youtube.com/watch?v=lspuVsEW3vY, https://www.youtube.com/watch?v=6a1YezkoLjs, https://www.youtube.com/watch?v=A40KLz6fRk8, https://www.youtube.com/watch?v=UXysXSFuME0, https://www.youtube.com/watch?v=vCFkmuUL-S0, https://www.youtube.com/watch?v=XzdeuMz3MZ4, http://organic.da.gov.ph/images/IECs/FPJ.pdf",
+  },
+  {
+    lesson_link_id: 12,
+    lesson_id: 12,
+    link: "https://www.ctahr.hawaii.edu/oc/freepubs/pdf/SA-8.pdf /, Making Culturing Lactic Acid Bacteria (LAB) http://www.cgnfindia.com/lab.html, (3) Lactobacillus Serum http://theunconventionalfarmer.com/recipes/lactobacillus-serum/, https://businessdiary.com.ph/3470/how-to-make-fermented-fruit-juice-or-ff",
+  },
 ];
 
-const DEFAULT_JOB_SHEET: Omit<JobSheetRecord, 'created_at' | 'updated_at'>[] = [
-  { job_id: 1, lesson_content_id: 1, job_title: 'Identifying breeds of Chicken', job_objectives: 'At the end of this module the student should be able to identify breeds of chicken.', job_materials: 'PPE, broiler, layer, dual purpose', job_steps: 'Wear the PPE, Observe the physical appearance of chicken, Look for their differences, Identify, which is broiler, layer and dual purpose, Do housekeeping.', job_assesment_method: '' },
-  { job_id: 2, lesson_content_id: 2, job_title: 'Selecting Healthy Chicks', job_objectives: 'At the end of this module the student should be able to select and identify healthy chicks.', job_materials: 'PPE, chicks', job_steps: 'Wear the PPE, Examine the chicks physical appearance, Describe its eyes, feathers beak and legs, Look for its uniformity, Identify if its healthy, and Do housekeeping.', job_assesment_method: '' },
-  { job_id: 3, lesson_content_id: 7, job_title: 'Preparing and securing bedding materials', job_objectives: 'At the end of this module the student should be able to prepare and secure chosen bedding materials.', job_materials: 'PPE, Rice hull, Saw dust , Coco coir and Rice straw', job_steps: 'Wear the PPE. Gather some bedding materials (rice hull, saw dust, coco coir and rice straw. Choose one bedding material which is the best absorbent. Stored it in a warm and dry place. Spread it evenly in a poultry house. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 4, lesson_content_id: 8, job_title: 'Setting-up brooding facility', job_objectives: 'At the end of this module the student should be able to set-up brooding facility', job_materials: 'PPE, waterer, water, feeder, feeds, chicks, bedding material.', job_steps: 'Wear the PPE. Change the bedding materials. Wash and sanitize waterer and feeder. Pour some clean fresh water into the waterer. Put enough feeds into the feeder. Arrange them properly inside the brooding box. Bring chicks inside the brooder box. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 5, lesson_content_id: 10, job_title: 'Preparing feeding materials', job_objectives: 'At the end of this module you should be able to  prepare feeding materials.', job_materials: 'PPE, whole maize meal soya fish meal maize bran limestone powder', job_steps: 'wear the PPE. Measure the ingredients into a container. Mix the ingredients until they are thoroughly combined. Give each chicken 0.28 pounds (0.13 kg) of feed per day. Store the chicken feed in a cool, dry place for up to 6 months. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 6, lesson_content_id: 19, job_title: 'Selecting viable seeds', job_objectives: 'At the end of this module the student should be able to identify  and select viable seeds.', job_materials: 'PPE, different kind of vegetable seeds', job_steps: 'Wear the PPE. Prepare the different kinds of vegetable seeds. Observe and Examine its physical characteristics. Identify which seeds are viable. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 7, lesson_content_id: 20, job_title: 'Preparing Seedbed', job_objectives: 'At the end of this module the student should be able to prepare seedbed.', job_materials: 'PPE, harrow, field', job_steps: 'Wear the PPE. Gather tools and materials. Visit the field. Clearing the field. Perform Ploughing. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 8, lesson_content_id: 21, job_title: 'Maintaining Seedlings', job_objectives: 'At the end of this module the student should be able to maintain of seedlings.', job_materials: 'PPE, Trowel, Sprinkler, Container, water, seedlings', job_steps: 'Wear the PPE.', job_assesment_method: '' },
-  { job_id: 9, lesson_content_id: 22, job_title: 'Preparing the growing media', job_objectives: 'At the end of this module you should be able to prepare the different kinds  of growing media.', job_materials: 'PPE, farm, stocks, different growing media ( carbonized rice hull, animal manure, compost).', job_steps: 'Wear the PPE. Gather the tools and materials. Visit a farm. Gather the available growing media. Mixing all the growing media. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 10, lesson_content_id: 23, job_title: 'Performing Land Preparation', job_objectives: 'At the end of this module the student should be able to perform land preparation.', job_materials: 'PPE, trowel, shovel, plow, rake, farm', job_steps: 'Wear PPE. Gather the tools and Materials. Visit a Farm. Do clearing the area. Perform Ploughing. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 11, lesson_content_id: 25, job_title: 'Planting/Transplanting Vegetable Seedlings', job_objectives: 'At the end of this module the student should be able to transplant vegetable seedlings.', job_materials: 'PPE, Trowel, Seedlings, field', job_steps: 'Wear the PPE. Prepare the tools and materials. Go to the Field. Measure the proper planting distance of vegetables. Make hole for seedlings. Do transplanting of seedlings.', job_assesment_method: '' },
-  { job_id: 12, lesson_content_id: 26, job_title: 'Watering Seedlings', job_objectives: 'At the end of this module the student should be able to water seedlings.', job_materials: 'PPE, container, sprinkler, field, newly planted seedlings', job_steps: 'Wear the PPE. Prepare the tools and materials. Go to the Field. Pitch water from the water supply. Do watering on seedlings. Do house keeping.', job_assesment_method: '' },
-  { job_id: 13, lesson_content_id: 27, job_title: 'Implementing water management', job_objectives: 'At the end of this module you should be able to implement water management.', job_materials: 'Sufficient Water source , hose, shovel', job_steps: 'Wear the PPE. Gather the tools and materials. Go to the Field. Make a drainage canal along the plot. Install the hose. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 14, lesson_content_id: 28, job_title: 'Controlling pest and diseases', job_objectives: 'At the end of this module you should be able to control pest and diseases.', job_materials: 'PPE, botanical repellant, sprayer and water, field', job_steps: 'Wear the PPE. Prepare botanical repellant. Put some botanical repellant into a sprayer of water. Apply it into the filed. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 15, lesson_content_id: 29, job_title: 'Replanting', job_objectives: 'At the end of this module you should be able to replant missing hills.', job_materials: 'PPE, seedlings, trowel, garden plot', job_steps: 'Wear the PPE. Identify missing hills. Prepare seedling to be used in replanting. Plant seed prepared seedlings on missing hills. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 16, lesson_content_id: 30, job_title: 'Rejuvenating/ rationing plants', job_objectives: 'At the end of this module you should be able to perform the techniques on rationing plants.', job_materials: 'PPE, Pruning shear, container, crops', job_steps: 'Wear the PPE. Gather the tools and materials. Go to your garden. Check your crops if its infested by pest and diseases. Do pruning. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 17, lesson_content_id: 33, job_title: 'Performing harvesting vegetables', job_objectives: 'At the end of this module you should be able to perform proper harvesting in vegetables.', job_materials: 'PPE, harvesting tools, containers', job_steps: 'Wear the PPE. Gather the tools and materials. Going to the field. Check the appropriate maturity index of your crops. Perform Harvesting. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 18, lesson_content_id: 36, job_title: 'Select composting Site', job_objectives: 'At the end of this module the student should be able to select composting site.', job_materials: 'PPE, composting area', job_steps: 'Wear the PPE. Observe the composting area. Select the area which is not sloppy. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 19, lesson_content_id: 37, job_title: 'Preparing site layout', job_objectives: 'At the end of this module the student should be able to perform and preparing composting site layout.', job_materials: 'PPE, composting area, Tools and Materials in lay outing', job_steps: 'Wear the PPE. Determine good layout minimizes material handling and helps control outside factor. Barriers should be put in place to minimize contamination. Running a pump and sprinkler is a cost-effective way to bring moisture content back to optimal levels. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 20, lesson_content_id: 38, job_title: 'Preparing composting bed', job_objectives: 'At the end of this module the student should be able to Preparing composting bed', job_materials: 'PPE, composting area, bamboo, shovel, raw material (animal manure, weeds, kitchens waste and crop residues).', job_steps: 'Wear the PPE. Identify the raw materials. Prepare bed for composting. Check if the raw materials are mix. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 21, lesson_content_id: 39, job_title: 'Gathering raw materials in composting', job_objectives: 'At the end of this module you should be able to to gather the raw materials for composting.', job_materials: 'PPE, raw materials, water, spading fork.', job_steps: 'Wear the PPE. Gather the green and brown materials. Put into the pile or compost pit. Poured water regularly. Mix the materials in pile using spading fork. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 22, lesson_content_id: 40, job_title: 'Identifying raw materials for composting', job_objectives: 'At the end of this module you should be able to identify the raw materials uses for composting.', job_materials: 'PPE, dried leaves, rice straw, crop residues animal manure, oyster shell and egg shell.', job_steps: 'Wear the PPE. Identify the green and brown raw materials. Utilize the manure animal manure. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 23, lesson_content_id: 41, job_title: 'Identifying  different types of composting method', job_objectives: 'At the end of this module the student should be able to Identify the different types of composting method.', job_materials: 'composting area, vermi. Container, sacks and water.', job_steps: 'Wear PPE. Check the area. Identify the composting methods. Apply vermi in the composting area. Use sack to mulch. Do not allow the air enter the compost. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 24, lesson_content_id: 42, job_title: 'Monitoring Decomposition process', job_objectives: 'At the end of this module the student should be able to monitor decomposition process.', job_materials: 'PPE, composting area', job_steps: 'Wear PPE. Check the area. Identify the composting methods. Apply vermi in the composting area. Use sack to mulch. Do not allow the air enter the compost. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 25, lesson_content_id: 43, job_title: 'Harvesting time', job_objectives: 'At the end of this module the student should be able to identify the good quality time of harvest.', job_materials: 'PPE, Compost', job_steps: 'Wear the PPE. Identify the good quality time of harvest. Select the compost ready to harvest. Collect the compost. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 26, lesson_content_id: 44, job_title: 'Composting Process', job_objectives: 'At the end of this module you should be able to appreciate the importance of composting process.', job_materials: 'PPE, composting area, substrates, plastic and water', job_steps: 'Wear the PPE. Check the composting area. Collect the substrate. Put in the pile. Check the microorganism attack the substrate. Monitor the pile regularly. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 27, lesson_content_id: 45, job_title: 'Record Keeping', job_objectives: 'At the end of this module you should be able to keep record.', job_materials: 'PPE, composting area,  logbook, ball pens', job_steps: 'Wear the PPE. Prepare the logbook. Check the composting pile. Record the inputs. Records the output of composting. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 28, lesson_content_id: 46, job_title: 'Securing the Storage Area', job_objectives: 'At the end of this module the student should be able to secure the storage area.', job_materials: 'PPE, Storage Facility', job_steps: 'Wear the PPE. Install fence around the storage area. Install security lighting and an alarm system. Keep  pesticide container properly. Store pesticides on metal shelves with a lip or on wood shelves covered with plastic. Keep the storage area neat and clean at all times. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 29, lesson_content_id: 48, job_title: 'Using tools, material and equipment in concoction process', job_objectives: 'At the end of this module the student should be able to use clean tools, materials and equipment in concoction process.', job_materials: 'Alugbati - Bamboo Shoots ,Banana Trunks ,Kamote Tops Kangkong.,Molasses, Mascuvado, Brown sugar, Banana, Squash, Papaya, Ampalaya Tomato, Fish, Golden Kuhol Meat ,Garlic Ginger ,Makabuhay ,Animal bones,Egg Shell ,Kuhol Shell , Sea Shell , Cooked Rice ,Fresh Milk - , Powdered Rice, Chopping Board , Knife, Manila paper, Marker Pen, Masking Tape. Plastic Pail , Scissors/ cutter , Stone,Strainer / Screen, Weighing Scale.', job_steps: 'Wear the PPE. Install fence around the storage area. Install security lighting and an alarm system. Keep  pesticide container properly. Store pesticides on metal shelves with a lip or on wood shelves covered with plastic. Keep the storage area neat and clean at all times. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 30, lesson_content_id: 49, job_title: 'Observing Personal Hygiene', job_objectives: 'At the end of this module you should be able to observe personal hygiene.', job_materials: 'PPE, materials. Tools, sanitize container and bottles. Concoction area', job_steps: 'Wear the PPE. Check the tools, materials in proper area. Arrange all needed tools and equipment and raw materials to be used and properly label for easily identify. Keep or maintain the work area, tools, equipment and raw materials clean to avoid contamination results. Create consistent way that task and procedure are done. Make a habit of properly maintaining the correct procedure. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 31, lesson_content_id: 50, job_title: 'Preparing raw materials for producing organic concoction and extract', job_objectives: 'At the end of this module the student should be able to prepare raw materials when producing organic concoction and extract.', job_materials: 'kankong, Camote tops, banana trunk and molasses, banana papaya kalabasa, garlic, ginger,  Mascuvado, sugar pure ,coconut vinegar, Clay pot/Bamboo trough, Manila paper, Basin, Cooked rice, Rice wash, Fresh milk (skimmed or powdered milk can be used), pork, fish and beef bones, eggshells and kuhol and/or any shells.', job_steps: 'Wear PPE. Collect all the raw materials. Eliminate the unnecessary and unwanted one. Make sure that all raw materials are clean. Check the raw materials are suited to the types of concoctions. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 32, lesson_content_id: 51, job_title: 'Determining period of fermentation process', job_objectives: 'At the end of this module the student should be able to determine the period of fermentation process.', job_materials: 'PPE, Various concoctions (FPJ, FFJ, IMO, FAA, LABS, CALPHOS)', job_steps: 'Wear the PPE. Put the label in the fermented concoctions. Keep the concoction in the shaded area until undergone fermentation process. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 33, lesson_content_id: 52, job_title: 'The various concoctions', job_objectives: 'At the end of this module the student should be able to identify the different types of concoctions.', job_materials: 'PPE, Various concoctions', job_steps: 'Wear the PPE. Identify the types of concoctions. Determine the benefits and uses. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 34, lesson_content_id: 53, job_title: 'Determine the harvesting  period of concoctions', job_objectives: 'At the end of this module you should be able to determine the harvesting period of concoction.', job_materials: 'PPE, various concoction, 1 liter plastic bottle', job_steps: 'Wear the PPE. Harvest the concoction. Put in a sanitized and cleaned plastic bottle. Correct the measure dosage of using concoction. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 35, lesson_content_id: 54, job_title: 'Sanitizing the bottles and containers', job_objectives: 'At the end of this module the student should be able to sanitize bottles and containers.', job_materials: 'PPE, Concoction area, sanitized bottles and plastic bottle', job_steps: 'Wear PPE. Remove the label before cleaning the plastic bottle. Unscrew the tops and of  a container of warm soapy water to avoid losing them down the drain. Fill a large pot or sink with soap and hot water  to fully submerge your bottles into the solution for a few minutes to kill any bacteria. Rinse the bottles and tops thoroughly. For the bottles, fill them with warm water from the tap until no soap residue is left over. Allow the bottles to dry overnight. Dont refill the bottles too soon; they must be completely dry before refilling to avoid bacterial buildup. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 36, lesson_content_id: 55, job_title: 'Proper labeling and packaging of concoctions', job_objectives: 'At the end of this module the student should be able to proper labeling and packaging of concoctions.', job_materials: 'Concoction area, various concoction, papers, ballpeen', job_steps: 'Prepare all the supplies and materials in labelling and tagging. Get your produce concoctions. Label the fermented products based on the required information. Submit your work to your trainer. Do housekeeping.', job_assesment_method: '' },
-  { job_id: 37, lesson_content_id: 56, job_title: ' Appropriate place to store', job_objectives: 'At the end of this module the student should be able to appropriate storage for the various concoctions.', job_materials: 'Concoction area, various concoction', job_steps: 'Prepare the various concoctions. Determine the right temperature inside the concoction area. Sealed bottles or other package prevents contamination during storage. Do housekeeping.', job_assesment_method: '' },
-  ];
-
-const DEFAULT_MODULE_ACHIEVEMENT: Omit<ModuleAchievementRecord, 'created_at' | 'updated_at'>[] = [
-  { module_achievement_id: 1, module_id: 1, name: 'Module 1 Master', badge_image: 'assets/module_badges/badge_m1.png' },
-  { module_achievement_id: 2, module_id: 2, name: 'Module 2 Master', badge_image: 'assets/module_badges/badge_m2.png' },
-  { module_achievement_id: 3, module_id: 3, name: 'Module 3 Master', badge_image: 'assets/module_badges/badge_m3.png' },
-  { module_achievement_id: 4, module_id: 4, name: 'Module 4 Master', badge_image: 'assets/module_badges/badge_m4.png' },
-  { module_achievement_id: 5, module_id: 0, name: 'Module Master', badge_image: 'assets/module_badges/module_complete.png' },
+const DEFAULT_JOB_SHEET: Omit<JobSheetRecord, "created_at" | "updated_at">[] = [
+  {
+    job_id: 1,
+    lesson_content_id: 1,
+    job_title: "Identifying breeds of Chicken",
+    job_objectives:
+      "At the end of this module the student should be able to identify breeds of chicken.",
+    job_materials: "PPE, broiler, layer, dual purpose",
+    job_steps:
+      "Wear the PPE, Observe the physical appearance of chicken, Look for their differences, Identify, which is broiler, layer and dual purpose, Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 2,
+    lesson_content_id: 2,
+    job_title: "Selecting Healthy Chicks",
+    job_objectives:
+      "At the end of this module the student should be able to select and identify healthy chicks.",
+    job_materials: "PPE, chicks",
+    job_steps:
+      "Wear the PPE, Examine the chicks physical appearance, Describe its eyes, feathers beak and legs, Look for its uniformity, Identify if its healthy, and Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 3,
+    lesson_content_id: 7,
+    job_title: "Preparing and securing bedding materials",
+    job_objectives:
+      "At the end of this module the student should be able to prepare and secure chosen bedding materials.",
+    job_materials: "PPE, Rice hull, Saw dust , Coco coir and Rice straw",
+    job_steps:
+      "Wear the PPE. Gather some bedding materials (rice hull, saw dust, coco coir and rice straw. Choose one bedding material which is the best absorbent. Stored it in a warm and dry place. Spread it evenly in a poultry house. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 4,
+    lesson_content_id: 8,
+    job_title: "Setting-up brooding facility",
+    job_objectives:
+      "At the end of this module the student should be able to set-up brooding facility",
+    job_materials:
+      "PPE, waterer, water, feeder, feeds, chicks, bedding material.",
+    job_steps:
+      "Wear the PPE. Change the bedding materials. Wash and sanitize waterer and feeder. Pour some clean fresh water into the waterer. Put enough feeds into the feeder. Arrange them properly inside the brooding box. Bring chicks inside the brooder box. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 5,
+    lesson_content_id: 10,
+    job_title: "Preparing feeding materials",
+    job_objectives:
+      "At the end of this module you should be able to  prepare feeding materials.",
+    job_materials:
+      "PPE, whole maize meal soya fish meal maize bran limestone powder",
+    job_steps:
+      "wear the PPE. Measure the ingredients into a container. Mix the ingredients until they are thoroughly combined. Give each chicken 0.28 pounds (0.13 kg) of feed per day. Store the chicken feed in a cool, dry place for up to 6 months. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 6,
+    lesson_content_id: 19,
+    job_title: "Selecting viable seeds",
+    job_objectives:
+      "At the end of this module the student should be able to identify  and select viable seeds.",
+    job_materials: "PPE, different kind of vegetable seeds",
+    job_steps:
+      "Wear the PPE. Prepare the different kinds of vegetable seeds. Observe and Examine its physical characteristics. Identify which seeds are viable. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 7,
+    lesson_content_id: 20,
+    job_title: "Preparing Seedbed",
+    job_objectives:
+      "At the end of this module the student should be able to prepare seedbed.",
+    job_materials: "PPE, harrow, field",
+    job_steps:
+      "Wear the PPE. Gather tools and materials. Visit the field. Clearing the field. Perform Ploughing. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 8,
+    lesson_content_id: 21,
+    job_title: "Maintaining Seedlings",
+    job_objectives:
+      "At the end of this module the student should be able to maintain of seedlings.",
+    job_materials: "PPE, Trowel, Sprinkler, Container, water, seedlings",
+    job_steps: "Wear the PPE.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 9,
+    lesson_content_id: 22,
+    job_title: "Preparing the growing media",
+    job_objectives:
+      "At the end of this module you should be able to prepare the different kinds  of growing media.",
+    job_materials:
+      "PPE, farm, stocks, different growing media ( carbonized rice hull, animal manure, compost).",
+    job_steps:
+      "Wear the PPE. Gather the tools and materials. Visit a farm. Gather the available growing media. Mixing all the growing media. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 10,
+    lesson_content_id: 23,
+    job_title: "Performing Land Preparation",
+    job_objectives:
+      "At the end of this module the student should be able to perform land preparation.",
+    job_materials: "PPE, trowel, shovel, plow, rake, farm",
+    job_steps:
+      "Wear PPE. Gather the tools and Materials. Visit a Farm. Do clearing the area. Perform Ploughing. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 11,
+    lesson_content_id: 25,
+    job_title: "Planting/Transplanting Vegetable Seedlings",
+    job_objectives:
+      "At the end of this module the student should be able to transplant vegetable seedlings.",
+    job_materials: "PPE, Trowel, Seedlings, field",
+    job_steps:
+      "Wear the PPE. Prepare the tools and materials. Go to the Field. Measure the proper planting distance of vegetables. Make hole for seedlings. Do transplanting of seedlings.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 12,
+    lesson_content_id: 26,
+    job_title: "Watering Seedlings",
+    job_objectives:
+      "At the end of this module the student should be able to water seedlings.",
+    job_materials: "PPE, container, sprinkler, field, newly planted seedlings",
+    job_steps:
+      "Wear the PPE. Prepare the tools and materials. Go to the Field. Pitch water from the water supply. Do watering on seedlings. Do house keeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 13,
+    lesson_content_id: 27,
+    job_title: "Implementing water management",
+    job_objectives:
+      "At the end of this module you should be able to implement water management.",
+    job_materials: "Sufficient Water source , hose, shovel",
+    job_steps:
+      "Wear the PPE. Gather the tools and materials. Go to the Field. Make a drainage canal along the plot. Install the hose. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 14,
+    lesson_content_id: 28,
+    job_title: "Controlling pest and diseases",
+    job_objectives:
+      "At the end of this module you should be able to control pest and diseases.",
+    job_materials: "PPE, botanical repellant, sprayer and water, field",
+    job_steps:
+      "Wear the PPE. Prepare botanical repellant. Put some botanical repellant into a sprayer of water. Apply it into the filed. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 15,
+    lesson_content_id: 29,
+    job_title: "Replanting",
+    job_objectives:
+      "At the end of this module you should be able to replant missing hills.",
+    job_materials: "PPE, seedlings, trowel, garden plot",
+    job_steps:
+      "Wear the PPE. Identify missing hills. Prepare seedling to be used in replanting. Plant seed prepared seedlings on missing hills. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 16,
+    lesson_content_id: 30,
+    job_title: "Rejuvenating/ rationing plants",
+    job_objectives:
+      "At the end of this module you should be able to perform the techniques on rationing plants.",
+    job_materials: "PPE, Pruning shear, container, crops",
+    job_steps:
+      "Wear the PPE. Gather the tools and materials. Go to your garden. Check your crops if its infested by pest and diseases. Do pruning. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 17,
+    lesson_content_id: 33,
+    job_title: "Performing harvesting vegetables",
+    job_objectives:
+      "At the end of this module you should be able to perform proper harvesting in vegetables.",
+    job_materials: "PPE, harvesting tools, containers",
+    job_steps:
+      "Wear the PPE. Gather the tools and materials. Going to the field. Check the appropriate maturity index of your crops. Perform Harvesting. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 18,
+    lesson_content_id: 36,
+    job_title: "Select composting Site",
+    job_objectives:
+      "At the end of this module the student should be able to select composting site.",
+    job_materials: "PPE, composting area",
+    job_steps:
+      "Wear the PPE. Observe the composting area. Select the area which is not sloppy. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 19,
+    lesson_content_id: 37,
+    job_title: "Preparing site layout",
+    job_objectives:
+      "At the end of this module the student should be able to perform and preparing composting site layout.",
+    job_materials: "PPE, composting area, Tools and Materials in lay outing",
+    job_steps:
+      "Wear the PPE. Determine good layout minimizes material handling and helps control outside factor. Barriers should be put in place to minimize contamination. Running a pump and sprinkler is a cost-effective way to bring moisture content back to optimal levels. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 20,
+    lesson_content_id: 38,
+    job_title: "Preparing composting bed",
+    job_objectives:
+      "At the end of this module the student should be able to Preparing composting bed",
+    job_materials:
+      "PPE, composting area, bamboo, shovel, raw material (animal manure, weeds, kitchens waste and crop residues).",
+    job_steps:
+      "Wear the PPE. Identify the raw materials. Prepare bed for composting. Check if the raw materials are mix. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 21,
+    lesson_content_id: 39,
+    job_title: "Gathering raw materials in composting",
+    job_objectives:
+      "At the end of this module you should be able to to gather the raw materials for composting.",
+    job_materials: "PPE, raw materials, water, spading fork.",
+    job_steps:
+      "Wear the PPE. Gather the green and brown materials. Put into the pile or compost pit. Poured water regularly. Mix the materials in pile using spading fork. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 22,
+    lesson_content_id: 40,
+    job_title: "Identifying raw materials for composting",
+    job_objectives:
+      "At the end of this module you should be able to identify the raw materials uses for composting.",
+    job_materials:
+      "PPE, dried leaves, rice straw, crop residues animal manure, oyster shell and egg shell.",
+    job_steps:
+      "Wear the PPE. Identify the green and brown raw materials. Utilize the manure animal manure. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 23,
+    lesson_content_id: 41,
+    job_title: "Identifying  different types of composting method",
+    job_objectives:
+      "At the end of this module the student should be able to Identify the different types of composting method.",
+    job_materials: "composting area, vermi. Container, sacks and water.",
+    job_steps:
+      "Wear PPE. Check the area. Identify the composting methods. Apply vermi in the composting area. Use sack to mulch. Do not allow the air enter the compost. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 24,
+    lesson_content_id: 42,
+    job_title: "Monitoring Decomposition process",
+    job_objectives:
+      "At the end of this module the student should be able to monitor decomposition process.",
+    job_materials: "PPE, composting area",
+    job_steps:
+      "Wear PPE. Check the area. Identify the composting methods. Apply vermi in the composting area. Use sack to mulch. Do not allow the air enter the compost. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 25,
+    lesson_content_id: 43,
+    job_title: "Harvesting time",
+    job_objectives:
+      "At the end of this module the student should be able to identify the good quality time of harvest.",
+    job_materials: "PPE, Compost",
+    job_steps:
+      "Wear the PPE. Identify the good quality time of harvest. Select the compost ready to harvest. Collect the compost. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 26,
+    lesson_content_id: 44,
+    job_title: "Composting Process",
+    job_objectives:
+      "At the end of this module you should be able to appreciate the importance of composting process.",
+    job_materials: "PPE, composting area, substrates, plastic and water",
+    job_steps:
+      "Wear the PPE. Check the composting area. Collect the substrate. Put in the pile. Check the microorganism attack the substrate. Monitor the pile regularly. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 27,
+    lesson_content_id: 45,
+    job_title: "Record Keeping",
+    job_objectives:
+      "At the end of this module you should be able to keep record.",
+    job_materials: "PPE, composting area,  logbook, ball pens",
+    job_steps:
+      "Wear the PPE. Prepare the logbook. Check the composting pile. Record the inputs. Records the output of composting. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 28,
+    lesson_content_id: 46,
+    job_title: "Securing the Storage Area",
+    job_objectives:
+      "At the end of this module the student should be able to secure the storage area.",
+    job_materials: "PPE, Storage Facility",
+    job_steps:
+      "Wear the PPE. Install fence around the storage area. Install security lighting and an alarm system. Keep  pesticide container properly. Store pesticides on metal shelves with a lip or on wood shelves covered with plastic. Keep the storage area neat and clean at all times. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 29,
+    lesson_content_id: 48,
+    job_title: "Using tools, material and equipment in concoction process",
+    job_objectives:
+      "At the end of this module the student should be able to use clean tools, materials and equipment in concoction process.",
+    job_materials:
+      "Alugbati - Bamboo Shoots ,Banana Trunks ,Kamote Tops Kangkong.,Molasses, Mascuvado, Brown sugar, Banana, Squash, Papaya, Ampalaya Tomato, Fish, Golden Kuhol Meat ,Garlic Ginger ,Makabuhay ,Animal bones,Egg Shell ,Kuhol Shell , Sea Shell , Cooked Rice ,Fresh Milk - , Powdered Rice, Chopping Board , Knife, Manila paper, Marker Pen, Masking Tape. Plastic Pail , Scissors/ cutter , Stone,Strainer / Screen, Weighing Scale.",
+    job_steps:
+      "Wear the PPE. Install fence around the storage area. Install security lighting and an alarm system. Keep  pesticide container properly. Store pesticides on metal shelves with a lip or on wood shelves covered with plastic. Keep the storage area neat and clean at all times. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 30,
+    lesson_content_id: 49,
+    job_title: "Observing Personal Hygiene",
+    job_objectives:
+      "At the end of this module you should be able to observe personal hygiene.",
+    job_materials:
+      "PPE, materials. Tools, sanitize container and bottles. Concoction area",
+    job_steps:
+      "Wear the PPE. Check the tools, materials in proper area. Arrange all needed tools and equipment and raw materials to be used and properly label for easily identify. Keep or maintain the work area, tools, equipment and raw materials clean to avoid contamination results. Create consistent way that task and procedure are done. Make a habit of properly maintaining the correct procedure. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 31,
+    lesson_content_id: 50,
+    job_title:
+      "Preparing raw materials for producing organic concoction and extract",
+    job_objectives:
+      "At the end of this module the student should be able to prepare raw materials when producing organic concoction and extract.",
+    job_materials:
+      "kankong, Camote tops, banana trunk and molasses, banana papaya kalabasa, garlic, ginger,  Mascuvado, sugar pure ,coconut vinegar, Clay pot/Bamboo trough, Manila paper, Basin, Cooked rice, Rice wash, Fresh milk (skimmed or powdered milk can be used), pork, fish and beef bones, eggshells and kuhol and/or any shells.",
+    job_steps:
+      "Wear PPE. Collect all the raw materials. Eliminate the unnecessary and unwanted one. Make sure that all raw materials are clean. Check the raw materials are suited to the types of concoctions. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 32,
+    lesson_content_id: 51,
+    job_title: "Determining period of fermentation process",
+    job_objectives:
+      "At the end of this module the student should be able to determine the period of fermentation process.",
+    job_materials:
+      "PPE, Various concoctions (FPJ, FFJ, IMO, FAA, LABS, CALPHOS)",
+    job_steps:
+      "Wear the PPE. Put the label in the fermented concoctions. Keep the concoction in the shaded area until undergone fermentation process. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 33,
+    lesson_content_id: 52,
+    job_title: "The various concoctions",
+    job_objectives:
+      "At the end of this module the student should be able to identify the different types of concoctions.",
+    job_materials: "PPE, Various concoctions",
+    job_steps:
+      "Wear the PPE. Identify the types of concoctions. Determine the benefits and uses. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 34,
+    lesson_content_id: 53,
+    job_title: "Determine the harvesting  period of concoctions",
+    job_objectives:
+      "At the end of this module you should be able to determine the harvesting period of concoction.",
+    job_materials: "PPE, various concoction, 1 liter plastic bottle",
+    job_steps:
+      "Wear the PPE. Harvest the concoction. Put in a sanitized and cleaned plastic bottle. Correct the measure dosage of using concoction. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 35,
+    lesson_content_id: 54,
+    job_title: "Sanitizing the bottles and containers",
+    job_objectives:
+      "At the end of this module the student should be able to sanitize bottles and containers.",
+    job_materials: "PPE, Concoction area, sanitized bottles and plastic bottle",
+    job_steps:
+      "Wear PPE. Remove the label before cleaning the plastic bottle. Unscrew the tops and of  a container of warm soapy water to avoid losing them down the drain. Fill a large pot or sink with soap and hot water  to fully submerge your bottles into the solution for a few minutes to kill any bacteria. Rinse the bottles and tops thoroughly. For the bottles, fill them with warm water from the tap until no soap residue is left over. Allow the bottles to dry overnight. Dont refill the bottles too soon; they must be completely dry before refilling to avoid bacterial buildup. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 36,
+    lesson_content_id: 55,
+    job_title: "Proper labeling and packaging of concoctions",
+    job_objectives:
+      "At the end of this module the student should be able to proper labeling and packaging of concoctions.",
+    job_materials: "Concoction area, various concoction, papers, ballpeen",
+    job_steps:
+      "Prepare all the supplies and materials in labelling and tagging. Get your produce concoctions. Label the fermented products based on the required information. Submit your work to your trainer. Do housekeeping.",
+    job_assesment_method: "",
+  },
+  {
+    job_id: 37,
+    lesson_content_id: 56,
+    job_title: " Appropriate place to store",
+    job_objectives:
+      "At the end of this module the student should be able to appropriate storage for the various concoctions.",
+    job_materials: "Concoction area, various concoction",
+    job_steps:
+      "Prepare the various concoctions. Determine the right temperature inside the concoction area. Sealed bottles or other package prevents contamination during storage. Do housekeeping.",
+    job_assesment_method: "",
+  },
 ];
 
-const DEFAULT_LESSON_ACHIEVEMENT: Omit<LessonAchievementRecord, 'created_at' | 'updated_at'>[] = [
-  { lesson_achievement_id: 1, lesson_id: 1, name: 'Lesson 1 Master - Module 1', badge_image: 'assets/lesson_badges/badge_m1_l1.png' },
-  { lesson_achievement_id: 2, lesson_id: 2, name: 'Lesson 2 Master - Module 1', badge_image: 'assets/lesson_badges/badge_m1_l2.png' },
-  { lesson_achievement_id: 3, lesson_id: 3, name: 'Lesson 3 Master - Module 1', badge_image: 'assets/lesson_badges/badge_m1_l3.png' },
-  { lesson_achievement_id: 4, lesson_id: 4, name: 'Lesson 4 Master - Module 1', badge_image: 'assets/lesson_badges/badge_m1_l4.png' },
-  { lesson_achievement_id: 5, lesson_id: 5, name: 'Lesson 1 Master - Module 2', badge_image: 'assets/lesson_badges/badge_m2_l1.png' },
-  { lesson_achievement_id: 6, lesson_id: 6, name: 'Lesson 2 Master - Module 2', badge_image: 'assets/lesson_badges/badge_m2_l2.png' },
-  { lesson_achievement_id: 7, lesson_id: 7, name: 'Lesson 3 Master - Module 2', badge_image: 'assets/lesson_badges/badge_m2_l3.png' },
-  { lesson_achievement_id: 8, lesson_id: 8, name: 'Lesson 4 Master - Module 2', badge_image: 'assets/lesson_badges/badge_m2_l4.png' },
-  { lesson_achievement_id: 9, lesson_id: 9, name: 'Lesson 1 Master - Module 3', badge_image: 'assets/lesson_badges/badge_m3_l1.png' },
-  { lesson_achievement_id: 10, lesson_id: 10, name: 'Lesson 2 Master - Module 3', badge_image: 'assets/lesson_badges/badge_m3_l2.png' },
-  { lesson_achievement_id: 11, lesson_id: 11, name: 'Lesson 1 Master - Module 4', badge_image: 'assets/lesson_badges/badge_m4_l1.png' },
-  { lesson_achievement_id: 12, lesson_id: 12, name: 'Lesson 2 Master - Module 4', badge_image: 'assets/lesson_badges/badge_m4_l2.png' },
-  { lesson_achievement_id: 13, lesson_id: 13, name: 'Lesson 3 Master - Module 4', badge_image: 'assets/lesson_badges/badge_m4_l3.png' },
+const DEFAULT_MODULE_ACHIEVEMENT: Omit<
+  ModuleAchievementRecord,
+  "created_at" | "updated_at"
+>[] = [
+  {
+    module_achievement_id: 1,
+    module_id: 1,
+    name: "Module 1 Master",
+    badge_image: "assets/module_badges/badge_m1.png",
+  },
+  {
+    module_achievement_id: 2,
+    module_id: 2,
+    name: "Module 2 Master",
+    badge_image: "assets/module_badges/badge_m2.png",
+  },
+  {
+    module_achievement_id: 3,
+    module_id: 3,
+    name: "Module 3 Master",
+    badge_image: "assets/module_badges/badge_m3.png",
+  },
+  {
+    module_achievement_id: 4,
+    module_id: 4,
+    name: "Module 4 Master",
+    badge_image: "assets/module_badges/badge_m4.png",
+  },
+  {
+    module_achievement_id: 5,
+    module_id: 0,
+    name: "Module Master",
+    badge_image: "assets/module_badges/module_complete.png",
+  },
 ];
 
-const databasePromise = SQLite.openDatabaseAsync('student-offline-auth.db');
+const DEFAULT_LESSON_ACHIEVEMENT: Omit<
+  LessonAchievementRecord,
+  "created_at" | "updated_at"
+>[] = [
+  {
+    lesson_achievement_id: 1,
+    lesson_id: 1,
+    name: "Lesson 1 Master - Module 1",
+    badge_image: "assets/lesson_badges/badge_m1_l1.png",
+  },
+  {
+    lesson_achievement_id: 2,
+    lesson_id: 2,
+    name: "Lesson 2 Master - Module 1",
+    badge_image: "assets/lesson_badges/badge_m1_l2.png",
+  },
+  {
+    lesson_achievement_id: 3,
+    lesson_id: 3,
+    name: "Lesson 3 Master - Module 1",
+    badge_image: "assets/lesson_badges/badge_m1_l3.png",
+  },
+  {
+    lesson_achievement_id: 4,
+    lesson_id: 4,
+    name: "Lesson 4 Master - Module 1",
+    badge_image: "assets/lesson_badges/badge_m1_l4.png",
+  },
+  {
+    lesson_achievement_id: 5,
+    lesson_id: 5,
+    name: "Lesson 1 Master - Module 2",
+    badge_image: "assets/lesson_badges/badge_m2_l1.png",
+  },
+  {
+    lesson_achievement_id: 6,
+    lesson_id: 6,
+    name: "Lesson 2 Master - Module 2",
+    badge_image: "assets/lesson_badges/badge_m2_l2.png",
+  },
+  {
+    lesson_achievement_id: 7,
+    lesson_id: 7,
+    name: "Lesson 3 Master - Module 2",
+    badge_image: "assets/lesson_badges/badge_m2_l3.png",
+  },
+  {
+    lesson_achievement_id: 8,
+    lesson_id: 8,
+    name: "Lesson 4 Master - Module 2",
+    badge_image: "assets/lesson_badges/badge_m2_l4.png",
+  },
+  {
+    lesson_achievement_id: 9,
+    lesson_id: 9,
+    name: "Lesson 1 Master - Module 3",
+    badge_image: "assets/lesson_badges/badge_m3_l1.png",
+  },
+  {
+    lesson_achievement_id: 10,
+    lesson_id: 10,
+    name: "Lesson 2 Master - Module 3",
+    badge_image: "assets/lesson_badges/badge_m3_l2.png",
+  },
+  {
+    lesson_achievement_id: 11,
+    lesson_id: 11,
+    name: "Lesson 1 Master - Module 4",
+    badge_image: "assets/lesson_badges/badge_m4_l1.png",
+  },
+  {
+    lesson_achievement_id: 12,
+    lesson_id: 12,
+    name: "Lesson 2 Master - Module 4",
+    badge_image: "assets/lesson_badges/badge_m4_l2.png",
+  },
+  {
+    lesson_achievement_id: 13,
+    lesson_id: 13,
+    name: "Lesson 3 Master - Module 4",
+    badge_image: "assets/lesson_badges/badge_m4_l3.png",
+  },
+];
+
+const databasePromise = SQLite.openDatabaseAsync("student-offline-auth.db");
 
 function toStudentUser(user: StoredStudentUser): StudentUser {
   return {
     user_id: user.user_id,
     username: user.username,
     email: user.email,
-    role: 'student',
+    role: "student",
     created_at: user.created_at,
   };
 }
 
 async function ensureDatabase() {
   const db = await databasePromise;
-  await db.execAsync('PRAGMA journal_mode = WAL');
+  await db.execAsync("PRAGMA journal_mode = WAL");
 
   const createStatements = [
     `CREATE TABLE IF NOT EXISTS users (
@@ -565,7 +1660,7 @@ async function ensureDatabase() {
       updated_at TEXT NOT NULL,
       FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
     )`,
-    (`
+    `
       CREATE TABLE IF NOT EXISTS content_info (
         content_info_id INTEGER PRIMARY KEY NOT NULL,
         lesson_content_id INTEGER NOT NULL,
@@ -576,7 +1671,7 @@ async function ensureDatabase() {
         updated_at TEXT NOT NULL,
         FOREIGN KEY (lesson_content_id) REFERENCES lesson_content(lesson_content_id)
       )  
-    `),
+    `,
     `CREATE TABLE IF NOT EXISTS lesson_info (
       lesson_info_id INTEGER PRIMARY KEY NOT NULL,
       lesson_id INTEGER NOT NULL,
@@ -656,7 +1751,7 @@ async function ensureDatabase() {
         FOREIGN KEY (job_id) REFERENCES job_sheet(job_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id)
     )`,
-`CREATE TABLE IF NOT EXISTS performance_checklist (
+    `CREATE TABLE IF NOT EXISTS performance_checklist (
         performance_id INTEGER PRIMARY KEY NOT NULL,
         lesson_content_id INTEGER NOT NULL,
         performance_question TEXT NOT NULL,
@@ -706,7 +1801,7 @@ async function ensureDatabase() {
       updated_at TEXT NOT NULL,
       FOREIGN KEY (module_id) REFERENCES modules(module_id)
      )`,
-      `CREATE TABLE IF NOT EXISTS lesson_achievement (
+    `CREATE TABLE IF NOT EXISTS lesson_achievement (
         lesson_achievement_id INTEGER PRIMARY KEY NOT NULL,
         lesson_id INTEGER NOT NULL,
         name TEXT NOT NULL,
@@ -715,7 +1810,7 @@ async function ensureDatabase() {
         updated_at TEXT NOT NULL,
         FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
        )`,
-      `CREATE TABLE IF NOT EXISTS student_lesson_achievement (
+    `CREATE TABLE IF NOT EXISTS student_lesson_achievement (
         stud_lesson_achievement_id INTEGER PRIMARY KEY NOT NULL,
         lesson_achievement_id INTEGER NOT NULL,
         user_id INTEGER NOT NULL,
@@ -725,7 +1820,7 @@ async function ensureDatabase() {
         FOREIGN KEY (user_id) REFERENCES users(user_id),
         UNIQUE(user_id, lesson_achievement_id)
        )`,
-       `CREATE TABLE IF NOT EXISTS student_module_achievement (
+    `CREATE TABLE IF NOT EXISTS student_module_achievement (
         stud_module_achievement_id INTEGER PRIMARY KEY NOT NULL,
         module_achievement_id INTEGER NOT NULL,
         user_id INTEGER NOT NULL,
@@ -735,11 +1830,11 @@ async function ensureDatabase() {
         FOREIGN KEY (user_id) REFERENCES users(user_id),
         UNIQUE(user_id, module_achievement_id)
       );`,
-        `CREATE TABLE IF NOT EXISTS app_settings (
+    `CREATE TABLE IF NOT EXISTS app_settings (
          setting_key TEXT PRIMARY KEY NOT NULL,
          setting_value TEXT NOT NULL
        )`,
-       `CREATE TABLE IF NOT EXISTS student_tutorials (
+    `CREATE TABLE IF NOT EXISTS student_tutorials (
          tutorial_id INTEGER PRIMARY KEY NOT NULL,
          user_id INTEGER NOT NULL,
          completed INTEGER NOT NULL DEFAULT 0,
@@ -751,40 +1846,52 @@ async function ensureDatabase() {
          FOREIGN KEY (user_id) REFERENCES users(user_id),
          UNIQUE(user_id)
        )`,
-      ];
-
-   try {
-     const tableExists = await db.getFirstAsync<{ type: string }>('SELECT type FROM sqlite_master WHERE type = ? AND name = ?', ['table', 'student_lesson_achievement']);
-     if (tableExists) {
-       const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(student_lesson_achievement)');
-       const hasUserId = columns.some((col) => col.name === 'user_id');
-       if (!hasUserId) {
-         await db.execAsync('DROP TABLE student_lesson_achievement');
-       }
-     }
-   } catch (error) {
-     console.error('Migration checked for student_lesson_achievement failed:', error);
-   }
-
-   for (const sql of createStatements) {
-     try {
-       await db.execAsync(sql);
-     } catch (error) {
-       console.error('Database table creation failed:', error);
-     }
-   }
-
-   try {
-     await db.execAsync('ALTER TABLE modules ADD COLUMN module_pdf TEXT DEFAULT ""');
-   } catch {
-     // Column already exists or table not yet created; ignore.
-   }
+  ];
 
   try {
-    const existing = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM users');
+    const tableExists = await db.getFirstAsync<{ type: string }>(
+      "SELECT type FROM sqlite_master WHERE type = ? AND name = ?",
+      ["table", "student_lesson_achievement"],
+    );
+    if (tableExists) {
+      const columns = await db.getAllAsync<{ name: string }>(
+        "PRAGMA table_info(student_lesson_achievement)",
+      );
+      const hasUserId = columns.some((col) => col.name === "user_id");
+      if (!hasUserId) {
+        await db.execAsync("DROP TABLE student_lesson_achievement");
+      }
+    }
+  } catch (error) {
+    console.error(
+      "Migration checked for student_lesson_achievement failed:",
+      error,
+    );
+  }
+
+  for (const sql of createStatements) {
+    try {
+      await db.execAsync(sql);
+    } catch (error) {
+      console.error("Database table creation failed:", error);
+    }
+  }
+
+  try {
+    await db.execAsync(
+      'ALTER TABLE modules ADD COLUMN module_pdf TEXT DEFAULT ""',
+    );
+  } catch {
+    // Column already exists or table not yet created; ignore.
+  }
+
+  try {
+    const existing = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM users",
+    );
     if ((existing?.count ?? 0) === 0) {
       await db.runAsync(
-        'INSERT INTO users (user_id, username, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+        "INSERT INTO users (user_id, username, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
         [
           DEFAULT_STUDENT_ACCOUNT.user_id,
           DEFAULT_STUDENT_ACCOUNT.username,
@@ -792,11 +1899,11 @@ async function ensureDatabase() {
           DEFAULT_STUDENT_ACCOUNT.password,
           DEFAULT_STUDENT_ACCOUNT.role,
           DEFAULT_STUDENT_ACCOUNT.created_at,
-        ]
-  );
-}
+        ],
+      );
+    }
   } catch (error) {
-    console.error('Default student account seeding failed:', error);
+    console.error("Default student account seeding failed:", error);
   }
 
   try {
@@ -806,8 +1913,8 @@ async function ensureDatabase() {
       const now = new Date().toISOString();
 
       const existing = await db.getFirstAsync<{ count: number }>(
-        'SELECT COUNT(*) as count FROM competencies WHERE competency_name = ?',
-        [competency.competency_name]
+        "SELECT COUNT(*) as count FROM competencies WHERE competency_name = ?",
+        [competency.competency_name],
       );
 
       if ((existing?.count ?? 0) === 0) {
@@ -823,12 +1930,12 @@ async function ensureDatabase() {
             competency.status,
             now,
             now,
-          ]
+          ],
         );
       }
     }
   } catch (error) {
-    console.error('Competency seeding failed:', error);
+    console.error("Competency seeding failed:", error);
   }
 
   try {
@@ -838,8 +1945,8 @@ async function ensureDatabase() {
       const now = new Date().toISOString();
 
       const existing = await db.getFirstAsync<{ count: number }>(
-        'SELECT COUNT(*) as count FROM modules WHERE module_name = ?',
-        [moduleItem.module_name]
+        "SELECT COUNT(*) as count FROM modules WHERE module_name = ?",
+        [moduleItem.module_name],
       );
 
       if ((existing?.count ?? 0) === 0) {
@@ -856,12 +1963,12 @@ async function ensureDatabase() {
             moduleItem.thumbnail,
             now,
             now,
-          ]
+          ],
         );
       }
     }
   } catch (error) {
-    console.error('Module seeding failed:', error);
+    console.error("Module seeding failed:", error);
   }
 
   try {
@@ -871,8 +1978,8 @@ async function ensureDatabase() {
       const now = new Date().toISOString();
 
       const existing = await db.getFirstAsync<{ count: number }>(
-        'SELECT COUNT(*) as count FROM lessons WHERE lesson_name = ?',
-        [lessonItem.lesson_name]
+        "SELECT COUNT(*) as count FROM lessons WHERE lesson_name = ?",
+        [lessonItem.lesson_name],
       );
 
       if ((existing?.count ?? 0) === 0) {
@@ -887,12 +1994,12 @@ async function ensureDatabase() {
             lessonItem.order_number,
             now,
             now,
-          ]
+          ],
         );
       }
     }
   } catch (error) {
-    console.error('Lesson seeding failed:', error);
+    console.error("Lesson seeding failed:", error);
   }
 
   try {
@@ -902,8 +2009,8 @@ async function ensureDatabase() {
       const now = new Date().toISOString();
 
       const existing = await db.getFirstAsync<{ count: number }>(
-        'SELECT COUNT(*) as count FROM lesson_content WHERE content_name = ?',
-        [contentItem.content_name]
+        "SELECT COUNT(*) as count FROM lesson_content WHERE content_name = ?",
+        [contentItem.content_name],
       );
 
       if ((existing?.count ?? 0) === 0) {
@@ -918,81 +2025,81 @@ async function ensureDatabase() {
             contentItem.objectives,
             now,
             now,
-          ]
+          ],
         );
       }
     }
-   } catch (error) {
-     console.error('Lesson content seeding failed:', error);
-   }
+  } catch (error) {
+    console.error("Lesson content seeding failed:", error);
+  }
 
-   try {
-     for (let index = 0; index < DEFAULT_LESSON_ACHIEVEMENT.length; index += 1) {
-       const achievement = DEFAULT_LESSON_ACHIEVEMENT[index];
-       const now = new Date().toISOString();
+  try {
+    for (let index = 0; index < DEFAULT_LESSON_ACHIEVEMENT.length; index += 1) {
+      const achievement = DEFAULT_LESSON_ACHIEVEMENT[index];
+      const now = new Date().toISOString();
 
-       const existing = await db.getFirstAsync<{ count: number }>(
-         'SELECT COUNT(*) as count FROM lesson_achievement WHERE lesson_achievement_id = ?',
-         [achievement.lesson_achievement_id]
-       );
+      const existing = await db.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) as count FROM lesson_achievement WHERE lesson_achievement_id = ?",
+        [achievement.lesson_achievement_id],
+      );
 
-       if ((existing?.count ?? 0) === 0) {
-         await db.runAsync(
-           `INSERT INTO lesson_achievement
+      if ((existing?.count ?? 0) === 0) {
+        await db.runAsync(
+          `INSERT INTO lesson_achievement
              (lesson_achievement_id, lesson_id, name, badge_image, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?)`,
-           [
-             achievement.lesson_achievement_id,
-             achievement.lesson_id,
-             achievement.name,
-             achievement.badge_image,
-             now,
-             now,
-           ]
-         );
-       }
-     }
-   } catch (error) {
-     console.error('Lesson achievement seeding failed:', error);
-   }
+          [
+            achievement.lesson_achievement_id,
+            achievement.lesson_id,
+            achievement.name,
+            achievement.badge_image,
+            now,
+            now,
+          ],
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Lesson achievement seeding failed:", error);
+  }
 
-   try {
-     for (let index = 0; index < DEFAULT_MODULE_ACHIEVEMENT.length; index += 1) {
-       const achievement = DEFAULT_MODULE_ACHIEVEMENT[index];
-       const now = new Date().toISOString();
+  try {
+    for (let index = 0; index < DEFAULT_MODULE_ACHIEVEMENT.length; index += 1) {
+      const achievement = DEFAULT_MODULE_ACHIEVEMENT[index];
+      const now = new Date().toISOString();
 
-       const existing = await db.getFirstAsync<{ count: number }>(
-         'SELECT COUNT(*) as count FROM module_achievement WHERE module_achievement_id = ?',
-         [achievement.module_achievement_id]
-       );
+      const existing = await db.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) as count FROM module_achievement WHERE module_achievement_id = ?",
+        [achievement.module_achievement_id],
+      );
 
-       if ((existing?.count ?? 0) === 0) {
-         await db.runAsync(
-           `INSERT INTO module_achievement
+      if ((existing?.count ?? 0) === 0) {
+        await db.runAsync(
+          `INSERT INTO module_achievement
              (module_achievement_id, module_id, name, badge_image, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?)`,
-           [
-             achievement.module_achievement_id,
-             achievement.module_id,
-             achievement.name,
-             achievement.badge_image,
-             now,
-             now,
-           ]
-         );
-       }
-     }
-   } catch (error) {
-     console.error('Module achievement seeding failed:', error);
-   }
+          [
+            achievement.module_achievement_id,
+            achievement.module_id,
+            achievement.name,
+            achievement.badge_image,
+            now,
+            now,
+          ],
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Module achievement seeding failed:", error);
+  }
 }
 
 export async function getSetting(key: string): Promise<string | null> {
   await ensureDatabase();
   const db = await databasePromise;
   const row = await db.getFirstAsync<{ setting_value: string }>(
-    'SELECT setting_value FROM app_settings WHERE setting_key = ?',
-    [key]
+    "SELECT setting_value FROM app_settings WHERE setting_key = ?",
+    [key],
   );
   return row?.setting_value ?? null;
 }
@@ -1001,8 +2108,8 @@ export async function setSetting(key: string, value: string): Promise<void> {
   await ensureDatabase();
   const db = await databasePromise;
   await db.runAsync(
-    'INSERT OR REPLACE INTO app_settings (setting_key, setting_value) VALUES (?, ?)',
-    [key, value]
+    "INSERT OR REPLACE INTO app_settings (setting_key, setting_value) VALUES (?, ?)",
+    [key, value],
   );
 }
 
@@ -1015,80 +2122,101 @@ function normalizeText(value: string) {
 }
 
 function normalizeNullableText(value: string | null | undefined) {
-  const normalized = String(value ?? '').trim();
+  const normalized = String(value ?? "").trim();
   return normalized.length ? normalized : null;
 }
 
 async function findUserByEmail(email: string) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getFirstAsync<StoredStudentUser>('SELECT * FROM users WHERE email = ?', [normalizeEmail(email)]);
+  return db.getFirstAsync<StoredStudentUser>(
+    "SELECT * FROM users WHERE email = ?",
+    [normalizeEmail(email)],
+  );
 }
 
-export async function registerStudent(payload: { username: string; email: string; password: string }) {
+export async function registerStudent(payload: {
+  username: string;
+  email: string;
+  password: string;
+}) {
   const username = normalizeText(payload.username);
   const email = normalizeEmail(payload.email);
   const password = normalizeText(payload.password);
 
   if (!username || !email || !password) {
-    throw new Error('Username, email, and password are required.');
+    throw new Error("Username, email, and password are required.");
   }
 
   await ensureDatabase();
   const existingUser = await findUserByEmail(email);
   if (existingUser) {
-    throw new Error('A student account with that email already exists.');
+    throw new Error("A student account with that email already exists.");
   }
 
   const db = await databasePromise;
-  const highestUser = await db.getFirstAsync<{ user_id: number }>('SELECT COALESCE(MAX(user_id), 0) + 1 AS user_id FROM users');
+  const highestUser = await db.getFirstAsync<{ user_id: number }>(
+    "SELECT COALESCE(MAX(user_id), 0) + 1 AS user_id FROM users",
+  );
   const userId = highestUser?.user_id ?? 1;
   const createdAt = new Date().toISOString();
 
   await db.runAsync(
-    'INSERT INTO users (user_id, username, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-    [userId, username, email, password, 'student', createdAt]
+    "INSERT INTO users (user_id, username, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+    [userId, username, email, password, "student", createdAt],
   );
 
   return {
-    message: 'Student account created successfully.',
-    user: toStudentUser({ user_id: userId, username, email, password, role: 'student', created_at: createdAt }),
+    message: "Student account created successfully.",
+    user: toStudentUser({
+      user_id: userId,
+      username,
+      email,
+      password,
+      role: "student",
+      created_at: createdAt,
+    }),
   } satisfies AuthResponse;
 }
 
-export async function loginStudent(payload: { email: string; password: string }) {
+export async function loginStudent(payload: {
+  email: string;
+  password: string;
+}) {
   const email = normalizeEmail(payload.email);
   const password = normalizeText(payload.password);
 
   if (!email || !password) {
-    throw new Error('Email and password are required.');
+    throw new Error("Email and password are required.");
   }
 
   const user = await findUserByEmail(email);
   if (!user || user.password !== password) {
-    throw new Error('Invalid student credentials.');
+    throw new Error("Invalid student credentials.");
   }
 
   return {
-    message: 'Student login successful.',
+    message: "Student login successful.",
     user: toStudentUser(user),
   } satisfies AuthResponse;
 }
 
-function validateProfilePayload(payload: Omit<StudentProfile, 'student_id' | 'created_at' | 'updated_at'>) {
+function validateProfilePayload(
+  payload: Omit<StudentProfile, "student_id" | "created_at" | "updated_at">,
+) {
   const normalized = {
     user_id: Number(payload.user_id),
-    first_name: normalizeText(payload.first_name || ''),
+    first_name: normalizeText(payload.first_name || ""),
     middle_name: normalizeNullableText(payload.middle_name),
-    last_name: normalizeText(payload.last_name || ''),
-    birthdate: normalizeText(payload.birthdate || ''),
-    home_address: normalizeText(payload.home_address || ''),
-    grade_level: normalizeText(payload.grade_level || ''),
+    last_name: normalizeText(payload.last_name || ""),
+    birthdate: normalizeText(payload.birthdate || ""),
+    home_address: normalizeText(payload.home_address || ""),
+    grade_level: normalizeText(payload.grade_level || ""),
     student_image: normalizeNullableText(payload.student_image),
   };
 
   if (!Number.isInteger(normalized.user_id) || normalized.user_id <= 0) {
-    throw new Error('A valid user_id is required.');
+    throw new Error("A valid user_id is required.");
   }
 
   if (
@@ -1098,7 +2226,9 @@ function validateProfilePayload(payload: Omit<StudentProfile, 'student_id' | 'cr
     !normalized.home_address ||
     !normalized.grade_level
   ) {
-    throw new Error('first_name, last_name, birthdate, home_address, and grade_level are required.');
+    throw new Error(
+      "first_name, last_name, birthdate, home_address, and grade_level are required.",
+    );
   }
 
   return normalized;
@@ -1107,16 +2237,23 @@ function validateProfilePayload(payload: Omit<StudentProfile, 'student_id' | 'cr
 export async function listStudentProfiles() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<StudentProfile>('SELECT * FROM student_info ORDER BY student_id ASC');
+  return db.getAllAsync<StudentProfile>(
+    "SELECT * FROM student_info ORDER BY student_id ASC",
+  );
 }
 
 export async function getStudentProfileByUserId(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getFirstAsync<StudentProfile>('SELECT * FROM student_info WHERE user_id = ?', [userId]);
+  return db.getFirstAsync<StudentProfile>(
+    "SELECT * FROM student_info WHERE user_id = ?",
+    [userId],
+  );
 }
 
-export async function createStudentProfile(payload: Omit<StudentProfile, 'student_id' | 'created_at' | 'updated_at'>) {
+export async function createStudentProfile(
+  payload: Omit<StudentProfile, "student_id" | "created_at" | "updated_at">,
+) {
   const normalized = validateProfilePayload(payload);
 
   await ensureDatabase();
@@ -1124,20 +2261,20 @@ export async function createStudentProfile(payload: Omit<StudentProfile, 'studen
 
   const existing = await getStudentProfileByUserId(normalized.user_id);
   if (existing) {
-    throw new Error('A student profile already exists for this user.');
+    throw new Error("A student profile already exists for this user.");
   }
 
   const row = await db.getFirstAsync<{ student_id: number }>(
-    'SELECT COALESCE(MAX(student_id), 0) + 1 AS student_id FROM student_info'
+    "SELECT COALESCE(MAX(student_id), 0) + 1 AS student_id FROM student_info",
   );
   const studentId = row?.student_id ?? 1;
   const now = new Date().toISOString();
 
-   await db.runAsync(
+  await db.runAsync(
     `INSERT INTO student_info
       (student_id, user_id, first_name, middle_name, last_name, birthdate, home_address, grade_level, student_image, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-     [
+    [
       studentId,
       normalized.user_id,
       normalized.first_name,
@@ -1149,7 +2286,7 @@ export async function createStudentProfile(payload: Omit<StudentProfile, 'studen
       normalized.student_image,
       now,
       now,
-    ]
+    ],
   );
 
   return {
@@ -1162,25 +2299,28 @@ export async function createStudentProfile(payload: Omit<StudentProfile, 'studen
 
 export async function updateStudentProfile(
   studentId: number,
-  payload: Omit<StudentProfile, 'student_id' | 'created_at' | 'updated_at'>
+  payload: Omit<StudentProfile, "student_id" | "created_at" | "updated_at">,
 ) {
   const normalized = validateProfilePayload(payload);
 
   await ensureDatabase();
   const db = await databasePromise;
-  const existing = await db.getFirstAsync<StudentProfile>('SELECT * FROM student_info WHERE student_id = ?', [studentId]);
+  const existing = await db.getFirstAsync<StudentProfile>(
+    "SELECT * FROM student_info WHERE student_id = ?",
+    [studentId],
+  );
 
   if (!existing) {
-    throw new Error('Student profile not found.');
+    throw new Error("Student profile not found.");
   }
 
   const now = new Date().toISOString();
 
-   await db.runAsync(
+  await db.runAsync(
     `UPDATE student_info
       SET first_name = ?, middle_name = ?, last_name = ?, birthdate = ?, home_address = ?, grade_level = ?, student_image = ?, updated_at = ?
       WHERE student_id = ?`,
-     [
+    [
       normalized.first_name,
       normalized.middle_name,
       normalized.last_name,
@@ -1190,7 +2330,7 @@ export async function updateStudentProfile(
       normalized.student_image,
       now,
       studentId,
-    ]
+    ],
   );
 
   return {
@@ -1203,91 +2343,133 @@ export async function updateStudentProfile(
 export async function deleteStudentProfile(studentId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  const result = await db.runAsync('DELETE FROM student_info WHERE student_id = ?', [studentId]);
+  const result = await db.runAsync(
+    "DELETE FROM student_info WHERE student_id = ?",
+    [studentId],
+  );
   return (result.changes ?? 0) > 0;
 }
 
 export async function getUserById(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getFirstAsync<StoredStudentUser>('SELECT * FROM users WHERE user_id = ?', [userId]);
+  return db.getFirstAsync<StoredStudentUser>(
+    "SELECT * FROM users WHERE user_id = ?",
+    [userId],
+  );
 }
 
 export async function listCompetencies() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<CompetencyRecord>('SELECT * FROM competencies ORDER BY competency_id ASC');
+  return db.getAllAsync<CompetencyRecord>(
+    "SELECT * FROM competencies ORDER BY competency_id ASC",
+  );
 }
 
 export async function listModules() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<ModuleRecord>('SELECT * FROM modules ORDER BY module_id ASC');
+  return db.getAllAsync<ModuleRecord>(
+    "SELECT * FROM modules ORDER BY module_id ASC",
+  );
 }
 
 export async function getModuleByCompetencyId(competencyId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getFirstAsync<ModuleRecord>('SELECT * FROM modules WHERE competency_id = ?', [competencyId]);
+  return db.getFirstAsync<ModuleRecord>(
+    "SELECT * FROM modules WHERE competency_id = ?",
+    [competencyId],
+  );
 }
 
 export async function listLessons() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonRecord>('SELECT * FROM lessons ORDER BY module_id ASC, order_number ASC, lesson_id ASC');
+  return db.getAllAsync<LessonRecord>(
+    "SELECT * FROM lessons ORDER BY module_id ASC, order_number ASC, lesson_id ASC",
+  );
 }
 
 export async function getLessonsByModuleId(moduleId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonRecord>('SELECT * FROM lessons WHERE module_id = ? ORDER BY order_number ASC, lesson_id ASC', [moduleId]);
+  return db.getAllAsync<LessonRecord>(
+    "SELECT * FROM lessons WHERE module_id = ? ORDER BY order_number ASC, lesson_id ASC",
+    [moduleId],
+  );
 }
 
 export async function getLessonById(lessonId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  const rows = await db.getAllAsync<LessonRecord>('SELECT * FROM lessons WHERE lesson_id = ?', [lessonId]);
+  const rows = await db.getAllAsync<LessonRecord>(
+    "SELECT * FROM lessons WHERE lesson_id = ?",
+    [lessonId],
+  );
   return rows[0] ?? null;
 }
 
 export async function getModuleById(moduleId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  const rows = await db.getAllAsync<ModuleRecord>('SELECT * FROM modules WHERE module_id = ?', [moduleId]);
+  const rows = await db.getAllAsync<ModuleRecord>(
+    "SELECT * FROM modules WHERE module_id = ?",
+    [moduleId],
+  );
   return rows[0] ?? null;
 }
 
 export async function listModuleAchievements() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<ModuleAchievementRecord>('SELECT * FROM module_achievement ORDER BY module_achievement_id ASC');
+  return db.getAllAsync<ModuleAchievementRecord>(
+    "SELECT * FROM module_achievement ORDER BY module_achievement_id ASC",
+  );
 }
 
 export async function listModuleAchievementsByModule(moduleId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<ModuleAchievementRecord>('SELECT * FROM module_achievement WHERE module_id = ? ORDER BY module_achievement_id ASC', [moduleId]);
+  return db.getAllAsync<ModuleAchievementRecord>(
+    "SELECT * FROM module_achievement WHERE module_id = ? ORDER BY module_achievement_id ASC",
+    [moduleId],
+  );
 }
 
 export async function listLessonAchievements() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonAchievementRecord>('SELECT * FROM lesson_achievement ORDER BY lesson_achievement_id ASC');
+  return db.getAllAsync<LessonAchievementRecord>(
+    "SELECT * FROM lesson_achievement ORDER BY lesson_achievement_id ASC",
+  );
 }
 
 export async function listLessonAchievementsByLesson(lessonId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonAchievementRecord>('SELECT * FROM lesson_achievement WHERE lesson_id = ? ORDER BY lesson_achievement_id ASC', [lessonId]);
+  return db.getAllAsync<LessonAchievementRecord>(
+    "SELECT * FROM lesson_achievement WHERE lesson_id = ? ORDER BY lesson_achievement_id ASC",
+    [lessonId],
+  );
 }
 
 export async function getLessonAchievementById(achievementId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getFirstAsync<LessonAchievementRecord>('SELECT * FROM lesson_achievement WHERE lesson_achievement_id = ?', [achievementId]);
+  return db.getFirstAsync<LessonAchievementRecord>(
+    "SELECT * FROM lesson_achievement WHERE lesson_achievement_id = ?",
+    [achievementId],
+  );
 }
 
-export async function createStudentLessonAchievement(payload: Omit<StudentLessonAchievementRecord, 'stud_lesson_achievement_id' | 'created_at' | 'updated_at'>) {
+export async function createStudentLessonAchievement(
+  payload: Omit<
+    StudentLessonAchievementRecord,
+    "stud_lesson_achievement_id" | "created_at" | "updated_at"
+  >,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   const now = new Date().toISOString();
@@ -1295,37 +2477,53 @@ export async function createStudentLessonAchievement(payload: Omit<StudentLesson
     `INSERT INTO student_lesson_achievement
       (lesson_achievement_id, user_id, created_at, updated_at)
       VALUES (?, ?, ?, ?)`,
-    [payload.lesson_achievement_id, payload.user_id, now, now]
+    [payload.lesson_achievement_id, payload.user_id, now, now],
   );
   const id = result?.lastInsertRowId ?? 0;
-  return { stud_lesson_achievement_id: Number(id), ...payload, created_at: now, updated_at: now };
+  return {
+    stud_lesson_achievement_id: Number(id),
+    ...payload,
+    created_at: now,
+    updated_at: now,
+  };
 }
 
 export async function listStudentLessonAchievementByUser(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<StudentLessonAchievementRecord>(
-    'SELECT * FROM student_lesson_achievement WHERE user_id = ? ORDER BY stud_lesson_achievement_id ASC',
-    [userId]
+    "SELECT * FROM student_lesson_achievement WHERE user_id = ? ORDER BY stud_lesson_achievement_id ASC",
+    [userId],
   );
 }
 
-export async function listStudentLessonAchievementByUserAndLessonAchievement(userId: number, lessonAchievementId: number) {
+export async function listStudentLessonAchievementByUserAndLessonAchievement(
+  userId: number,
+  lessonAchievementId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<StudentLessonAchievementRecord>(
-    'SELECT * FROM student_lesson_achievement WHERE user_id = ? AND lesson_achievement_id = ? ORDER BY stud_lesson_achievement_id ASC',
-    [userId, lessonAchievementId]
+    "SELECT * FROM student_lesson_achievement WHERE user_id = ? AND lesson_achievement_id = ? ORDER BY stud_lesson_achievement_id ASC",
+    [userId, lessonAchievementId],
   );
 }
 
 export async function deleteStudentLessonAchievement(studId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.runAsync('DELETE FROM student_lesson_achievement WHERE stud_lesson_achievement_id = ?', [studId]);
+  return db.runAsync(
+    "DELETE FROM student_lesson_achievement WHERE stud_lesson_achievement_id = ?",
+    [studId],
+  );
 }
 
-export async function createStudentModuleAchievement(payload: Omit<StudentModuleAchievementRecord, 'stud_module_achievement_id' | 'created_at' | 'updated_at'>) {
+export async function createStudentModuleAchievement(
+  payload: Omit<
+    StudentModuleAchievementRecord,
+    "stud_module_achievement_id" | "created_at" | "updated_at"
+  >,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   const now = new Date().toISOString();
@@ -1333,31 +2531,55 @@ export async function createStudentModuleAchievement(payload: Omit<StudentModule
     `INSERT INTO student_module_achievement
       (module_achievement_id, user_id, created_at, updated_at)
       VALUES (?, ?, ?, ?)`,
-    [payload.module_achievement_id, payload.user_id, now, now]
+    [payload.module_achievement_id, payload.user_id, now, now],
   );
   const id = result?.lastInsertRowId ?? 0;
-  return { stud_module_achievement_id: Number(id), ...payload, created_at: now, updated_at: now };
+  return {
+    stud_module_achievement_id: Number(id),
+    ...payload,
+    created_at: now,
+    updated_at: now,
+  };
 }
 
 export async function listStudentModuleAchievementByUser(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<StudentModuleAchievementRecord>(
-    'SELECT * FROM student_module_achievement WHERE user_id = ? ORDER BY stud_module_achievement_id ASC',
-    [userId]
+    "SELECT * FROM student_module_achievement WHERE user_id = ? ORDER BY stud_module_achievement_id ASC",
+    [userId],
   );
 }
 
-export async function listStudentModuleAchievementByUserAndModuleAchievement(userId: number, moduleAchievementId: number) {
+export async function listStudentModuleAchievementByUserAndModuleAchievement(
+  userId: number,
+  moduleAchievementId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<StudentModuleAchievementRecord>(
-    'SELECT * FROM student_module_achievement WHERE user_id = ? AND module_achievement_id = ? ORDER BY stud_module_achievement_id ASC',
-    [userId, moduleAchievementId]
+    "SELECT * FROM student_module_achievement WHERE user_id = ? AND module_achievement_id = ? ORDER BY stud_module_achievement_id ASC",
+    [userId, moduleAchievementId],
   );
- }
+}
 
-export async function createStudentTutorial(payload: Omit<StudentTutorialRecord, 'tutorial_id' | 'completed' | 'created_at' | 'updated_at' | 'step1_done' | 'step2_done' | 'step3_done'> & { completed?: boolean; step1_done?: boolean; step2_done?: boolean; step3_done?: boolean }) {
+export async function createStudentTutorial(
+  payload: Omit<
+    StudentTutorialRecord,
+    | "tutorial_id"
+    | "completed"
+    | "created_at"
+    | "updated_at"
+    | "step1_done"
+    | "step2_done"
+    | "step3_done"
+  > & {
+    completed?: boolean;
+    step1_done?: boolean;
+    step2_done?: boolean;
+    step3_done?: boolean;
+  },
+) {
   await ensureDatabase();
   const db = await databasePromise;
   const now = new Date().toISOString();
@@ -1373,7 +2595,7 @@ export async function createStudentTutorial(payload: Omit<StudentTutorialRecord,
       payload.step3_done ? 1 : 0,
       now,
       now,
-    ]
+    ],
   );
   const id = result?.lastInsertRowId ?? 0;
   return {
@@ -1392,8 +2614,8 @@ export async function getStudentTutorialByUserId(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   const rows = await db.getAllAsync<StudentTutorialRecord>(
-    'SELECT * FROM student_tutorials WHERE user_id = ? ORDER BY tutorial_id ASC',
-    [userId]
+    "SELECT * FROM student_tutorials WHERE user_id = ? ORDER BY tutorial_id ASC",
+    [userId],
   );
   return rows[0] ?? null;
 }
@@ -1402,124 +2624,172 @@ export async function listStudentTutorialByUser(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<StudentTutorialRecord>(
-    'SELECT * FROM student_tutorials WHERE user_id = ? ORDER BY tutorial_id ASC',
-    [userId]
+    "SELECT * FROM student_tutorials WHERE user_id = ? ORDER BY tutorial_id ASC",
+    [userId],
   );
 }
 
-export async function updateStudentTutorial(tutorialId: number, payload: Partial<Omit<StudentTutorialRecord, 'tutorial_id' | 'created_at' | 'updated_at'>>) {
+export async function updateStudentTutorial(
+  tutorialId: number,
+  payload: Partial<
+    Omit<StudentTutorialRecord, "tutorial_id" | "created_at" | "updated_at">
+  >,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   const now = new Date().toISOString();
   const sets: string[] = [];
   const vals: any[] = [];
   if (payload.user_id !== undefined) {
-    sets.push('user_id = ?');
+    sets.push("user_id = ?");
     vals.push(payload.user_id);
   }
   if (payload.completed !== undefined) {
-    sets.push('completed = ?');
+    sets.push("completed = ?");
     vals.push(payload.completed);
   }
   if (payload.step1_done !== undefined) {
-    sets.push('step1_done = ?');
+    sets.push("step1_done = ?");
     vals.push(payload.step1_done);
   }
   if (payload.step2_done !== undefined) {
-    sets.push('step2_done = ?');
+    sets.push("step2_done = ?");
     vals.push(payload.step2_done);
   }
   if (payload.step3_done !== undefined) {
-    sets.push('step3_done = ?');
+    sets.push("step3_done = ?");
     vals.push(payload.step3_done);
   }
   if (sets.length === 0) return;
   vals.push(now, tutorialId);
   await db.runAsync(
-    `UPDATE student_tutorials SET ${sets.join(', ')}, updated_at = ? WHERE tutorial_id = ?`,
-    vals
+    `UPDATE student_tutorials SET ${sets.join(", ")}, updated_at = ? WHERE tutorial_id = ?`,
+    vals,
   );
 }
 
 export async function listLessonContent() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content ORDER BY lesson_id ASC, lesson_content_id ASC');
+  return db.getAllAsync<LessonContentRecord>(
+    "SELECT * FROM lesson_content ORDER BY lesson_id ASC, lesson_content_id ASC",
+  );
 }
 
 export async function listLessonContentByLessonId(lessonId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content WHERE lesson_id = ? ORDER BY lesson_content_id ASC', [lessonId]);
+  return db.getAllAsync<LessonContentRecord>(
+    "SELECT * FROM lesson_content WHERE lesson_id = ? ORDER BY lesson_content_id ASC",
+    [lessonId],
+  );
 }
 
 export async function listContentInfo() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info ORDER BY content_info_id ASC');
+  return db.getAllAsync<ContentInfoRecord>(
+    "SELECT * FROM content_info ORDER BY content_info_id ASC",
+  );
 }
 
-export async function listContentInfoByLessonContentId(lessonContentId: number) {
+export async function listContentInfoByLessonContentId(
+  lessonContentId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info WHERE lesson_content_id = ? ORDER BY content_info_id ASC', [lessonContentId]);
+  return db.getAllAsync<ContentInfoRecord>(
+    "SELECT * FROM content_info WHERE lesson_content_id = ? ORDER BY content_info_id ASC",
+    [lessonContentId],
+  );
 }
 
 export async function getContentInfoById(contentInfoId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  const rows = await db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info WHERE content_info_id = ?', [contentInfoId]);
+  const rows = await db.getAllAsync<ContentInfoRecord>(
+    "SELECT * FROM content_info WHERE content_info_id = ?",
+    [contentInfoId],
+  );
   return rows[0] ?? null;
 }
 
 export async function listLessonInfoByLessonId(lessonId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonInfoRecord>('SELECT * FROM lesson_info WHERE lesson_id = ? ORDER BY lesson_info_id ASC', [lessonId]);
+  return db.getAllAsync<LessonInfoRecord>(
+    "SELECT * FROM lesson_info WHERE lesson_id = ? ORDER BY lesson_info_id ASC",
+    [lessonId],
+  );
 }
 
 export async function listLessonLinkByLessonId(lessonId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<LessonLinkRecord>('SELECT * FROM lesson_link WHERE lesson_id = ? ORDER BY lesson_link_id ASC', [lessonId]);
+  return db.getAllAsync<LessonLinkRecord>(
+    "SELECT * FROM lesson_link WHERE lesson_id = ? ORDER BY lesson_link_id ASC",
+    [lessonId],
+  );
 }
 
-export async function listQuestionInstructByLessonContentId(lessonContentId: number) {
+export async function listQuestionInstructByLessonContentId(
+  lessonContentId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<QuestionInstructionRecord>('SELECT * FROM question_instruct WHERE lesson_content_id = ? ORDER BY instruct_id ASC', [lessonContentId]);
+  return db.getAllAsync<QuestionInstructionRecord>(
+    "SELECT * FROM question_instruct WHERE lesson_content_id = ? ORDER BY instruct_id ASC",
+    [lessonContentId],
+  );
 }
 
-export async function listQuestionContentByLessonContentId(lessonContentId: number) {
+export async function listQuestionContentByLessonContentId(
+  lessonContentId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<QuestionContentRecord>('SELECT * FROM question_content WHERE lesson_content_id = ? ORDER BY question_order ASC, question_id ASC', [lessonContentId]);
+  return db.getAllAsync<QuestionContentRecord>(
+    "SELECT * FROM question_content WHERE lesson_content_id = ? ORDER BY question_order ASC, question_id ASC",
+    [lessonContentId],
+  );
 }
 
 export async function listQuestionChoiceByQuestionId(questionId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<QuestionChoiceRecord>('SELECT * FROM question_choice WHERE question_id = ? ORDER BY choice_id ASC', [questionId]);
+  return db.getAllAsync<QuestionChoiceRecord>(
+    "SELECT * FROM question_choice WHERE question_id = ? ORDER BY choice_id ASC",
+    [questionId],
+  );
 }
 
 export async function getLessonContentById(lessonContentId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  const rows = await db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content WHERE lesson_content_id = ?', [lessonContentId]);
+  const rows = await db.getAllAsync<LessonContentRecord>(
+    "SELECT * FROM lesson_content WHERE lesson_content_id = ?",
+    [lessonContentId],
+  );
   return rows[0] ?? null;
 }
 
 export async function getJobSheetByLessonContentId(lessonContentId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  const rows = await db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet WHERE lesson_content_id = ? ORDER BY job_id ASC', [lessonContentId]);
+  const rows = await db.getAllAsync<JobSheetRecord>(
+    "SELECT * FROM job_sheet WHERE lesson_content_id = ? ORDER BY job_id ASC",
+    [lessonContentId],
+  );
   return rows[0] ?? null;
 }
 
 export async function listJobSheetByLessonContentId(lessonContentId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet WHERE lesson_content_id = ? ORDER BY job_id ASC', [lessonContentId]);
+  return db.getAllAsync<JobSheetRecord>(
+    "SELECT * FROM job_sheet WHERE lesson_content_id = ? ORDER BY job_id ASC",
+    [lessonContentId],
+  );
 }
 
 export type PerformanceAnswerRecord = {
@@ -1531,10 +2801,15 @@ export type PerformanceAnswerRecord = {
   updated_at: string;
 };
 
-export async function listPerformanceCheckByLessonContentId(lessonContentId: number) {
+export async function listPerformanceCheckByLessonContentId(
+  lessonContentId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<PerformanceChecklistRecord>('SELECT * FROM performance_checklist WHERE lesson_content_id = ? ORDER BY performance_order ASC', [lessonContentId]);
+  return db.getAllAsync<PerformanceChecklistRecord>(
+    "SELECT * FROM performance_checklist WHERE lesson_content_id = ? ORDER BY performance_order ASC",
+    [lessonContentId],
+  );
 }
 
 export async function createPerformanceAnswer(payload: {
@@ -1549,16 +2824,25 @@ export async function createPerformanceAnswer(payload: {
     `INSERT INTO performance_answer
       (performance_id, user_id, performance_answer_text, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?)`,
-    [payload.performance_id, payload.user_id, payload.performance_answer_text, now, now]
+    [
+      payload.performance_id,
+      payload.user_id,
+      payload.performance_answer_text,
+      now,
+      now,
+    ],
   );
 }
 
-export async function listPerformanceAnswersByUserAndPerformance(userId: number, performanceId: number) {
+export async function listPerformanceAnswersByUserAndPerformance(
+  userId: number,
+  performanceId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<PerformanceAnswerRecord>(
-    'SELECT * FROM performance_answer WHERE user_id = ? AND performance_id = ? ORDER BY performance_answer_id ASC',
-    [userId, performanceId]
+    "SELECT * FROM performance_answer WHERE user_id = ? AND performance_id = ? ORDER BY performance_answer_id ASC",
+    [userId, performanceId],
   );
 }
 
@@ -1566,8 +2850,8 @@ export async function listPerformanceAnswersByUser(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<PerformanceAnswerRecord>(
-    'SELECT * FROM performance_answer WHERE user_id = ? ORDER BY performance_answer_id ASC',
-    [userId]
+    "SELECT * FROM performance_answer WHERE user_id = ? ORDER BY performance_answer_id ASC",
+    [userId],
   );
 }
 
@@ -1593,13 +2877,23 @@ export async function createLessonContentProgress(payload: {
     `INSERT INTO lesson_content_progress
       (lesson_content_id, user_id, is_read, read_at, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?)`,
-    [payload.lesson_content_id, payload.user_id, payload.is_read ? 1 : 0, now, now, now]
+    [
+      payload.lesson_content_id,
+      payload.user_id,
+      payload.is_read ? 1 : 0,
+      now,
+      now,
+      now,
+    ],
   );
 }
 
-export async function updateLessonContentProgress(progressLessonId: number, payload: {
-  is_read: boolean;
-}) {
+export async function updateLessonContentProgress(
+  progressLessonId: number,
+  payload: {
+    is_read: boolean;
+  },
+) {
   await ensureDatabase();
   const db = await databasePromise;
   const now = new Date().toISOString();
@@ -1607,7 +2901,7 @@ export async function updateLessonContentProgress(progressLessonId: number, payl
     `UPDATE lesson_content_progress
       SET is_read = ?, read_at = ?, updated_at = ?
       WHERE progress_lesson_id = ?`,
-    [payload.is_read ? 1 : 0, now, now, progressLessonId]
+    [payload.is_read ? 1 : 0, now, now, progressLessonId],
   );
 }
 
@@ -1615,27 +2909,124 @@ export async function listLessonContentProgressByUser(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<LessonContentProgressRecord>(
-    'SELECT * FROM lesson_content_progress WHERE user_id = ? ORDER BY progress_lesson_id ASC',
-    [userId]
+    "SELECT * FROM lesson_content_progress WHERE user_id = ? ORDER BY progress_lesson_id ASC",
+    [userId],
   );
 }
 
-export async function listLessonContentProgressByLessonContent(lessonContentId: number) {
+export async function listLessonContentProgressByLessonContent(
+  lessonContentId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<LessonContentProgressRecord>(
-    'SELECT * FROM lesson_content_progress WHERE lesson_content_id = ? ORDER BY progress_lesson_id ASC',
-    [lessonContentId]
+    "SELECT * FROM lesson_content_progress WHERE lesson_content_id = ? ORDER BY progress_lesson_id ASC",
+    [lessonContentId],
   );
 }
 
-export async function listLessonContentProgressByUserAndLessonContent(userId: number, lessonContentId: number) {
+export async function listLessonContentProgressByUserAndLessonContent(
+  userId: number,
+  lessonContentId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<LessonContentProgressRecord>(
-    'SELECT * FROM lesson_content_progress WHERE user_id = ? AND lesson_content_id = ? ORDER BY progress_lesson_id ASC',
-    [userId, lessonContentId]
+    "SELECT * FROM lesson_content_progress WHERE user_id = ? AND lesson_content_id = ? ORDER BY progress_lesson_id ASC",
+    [userId, lessonContentId],
   );
+}
+
+export type ContinueLearningRecord = {
+  lesson_content_id: number;
+  lesson_id: number;
+  lesson_name: string;
+  content_name: string;
+  objectives: string | null;
+  content_info_id: number | null;
+  is_read: boolean;
+  is_next: boolean;
+};
+
+export async function listContinueLearning(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+
+  const readRows = await db.getAllAsync<
+    ContinueLearningRecord & { read_at: string }
+  >(
+    `SELECT
+      lc.lesson_content_id,
+      lc.lesson_id,
+      l.lesson_name,
+      lc.content_name,
+      lc.objectives,
+      ci.content_info_id,
+      lcp.is_read,
+      lcp.read_at,
+      0 as is_next
+    FROM lesson_content_progress lcp
+    JOIN lesson_content lc ON lc.lesson_content_id = lcp.lesson_content_id
+    JOIN lessons l ON l.lesson_id = lc.lesson_id
+    LEFT JOIN content_info ci ON ci.lesson_content_id = lc.lesson_content_id
+    WHERE lcp.user_id = ? AND lcp.is_read = 1
+    ORDER BY lcp.read_at DESC`,
+    [userId],
+  );
+
+  const allLessonContent = await db.getAllAsync<{
+    lesson_content_id: number;
+    lesson_id: number;
+    content_name: string;
+    lesson_name: string;
+  }>(
+    `SELECT lc.lesson_content_id, lc.lesson_id, lc.content_name, l.lesson_name
+     FROM lesson_content lc
+     JOIN lessons l ON l.lesson_id = lc.lesson_id
+     ORDER BY lc.lesson_id, lc.lesson_content_id`,
+  );
+
+  const readContentIds = new Set(
+    readRows.map((r) => r.lesson_content_id),
+  );
+
+  const result: ContinueLearningRecord[] = [];
+
+  if (readRows.length > 0) {
+    const lastRead = readRows[0];
+    result.push({
+      lesson_content_id: lastRead.lesson_content_id,
+      lesson_id: lastRead.lesson_id,
+      lesson_name: lastRead.lesson_name,
+      content_name: lastRead.content_name,
+      objectives: lastRead.objectives,
+      content_info_id: lastRead.content_info_id,
+      is_read: true,
+      is_next: false,
+    });
+
+    const lastReadIndex = allLessonContent.findIndex(
+      (lc) => lc.lesson_content_id === lastRead.lesson_content_id,
+    );
+
+    if (lastReadIndex >= 0 && lastReadIndex < allLessonContent.length - 1) {
+      const nextContent = allLessonContent[lastReadIndex + 1];
+      if (!readContentIds.has(nextContent.lesson_content_id)) {
+        result.push({
+          lesson_content_id: nextContent.lesson_content_id,
+          lesson_id: nextContent.lesson_id,
+          lesson_name: nextContent.lesson_name,
+          content_name: nextContent.content_name,
+          objectives: null,
+          content_info_id: null,
+          is_read: false,
+          is_next: true,
+        });
+      }
+    }
+  }
+
+  return result;
 }
 
 export async function createLessonContentBookmark(payload: {
@@ -1650,13 +3041,22 @@ export async function createLessonContentBookmark(payload: {
     `INSERT INTO lesson_content_bookmark
       (lesson_content_id, user_id, is_bookmark, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?)`,
-    [payload.lesson_content_id, payload.user_id, payload.is_bookmark ? 1 : 0, now, now]
+    [
+      payload.lesson_content_id,
+      payload.user_id,
+      payload.is_bookmark ? 1 : 0,
+      now,
+      now,
+    ],
   );
 }
 
-export async function updateLessonContentBookmark(lessonContentBookmarkId: number, payload: {
-  is_bookmark: boolean;
-}) {
+export async function updateLessonContentBookmark(
+  lessonContentBookmarkId: number,
+  payload: {
+    is_bookmark: boolean;
+  },
+) {
   await ensureDatabase();
   const db = await databasePromise;
   const now = new Date().toISOString();
@@ -1664,16 +3064,19 @@ export async function updateLessonContentBookmark(lessonContentBookmarkId: numbe
     `UPDATE lesson_content_bookmark
       SET is_bookmark = ?, updated_at = ?
       WHERE lesson_content_bookmark_id = ?`,
-    [payload.is_bookmark ? 1 : 0, now, lessonContentBookmarkId]
+    [payload.is_bookmark ? 1 : 0, now, lessonContentBookmarkId],
   );
 }
 
-export async function listLessonContentBookmarkByUserAndLessonContent(userId: number, lessonContentId: number) {
+export async function listLessonContentBookmarkByUserAndLessonContent(
+  userId: number,
+  lessonContentId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<LessonContentBookmarkRecord>(
-    'SELECT * FROM lesson_content_bookmark WHERE user_id = ? AND lesson_content_id = ? ORDER BY lesson_content_bookmark_id ASC',
-    [userId, lessonContentId]
+    "SELECT * FROM lesson_content_bookmark WHERE user_id = ? AND lesson_content_id = ? ORDER BY lesson_content_bookmark_id ASC",
+    [userId, lessonContentId],
   );
 }
 
@@ -1681,8 +3084,8 @@ export async function listLessonContentBookmarkByUser(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<LessonContentBookmarkRecord>(
-    'SELECT * FROM lesson_content_bookmark WHERE user_id = ? AND is_bookmark = 1 ORDER BY lesson_content_bookmark_id ASC',
-    [userId]
+    "SELECT * FROM lesson_content_bookmark WHERE user_id = ? AND is_bookmark = 1 ORDER BY lesson_content_bookmark_id ASC",
+    [userId],
   );
 }
 
@@ -1690,66 +3093,152 @@ export async function resetAndSeedLocalData() {
   await ensureDatabase();
   const db = await databasePromise;
 
-  const competencies = await db.getAllAsync<CompetencyRecord>('SELECT * FROM competencies ORDER BY competency_id ASC');
-  const modules = await db.getAllAsync<ModuleRecord>('SELECT * FROM modules ORDER BY module_id ASC');
-  const lessons = await db.getAllAsync<LessonRecord>('SELECT * FROM lessons ORDER BY lesson_id ASC');
-  const lessonContents = await db.getAllAsync<LessonContentRecord>('SELECT * FROM lesson_content ORDER BY lesson_content_id ASC');
-  const contentInfos = await db.getAllAsync<ContentInfoRecord>('SELECT * FROM content_info ORDER BY content_info_id ASC');
-  const lessonInfos = await db.getAllAsync<LessonInfoRecord>('SELECT * FROM lesson_info ORDER BY lesson_info_id ASC');
-  const lessonLinks = await db.getAllAsync<LessonLinkRecord>('SELECT * FROM lesson_link ORDER BY lesson_link_id ASC');
-  const questionInstructs = await db.getAllAsync<QuestionInstructionRecord>('SELECT * FROM question_instruct ORDER BY instruct_id ASC');
-  const questionContents = await db.getAllAsync<QuestionContentRecord>('SELECT * FROM question_content ORDER BY question_id ASC');
-  const questionChoices = await db.getAllAsync<QuestionChoiceRecord>('SELECT * FROM question_choice ORDER BY choice_id ASC');
-  const jobSheets = await db.getAllAsync<JobSheetRecord>('SELECT * FROM job_sheet ORDER BY job_id ASC');
-  const performanceChecklists = await db.getAllAsync<PerformanceChecklistRecord>('SELECT * FROM performance_checklist ORDER BY performance_id ASC');
-  const moduleAchievements = await db.getAllAsync<ModuleAchievementRecord>('SELECT * FROM module_achievement ORDER BY module_achievement_id ASC');
-  const lessonAchievements = await db.getAllAsync<LessonAchievementRecord>('SELECT * FROM lesson_achievement ORDER BY lesson_achievement_id ASC');
+  const competencies = await db.getAllAsync<CompetencyRecord>(
+    "SELECT * FROM competencies ORDER BY competency_id ASC",
+  );
+  const modules = await db.getAllAsync<ModuleRecord>(
+    "SELECT * FROM modules ORDER BY module_id ASC",
+  );
+  const lessons = await db.getAllAsync<LessonRecord>(
+    "SELECT * FROM lessons ORDER BY lesson_id ASC",
+  );
+  const lessonContents = await db.getAllAsync<LessonContentRecord>(
+    "SELECT * FROM lesson_content ORDER BY lesson_content_id ASC",
+  );
+  const contentInfos = await db.getAllAsync<ContentInfoRecord>(
+    "SELECT * FROM content_info ORDER BY content_info_id ASC",
+  );
+  const lessonInfos = await db.getAllAsync<LessonInfoRecord>(
+    "SELECT * FROM lesson_info ORDER BY lesson_info_id ASC",
+  );
+  const lessonLinks = await db.getAllAsync<LessonLinkRecord>(
+    "SELECT * FROM lesson_link ORDER BY lesson_link_id ASC",
+  );
+  const questionInstructs = await db.getAllAsync<QuestionInstructionRecord>(
+    "SELECT * FROM question_instruct ORDER BY instruct_id ASC",
+  );
+  const questionContents = await db.getAllAsync<QuestionContentRecord>(
+    "SELECT * FROM question_content ORDER BY question_id ASC",
+  );
+  const questionChoices = await db.getAllAsync<QuestionChoiceRecord>(
+    "SELECT * FROM question_choice ORDER BY choice_id ASC",
+  );
+  const jobSheets = await db.getAllAsync<JobSheetRecord>(
+    "SELECT * FROM job_sheet ORDER BY job_id ASC",
+  );
+  const performanceChecklists =
+    await db.getAllAsync<PerformanceChecklistRecord>(
+      "SELECT * FROM performance_checklist ORDER BY performance_id ASC",
+    );
+  const moduleAchievements = await db.getAllAsync<ModuleAchievementRecord>(
+    "SELECT * FROM module_achievement ORDER BY module_achievement_id ASC",
+  );
+  const lessonAchievements = await db.getAllAsync<LessonAchievementRecord>(
+    "SELECT * FROM lesson_achievement ORDER BY lesson_achievement_id ASC",
+  );
 
   const hasDefaultCompetencies = DEFAULT_COMPETENCIES.every((expected) =>
-    competencies.some((c) => c.competency_name.toLowerCase() === expected.competency_name.toLowerCase())
+    competencies.some(
+      (c) =>
+        c.competency_name.toLowerCase() ===
+        expected.competency_name.toLowerCase(),
+    ),
   );
   const hasDefaultModules = DEFAULT_MODULES.every((expected) =>
-    modules.some((m) => m.module_name.toLowerCase() === expected.module_name.toLowerCase())
+    modules.some(
+      (m) => m.module_name.toLowerCase() === expected.module_name.toLowerCase(),
+    ),
   );
   const hasDefaultLessons = DEFAULT_LESSONS.every((expected) =>
-    lessons.some((l) => l.lesson_name.toLowerCase() === expected.lesson_name.toLowerCase())
+    lessons.some(
+      (l) => l.lesson_name.toLowerCase() === expected.lesson_name.toLowerCase(),
+    ),
   );
   const hasDefaultLessonContents = DEFAULT_LESSON_CONTENTS.every((expected) =>
-    lessonContents.some((lc) => lc.content_name.toLowerCase() === expected.content_name.toLowerCase())
+    lessonContents.some(
+      (lc) =>
+        lc.content_name.toLowerCase() === expected.content_name.toLowerCase(),
+    ),
   );
   const hasDefaultContentInfo = DEFAULT_CONTENT_INFO.every((expected) =>
-    contentInfos.some((ci) => String(ci.content_info_id) === String(expected.content_info_id))
+    contentInfos.some(
+      (ci) => String(ci.content_info_id) === String(expected.content_info_id),
+    ),
   );
   const hasDefaultLessonInfo = DEFAULT_LESSON_INFO.every((expected) =>
-    lessonInfos.some((li) => String(li.lesson_info_id) === String(expected.lesson_info_id))
+    lessonInfos.some(
+      (li) => String(li.lesson_info_id) === String(expected.lesson_info_id),
+    ),
   );
   const hasDefaultLessonLink = DEFAULT_LESSON_LINK.every((expected) =>
-    lessonLinks.some((ll) => String(ll.lesson_link_id) === String(expected.lesson_link_id))
+    lessonLinks.some(
+      (ll) => String(ll.lesson_link_id) === String(expected.lesson_link_id),
+    ),
   );
-  const hasDefaultQuestionInstruct = DEFAULT_QUESTION_INSTRUCT.every((expected) =>
-    questionInstructs.some((qi) => String(qi.instruct_id) === String(expected.instruct_id))
+  const hasDefaultQuestionInstruct = DEFAULT_QUESTION_INSTRUCT.every(
+    (expected) =>
+      questionInstructs.some(
+        (qi) => String(qi.instruct_id) === String(expected.instruct_id),
+      ),
   );
   const hasDefaultQuestionContent = DEFAULT_QUESTION_CONTENT.every((expected) =>
-    questionContents.some((qc) => String(qc.question_id) === String(expected.question_id))
+    questionContents.some(
+      (qc) => String(qc.question_id) === String(expected.question_id),
+    ),
   );
   const hasDefaultQuestionChoice = DEFAULT_QUESTION_CHOICE.every((expected) =>
-    questionChoices.some((qch) => String(qch.choice_id) === String(expected.choice_id))
+    questionChoices.some(
+      (qch) => String(qch.choice_id) === String(expected.choice_id),
+    ),
   );
   const hasDefaultJobSheet = DEFAULT_JOB_SHEET.every((expected) =>
-    jobSheets.some((js) => String(js.job_id) === String(expected.job_id))
+    jobSheets.some((js) => String(js.job_id) === String(expected.job_id)),
   );
-   const hasDefaultPerformanceCheck = DEFAULT_PERFORMANCE_CHECK.every((expected) =>
-    performanceChecklists.some((pc) => String(pc.performance_id) === String(expected.performance_id))
-   );
-   const hasDefaultModuleAchievement = DEFAULT_MODULE_ACHIEVEMENT.every((expected) =>
-    moduleAchievements.some((ma) => String(ma.module_achievement_id) === String(expected.module_achievement_id))
-   );
-   const hasDefaultLessonAchievement = DEFAULT_LESSON_ACHIEVEMENT.every((expected) =>
-    lessonAchievements.some((la) => String(la.lesson_achievement_id) === String(expected.lesson_achievement_id))
-   );
+  const hasDefaultPerformanceCheck = DEFAULT_PERFORMANCE_CHECK.every(
+    (expected) =>
+      performanceChecklists.some(
+        (pc) => String(pc.performance_id) === String(expected.performance_id),
+      ),
+  );
+  const hasDefaultModuleAchievement = DEFAULT_MODULE_ACHIEVEMENT.every(
+    (expected) =>
+      moduleAchievements.some(
+        (ma) =>
+          String(ma.module_achievement_id) ===
+          String(expected.module_achievement_id),
+      ),
+  );
+  const hasDefaultLessonAchievement = DEFAULT_LESSON_ACHIEVEMENT.every(
+    (expected) =>
+      lessonAchievements.some(
+        (la) =>
+          String(la.lesson_achievement_id) ===
+          String(expected.lesson_achievement_id),
+      ),
+  );
 
-   if (hasDefaultCompetencies && hasDefaultModules && hasDefaultLessons && hasDefaultLessonContents && hasDefaultContentInfo && hasDefaultLessonInfo && hasDefaultLessonLink && hasDefaultQuestionInstruct && hasDefaultQuestionContent && hasDefaultQuestionChoice && hasDefaultJobSheet && hasDefaultPerformanceCheck && hasDefaultModuleAchievement && hasDefaultLessonAchievement && competencies.length > 0 && modules.length > 0 && lessons.length > 0 && lessonContents.length > 0 && contentInfos.length > 0) {
- return {
+  if (
+    hasDefaultCompetencies &&
+    hasDefaultModules &&
+    hasDefaultLessons &&
+    hasDefaultLessonContents &&
+    hasDefaultContentInfo &&
+    hasDefaultLessonInfo &&
+    hasDefaultLessonLink &&
+    hasDefaultQuestionInstruct &&
+    hasDefaultQuestionContent &&
+    hasDefaultQuestionChoice &&
+    hasDefaultJobSheet &&
+    hasDefaultPerformanceCheck &&
+    hasDefaultModuleAchievement &&
+    hasDefaultLessonAchievement &&
+    competencies.length > 0 &&
+    modules.length > 0 &&
+    lessons.length > 0 &&
+    lessonContents.length > 0 &&
+    contentInfos.length > 0
+  ) {
+    return {
       competencies: competencies.length,
       modules: modules.length,
       lessons: lessons.length,
@@ -1770,37 +3259,57 @@ export async function resetAndSeedLocalData() {
 
   const now = new Date().toISOString();
 
-  await db.runAsync('DELETE FROM lesson_content');
-  await db.runAsync('DELETE FROM lessons');
-  await db.runAsync('DELETE FROM modules');
-  await db.runAsync('DELETE FROM competencies');
-  await db.runAsync('DELETE FROM content_info');
-  await db.runAsync('DELETE FROM lesson_info');
-  await db.runAsync('DELETE FROM lesson_link');
-  await db.runAsync('DELETE FROM question_instruct');
-  await db.runAsync('DELETE FROM question_content');
-  await db.runAsync('DELETE FROM question_choice');
-   await db.runAsync('DELETE FROM job_sheet');
-   await db.runAsync('DELETE FROM module_achievement');
-   await db.runAsync('DELETE FROM performance_checklist');
-   await db.runAsync('DELETE FROM lesson_achievement');
-   await db.runAsync('DELETE FROM student_lesson_achievement');
+  await db.runAsync("DELETE FROM lesson_content");
+  await db.runAsync("DELETE FROM lessons");
+  await db.runAsync("DELETE FROM modules");
+  await db.runAsync("DELETE FROM competencies");
+  await db.runAsync("DELETE FROM content_info");
+  await db.runAsync("DELETE FROM lesson_info");
+  await db.runAsync("DELETE FROM lesson_link");
+  await db.runAsync("DELETE FROM question_instruct");
+  await db.runAsync("DELETE FROM question_content");
+  await db.runAsync("DELETE FROM question_choice");
+  await db.runAsync("DELETE FROM job_sheet");
+  await db.runAsync("DELETE FROM module_achievement");
+  await db.runAsync("DELETE FROM performance_checklist");
+  await db.runAsync("DELETE FROM lesson_achievement");
+  await db.runAsync("DELETE FROM student_lesson_achievement");
   try {
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_content'");
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'lesson_content'",
+    );
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'modules'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'competencies'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'content_info'");
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'competencies'",
+    );
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'content_info'",
+    );
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_info'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_link'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'question_instruct'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'question_content'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'question_choice'");
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'question_instruct'",
+    );
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'question_content'",
+    );
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'question_choice'",
+    );
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'job_sheet'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'module_achievement'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'performance_checklist'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_achievement'");
-    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'student_lesson_achievement'");
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'module_achievement'",
+    );
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'performance_checklist'",
+    );
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'lesson_achievement'",
+    );
+    await db.runAsync(
+      "DELETE FROM sqlite_sequence WHERE name = 'student_lesson_achievement'",
+    );
   } catch {
     // sqlite_sequence may not exist in some SQLite versions/environments.
   }
@@ -1813,7 +3322,15 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO competencies
         (competency_id, competency_name, sector, qualification, status, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [competencyId, competency.competency_name, competency.sector, competency.qualification, competency.status, now, now]
+      [
+        competencyId,
+        competency.competency_name,
+        competency.sector,
+        competency.qualification,
+        competency.status,
+        now,
+        now,
+      ],
     );
   }
 
@@ -1825,7 +3342,16 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO modules
         (module_id, competency_id, module_name, description, module_pdf, thumbnail, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [moduleId, moduleItem.competency_id, moduleItem.module_name, moduleItem.description, moduleItem.module_pdf, moduleItem.thumbnail, now, now]
+      [
+        moduleId,
+        moduleItem.competency_id,
+        moduleItem.module_name,
+        moduleItem.description,
+        moduleItem.module_pdf,
+        moduleItem.thumbnail,
+        now,
+        now,
+      ],
     );
   }
 
@@ -1837,7 +3363,14 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO lessons
         (lesson_id, module_id, lesson_name, order_number, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`,
-      [lessonId, lessonItem.module_id, lessonItem.lesson_name, lessonItem.order_number, now, now]
+      [
+        lessonId,
+        lessonItem.module_id,
+        lessonItem.lesson_name,
+        lessonItem.order_number,
+        now,
+        now,
+      ],
     );
   }
 
@@ -1849,7 +3382,14 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO lesson_content
         (lesson_content_id, lesson_id, content_name, objectives, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`,
-      [contentId, contentItem.lesson_id, contentItem.content_name, contentItem.objectives, now, now]
+      [
+        contentId,
+        contentItem.lesson_id,
+        contentItem.content_name,
+        contentItem.objectives,
+        now,
+        now,
+      ],
     );
   }
 
@@ -1860,7 +3400,15 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO content_info
         (content_info_id, lesson_content_id, label, description, images, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [infoItem.content_info_id, infoItem.lesson_content_id, infoItem.label, infoItem.description, infoItem.images, now, now]
+      [
+        infoItem.content_info_id,
+        infoItem.lesson_content_id,
+        infoItem.label,
+        infoItem.description,
+        infoItem.images,
+        now,
+        now,
+      ],
     );
   }
 
@@ -1871,7 +3419,14 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO lesson_info
         (lesson_info_id, lesson_id, label, content, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`,
-      [infoItem.lesson_info_id, infoItem.lesson_id, infoItem.label, infoItem.content, now, now]
+      [
+        infoItem.lesson_info_id,
+        infoItem.lesson_id,
+        infoItem.label,
+        infoItem.content,
+        now,
+        now,
+      ],
     );
   }
 
@@ -1882,7 +3437,7 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO lesson_link
         (lesson_link_id, lesson_id, link, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?)`,
-      [linkItem.lesson_link_id, linkItem.lesson_id, linkItem.link, now, now]
+      [linkItem.lesson_link_id, linkItem.lesson_id, linkItem.link, now, now],
     );
   }
 
@@ -1893,28 +3448,56 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO question_instruct
         (instruct_id, lesson_content_id, question_instruction, question_title, question_label, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [instructItem.instruct_id, instructItem.lesson_content_id, instructItem.question_instruction, instructItem.question_title, instructItem.question_label, now, now]
+      [
+        instructItem.instruct_id,
+        instructItem.lesson_content_id,
+        instructItem.question_instruction,
+        instructItem.question_title,
+        instructItem.question_label,
+        now,
+        now,
+      ],
     );
   }
 
   for (let index = 0; index < DEFAULT_QUESTION_CONTENT.length; index += 1) {
     const questionItem = DEFAULT_QUESTION_CONTENT[index];
-    const matchingChoices = DEFAULT_QUESTION_CHOICE.filter((choice) => choice.question_id === questionItem.question_id);
-    let correctAnswer = '';
+    const matchingChoices = DEFAULT_QUESTION_CHOICE.filter(
+      (choice) => choice.question_id === questionItem.question_id,
+    );
+    let correctAnswer = "";
 
-    if (questionItem.question_type === 'multiple_choice' || questionItem.question_type === 'true_or_false') {
-      const correctChoice = matchingChoices.find((choice) => choice.is_correct === 'correct');
-      correctAnswer = correctChoice ? correctChoice.choice_text : '';
-    } else if (questionItem.question_type === 'enumeration' || questionItem.question_type === 'identification') {
-      const openEnded = matchingChoices.find((choice) => choice.is_correct && choice.is_correct.trim().length > 0);
-      correctAnswer = openEnded ? openEnded.is_correct.trim() : '';
+    if (
+      questionItem.question_type === "multiple_choice" ||
+      questionItem.question_type === "true_or_false"
+    ) {
+      const correctChoice = matchingChoices.find(
+        (choice) => choice.is_correct === "correct",
+      );
+      correctAnswer = correctChoice ? correctChoice.choice_text : "";
+    } else if (
+      questionItem.question_type === "enumeration" ||
+      questionItem.question_type === "identification"
+    ) {
+      const openEnded = matchingChoices.find(
+        (choice) => choice.is_correct && choice.is_correct.trim().length > 0,
+      );
+      correctAnswer = openEnded ? openEnded.is_correct.trim() : "";
     }
 
     await db.runAsync(
       `INSERT INTO question_content
         (question_id, lesson_content_id, question, question_type, question_order, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [questionItem.question_id, questionItem.lesson_content_id, questionItem.question, questionItem.question_type, questionItem.question_order, now, now]
+      [
+        questionItem.question_id,
+        questionItem.lesson_content_id,
+        questionItem.question,
+        questionItem.question_type,
+        questionItem.question_order,
+        now,
+        now,
+      ],
     );
   }
 
@@ -1925,7 +3508,15 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO question_choice
         (choice_id, question_id, choice_label, choice_text, is_correct, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [choiceItem.choice_id, choiceItem.question_id, choiceItem.choice_label, choiceItem.choice_text, choiceItem.is_correct, now, now]
+      [
+        choiceItem.choice_id,
+        choiceItem.question_id,
+        choiceItem.choice_label,
+        choiceItem.choice_text,
+        choiceItem.is_correct,
+        now,
+        now,
+      ],
     );
   }
 
@@ -1936,20 +3527,37 @@ export async function resetAndSeedLocalData() {
       `INSERT INTO job_sheet
         (job_id, lesson_content_id, job_title, job_objectives, job_materials, job_steps, job_assesment_method, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [jobItem.job_id, jobItem.lesson_content_id, jobItem.job_title, jobItem.job_objectives, jobItem.job_materials, jobItem.job_steps, jobItem.job_assesment_method, now, now]
+      [
+        jobItem.job_id,
+        jobItem.lesson_content_id,
+        jobItem.job_title,
+        jobItem.job_objectives,
+        jobItem.job_materials,
+        jobItem.job_steps,
+        jobItem.job_assesment_method,
+        now,
+        now,
+      ],
     );
   }
 
-for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
+  for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
     const checkItem = DEFAULT_PERFORMANCE_CHECK[index];
 
     await db.runAsync(
       `INSERT INTO performance_checklist
         (performance_id, lesson_content_id, performance_question, "performance_order", created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`,
-      [checkItem.performance_id, checkItem.lesson_content_id, checkItem.performance_question, checkItem.performance_order, now, now]
+      [
+        checkItem.performance_id,
+        checkItem.lesson_content_id,
+        checkItem.performance_question,
+        checkItem.performance_order,
+        now,
+        now,
+      ],
     );
-   }
+  }
 
   for (let index = 0; index < DEFAULT_MODULE_ACHIEVEMENT.length; index += 1) {
     const achievement = DEFAULT_MODULE_ACHIEVEMENT[index];
@@ -1958,9 +3566,16 @@ for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
       `INSERT INTO module_achievement
         (module_achievement_id, module_id, name, badge_image, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`,
-      [achievement.module_achievement_id, achievement.module_id, achievement.name, achievement.badge_image, now, now]
+      [
+        achievement.module_achievement_id,
+        achievement.module_id,
+        achievement.name,
+        achievement.badge_image,
+        now,
+        now,
+      ],
     );
-   }
+  }
 
   for (let index = 0; index < DEFAULT_LESSON_ACHIEVEMENT.length; index += 1) {
     const achievement = DEFAULT_LESSON_ACHIEVEMENT[index];
@@ -1969,7 +3584,14 @@ for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
       `INSERT INTO lesson_achievement
         (lesson_achievement_id, lesson_id, name, badge_image, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`,
-      [achievement.lesson_achievement_id, achievement.lesson_id, achievement.name, achievement.badge_image, now, now]
+      [
+        achievement.lesson_achievement_id,
+        achievement.lesson_id,
+        achievement.name,
+        achievement.badge_image,
+        now,
+        now,
+      ],
     );
   }
 
@@ -1996,57 +3618,76 @@ for (let index = 0; index < DEFAULT_PERFORMANCE_CHECK.length; index += 1) {
 export async function listQuestionAnswers() {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<QuestionAnswerRecord>('SELECT * FROM question_answers ORDER BY answer_id ASC');
+  return db.getAllAsync<QuestionAnswerRecord>(
+    "SELECT * FROM question_answers ORDER BY answer_id ASC",
+  );
 }
 
 export async function listQuestionAnswersByUser(userId: number) {
   await ensureDatabase();
   const db = await databasePromise;
-  return db.getAllAsync<QuestionAnswerRecord>('SELECT * FROM question_answers WHERE user_id = ? ORDER BY answer_id ASC', [userId]);
-}
-
-export async function listQuestionAnswersByUserAndQuestions(userId: number, questionIds: number[]) {
-  await ensureDatabase();
-  const db = await databasePromise;
-  const placeholders = questionIds.map(() => '?').join(',');
-  const params = [userId, ...questionIds];
   return db.getAllAsync<QuestionAnswerRecord>(
-    `SELECT * FROM question_answers WHERE user_id = ? AND question_id IN (${placeholders}) ORDER BY answer_id ASC`,
-    params
+    "SELECT * FROM question_answers WHERE user_id = ? ORDER BY answer_id ASC",
+    [userId],
   );
 }
 
-export async function createQuestionAnswer(payload: { question_id: number; user_id: number; answer_text: string }) {
+export async function listQuestionAnswersByUserAndQuestions(
+  userId: number,
+  questionIds: number[],
+) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const placeholders = questionIds.map(() => "?").join(",");
+  const params = [userId, ...questionIds];
+  return db.getAllAsync<QuestionAnswerRecord>(
+    `SELECT * FROM question_answers WHERE user_id = ? AND question_id IN (${placeholders}) ORDER BY answer_id ASC`,
+    params,
+  );
+}
+
+export async function createQuestionAnswer(payload: {
+  question_id: number;
+  user_id: number;
+  answer_text: string;
+}) {
   await ensureDatabase();
   const db = await databasePromise;
 
   const existing = await db.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) as count FROM question_answers WHERE question_id = ? AND user_id = ?',
-    [payload.question_id, payload.user_id]
+    "SELECT COUNT(*) as count FROM question_answers WHERE question_id = ? AND user_id = ?",
+    [payload.question_id, payload.user_id],
   );
 
   if ((existing?.count ?? 0) > 0) {
     const updatedAt = new Date().toISOString();
     await db.runAsync(
       `UPDATE question_answers SET answer_text = ?, updated_at = ? WHERE question_id = ? AND user_id = ?`,
-      [payload.answer_text, updatedAt, payload.question_id, payload.user_id]
+      [payload.answer_text, updatedAt, payload.question_id, payload.user_id],
     );
     const updated = await db.getFirstAsync<QuestionAnswerRecord>(
-      'SELECT * FROM question_answers WHERE question_id = ? AND user_id = ?',
-      [payload.question_id, payload.user_id]
+      "SELECT * FROM question_answers WHERE question_id = ? AND user_id = ?",
+      [payload.question_id, payload.user_id],
     );
     return updated ?? null;
   }
 
   const row = await db.getFirstAsync<{ answer_id: number }>(
-    'SELECT COALESCE(MAX(answer_id), 0) + 1 AS answer_id FROM question_answers'
+    "SELECT COALESCE(MAX(answer_id), 0) + 1 AS answer_id FROM question_answers",
   );
   const answerId = row?.answer_id ?? 1;
   const now = new Date().toISOString();
 
   await db.runAsync(
     `INSERT INTO question_answers (answer_id, question_id, user_id, answer_text, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
-    [answerId, payload.question_id, payload.user_id, payload.answer_text, now, now]
+    [
+      answerId,
+      payload.question_id,
+      payload.user_id,
+      payload.answer_text,
+      now,
+      now,
+    ],
   );
 
   return {
@@ -2059,7 +3700,10 @@ export async function createQuestionAnswer(payload: { question_id: number; user_
   } satisfies QuestionAnswerRecord;
 }
 
-export async function createQuestionAnswersBatch(payload: { user_id: number; answers: { question_id: number; answer_text: string }[] }) {
+export async function createQuestionAnswersBatch(payload: {
+  user_id: number;
+  answers: { question_id: number; answer_text: string }[];
+}) {
   await ensureDatabase();
   const db = await databasePromise;
 
@@ -2068,18 +3712,18 @@ export async function createQuestionAnswersBatch(payload: { user_id: number; ans
 
   for (const item of payload.answers) {
     const existing = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM question_answers WHERE question_id = ? AND user_id = ?',
-      [item.question_id, payload.user_id]
+      "SELECT COUNT(*) as count FROM question_answers WHERE question_id = ? AND user_id = ?",
+      [item.question_id, payload.user_id],
     );
 
     if ((existing?.count ?? 0) > 0) {
       await db.runAsync(
         `UPDATE question_answers SET answer_text = ?, updated_at = ? WHERE question_id = ? AND user_id = ?`,
-        [item.answer_text, now, item.question_id, payload.user_id]
+        [item.answer_text, now, item.question_id, payload.user_id],
       );
       const updated = await db.getFirstAsync<QuestionAnswerRecord>(
-        'SELECT * FROM question_answers WHERE question_id = ? AND user_id = ?',
-        [item.question_id, payload.user_id]
+        "SELECT * FROM question_answers WHERE question_id = ? AND user_id = ?",
+        [item.question_id, payload.user_id],
       );
       if (updated) {
         created.push(updated);
@@ -2088,13 +3732,13 @@ export async function createQuestionAnswersBatch(payload: { user_id: number; ans
     }
 
     const row = await db.getFirstAsync<{ answer_id: number }>(
-      'SELECT COALESCE(MAX(answer_id), 0) + 1 AS answer_id FROM question_answers'
+      "SELECT COALESCE(MAX(answer_id), 0) + 1 AS answer_id FROM question_answers",
     );
     const answerId = row?.answer_id ?? 1;
 
     await db.runAsync(
       `INSERT INTO question_answers (answer_id, question_id, user_id, answer_text, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
-      [answerId, item.question_id, payload.user_id, item.answer_text, now, now]
+      [answerId, item.question_id, payload.user_id, item.answer_text, now, now],
     );
 
     created.push({
@@ -2110,37 +3754,41 @@ export async function createQuestionAnswersBatch(payload: { user_id: number; ans
   return created;
 }
 
-export async function createJobSheetAnswer(payload: { job_id: number; user_id: number; answer_text: string }) {
+export async function createJobSheetAnswer(payload: {
+  job_id: number;
+  user_id: number;
+  answer_text: string;
+}) {
   await ensureDatabase();
   const db = await databasePromise;
 
   const existing = await db.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) as count FROM job_sheet_answers WHERE job_id = ? AND user_id = ?',
-    [payload.job_id, payload.user_id]
+    "SELECT COUNT(*) as count FROM job_sheet_answers WHERE job_id = ? AND user_id = ?",
+    [payload.job_id, payload.user_id],
   );
 
   if ((existing?.count ?? 0) > 0) {
     const updatedAt = new Date().toISOString();
     await db.runAsync(
       `UPDATE job_sheet_answers SET answer_text = ?, updated_at = ? WHERE job_id = ? AND user_id = ?`,
-      [payload.answer_text, updatedAt, payload.job_id, payload.user_id]
+      [payload.answer_text, updatedAt, payload.job_id, payload.user_id],
     );
     const updated = await db.getFirstAsync<JobSheetAnswerRecord>(
-      'SELECT * FROM job_sheet_answers WHERE job_id = ? AND user_id = ?',
-      [payload.job_id, payload.user_id]
+      "SELECT * FROM job_sheet_answers WHERE job_id = ? AND user_id = ?",
+      [payload.job_id, payload.user_id],
     );
     return updated ?? null;
   }
 
   const row = await db.getFirstAsync<{ answer_id: number }>(
-    'SELECT COALESCE(MAX(answer_id), 0) + 1 AS answer_id FROM job_sheet_answers'
+    "SELECT COALESCE(MAX(answer_id), 0) + 1 AS answer_id FROM job_sheet_answers",
   );
   const answerId = row?.answer_id ?? 1;
   const now = new Date().toISOString();
 
   await db.runAsync(
     `INSERT INTO job_sheet_answers (answer_id, job_id, user_id, answer_text, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
-    [answerId, payload.job_id, payload.user_id, payload.answer_text, now, now]
+    [answerId, payload.job_id, payload.user_id, payload.answer_text, now, now],
   );
 
   return {
@@ -2153,11 +3801,14 @@ export async function createJobSheetAnswer(payload: { job_id: number; user_id: n
   } satisfies JobSheetAnswerRecord;
 }
 
-export async function listJobSheetAnswersByUserAndJob(userId: number, jobId: number) {
+export async function listJobSheetAnswersByUserAndJob(
+  userId: number,
+  jobId: number,
+) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getAllAsync<JobSheetAnswerRecord>(
-    'SELECT * FROM job_sheet_answers WHERE user_id = ? AND job_id = ? ORDER BY answer_id ASC',
-    [userId, jobId]
+    "SELECT * FROM job_sheet_answers WHERE user_id = ? AND job_id = ? ORDER BY answer_id ASC",
+    [userId, jobId],
   );
 }
