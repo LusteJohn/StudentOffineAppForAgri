@@ -14,13 +14,7 @@ import { useTheme } from "@/hooks/use-theme";
 
 import { AuthLink, AuthShell, AuthNotification } from "@/components/auth-shell";
 import { ThemedText } from "@/components/themed-text";
-import { TutorialOverlay } from "@/components/tutorial-overlay";
-import {
-  loginStudent,
-  getStudentTutorialByUserId,
-  createStudentTutorial,
-  updateStudentTutorial,
-} from "@/lib/auth-api";
+import { loginStudent } from "@/lib/auth-api";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -29,8 +23,6 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [tutorialVisible, setTutorialVisible] = useState(false);
-  const [tutorialUserId, setTutorialUserId] = useState<number | null>(null);
   const { showAlert } = useCustomAlert();
   const theme = useTheme();
   const isDark = theme.text === "#ffffff";
@@ -132,37 +124,10 @@ export default function LoginScreen() {
         "Login successful",
         `${response.user.username} is logged in as a student.`,
       );
-
-      const userId = response.user.user_id;
-      try {
-        const existingTutorial = await getStudentTutorialByUserId(userId);
-        if (existingTutorial) {
-          if (existingTutorial.completed === 1) {
-            router.replace({
-              pathname: "/home",
-              params: { userId: String(userId) },
-            });
-          } else {
-            setTutorialUserId(userId);
-            setTutorialVisible(true);
-          }
-        } else {
-          await createStudentTutorial({
-            user_id: userId,
-            completed: false,
-            step1_done: false,
-            step2_done: false,
-            step3_done: false,
-          });
-          setTutorialUserId(userId);
-          setTutorialVisible(true);
-        }
-      } catch {
-        router.replace({
-          pathname: "/home",
-          params: { userId: String(userId) },
-        });
-      }
+      router.replace({
+        pathname: "/home",
+        params: { userId: String(response.user.user_id) },
+      });
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -173,81 +138,6 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-
-  const handleStep1Complete = useCallback(async () => {
-    if (!tutorialUserId) return;
-    const existing = await getStudentTutorialByUserId(tutorialUserId);
-    if (existing) {
-      await updateStudentTutorial(existing.tutorial_id, { step1_done: 1 });
-    } else {
-      await createStudentTutorial({
-        user_id: tutorialUserId,
-        step1_done: true,
-      });
-    }
-  }, [tutorialUserId]);
-
-  const handleStep2Complete = useCallback(async () => {
-    if (!tutorialUserId) return;
-    const existing = await getStudentTutorialByUserId(tutorialUserId);
-    if (existing) {
-      await updateStudentTutorial(existing.tutorial_id, { step2_done: 1 });
-    } else {
-      await createStudentTutorial({
-        user_id: tutorialUserId,
-        step2_done: true,
-      });
-    }
-  }, [tutorialUserId]);
-
-  const handleStep3Complete = useCallback(async () => {
-    if (!tutorialUserId) return;
-    const existing = await getStudentTutorialByUserId(tutorialUserId);
-    if (existing) {
-      await updateStudentTutorial(existing.tutorial_id, {
-        step3_done: 1,
-        completed: 1,
-      });
-    } else {
-      await createStudentTutorial({
-        user_id: tutorialUserId,
-        step3_done: true,
-        completed: true,
-      });
-    }
-  }, [tutorialUserId]);
-
-  const handleTutorialCompleted = useCallback(() => {
-    setTutorialVisible(false);
-    if (tutorialUserId) {
-      router.replace({
-        pathname: "/home",
-        params: { userId: String(tutorialUserId) },
-      });
-    }
-  }, [tutorialUserId]);
-
-  const handleTutorialSkip = useCallback(() => {
-    if (tutorialUserId) {
-      getStudentTutorialByUserId(tutorialUserId).then((existing) => {
-        if (existing) {
-          updateStudentTutorial(existing.tutorial_id, { completed: 1 });
-        } else {
-          createStudentTutorial({
-            user_id: tutorialUserId,
-            completed: true,
-          });
-        }
-      });
-    }
-    setTutorialVisible(false);
-    if (tutorialUserId) {
-      router.replace({
-        pathname: "/home",
-        params: { userId: String(tutorialUserId) },
-      });
-    }
-  }, [tutorialUserId]);
 
   return (
     <>
@@ -358,18 +248,6 @@ export default function LoginScreen() {
           </AuthLink>
         </View>
       </AuthShell>
-
-      {tutorialUserId && (
-        <TutorialOverlay
-          visible={tutorialVisible}
-          userId={tutorialUserId}
-          onStep1Complete={handleStep1Complete}
-          onStep2Complete={handleStep2Complete}
-          onStep3Complete={handleStep3Complete}
-          onCompleted={handleTutorialCompleted}
-          onSkip={handleTutorialSkip}
-        />
-      )}
     </>
   );
 }
