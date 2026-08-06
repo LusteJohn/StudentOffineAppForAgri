@@ -190,6 +190,14 @@ export type LessonAchievementRecord = {
   updated_at: string;
 }
 
+export type StudentLessonAchievementRecord = {
+  stud_lesson_achievement_id: number;
+  lesson_achievement_id: number;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -679,34 +687,57 @@ async function ensureDatabase() {
       updated_at TEXT NOT NULL,
       FOREIGN KEY (module_id) REFERENCES modules(module_id)
      )`,
-     `CREATE TABLE IF NOT EXISTS student_lesson_achievement (
-       lesson_achievement_id INTEGER PRIMARY KEY NOT NULL,
-       lesson_id INTEGER NOT NULL,
-       name TEXT NOT NULL,
-       badge_image TEXT NOT NULL,
-       created_at TEXT NOT NULL,
-       updated_at TEXT NOT NULL,
-       FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
-      )`,
-      `CREATE TABLE IF NOT EXISTS app_settings (
+      `CREATE TABLE IF NOT EXISTS lesson_achievement (
+        lesson_achievement_id INTEGER PRIMARY KEY NOT NULL,
+        lesson_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        badge_image TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id)
+       )`,
+      `CREATE TABLE IF NOT EXISTS student_lesson_achievement (
+        stud_lesson_achievement_id INTEGER PRIMARY KEY NOT NULL,
+        lesson_achievement_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (lesson_achievement_id) REFERENCES lesson_achievement(lesson_achievement_id),
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        UNIQUE(user_id, lesson_achievement_id)
+       )`,
+       `CREATE TABLE IF NOT EXISTS app_settings (
         setting_key TEXT PRIMARY KEY NOT NULL,
         setting_value TEXT NOT NULL
       )`,
-    ];
+     ];
 
-  for (const sql of createStatements) {
-    try {
-      await db.execAsync(sql);
-    } catch (error) {
-      console.error('Database table creation failed:', error);
-    }
-  }
+   try {
+     const tableExists = await db.getFirstAsync<{ type: string }>('SELECT type FROM sqlite_master WHERE type = ? AND name = ?', ['table', 'student_lesson_achievement']);
+     if (tableExists) {
+       const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(student_lesson_achievement)');
+       const hasUserId = columns.some((col) => col.name === 'user_id');
+       if (!hasUserId) {
+         await db.execAsync('DROP TABLE student_lesson_achievement');
+       }
+     }
+   } catch (error) {
+     console.error('Migration checked for student_lesson_achievement failed:', error);
+   }
 
-  try {
-    await db.execAsync('ALTER TABLE modules ADD COLUMN module_pdf TEXT DEFAULT ""');
-  } catch {
-    // Column already exists or table not yet created; ignore.
-  }
+   for (const sql of createStatements) {
+     try {
+       await db.execAsync(sql);
+     } catch (error) {
+       console.error('Database table creation failed:', error);
+     }
+   }
+
+   try {
+     await db.execAsync('ALTER TABLE modules ADD COLUMN module_pdf TEXT DEFAULT ""');
+   } catch {
+     // Column already exists or table not yet created; ignore.
+   }
 
   try {
     const existing = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM users');
@@ -850,9 +881,69 @@ async function ensureDatabase() {
         );
       }
     }
-  } catch (error) {
-    console.error('Lesson content seeding failed:', error);
-  }
+   } catch (error) {
+     console.error('Lesson content seeding failed:', error);
+   }
+
+   try {
+     for (let index = 0; index < DEFAULT_LESSON_ACHIEVEMENT.length; index += 1) {
+       const achievement = DEFAULT_LESSON_ACHIEVEMENT[index];
+       const now = new Date().toISOString();
+
+       const existing = await db.getFirstAsync<{ count: number }>(
+         'SELECT COUNT(*) as count FROM lesson_achievement WHERE lesson_achievement_id = ?',
+         [achievement.lesson_achievement_id]
+       );
+
+       if ((existing?.count ?? 0) === 0) {
+         await db.runAsync(
+           `INSERT INTO lesson_achievement
+             (lesson_achievement_id, lesson_id, name, badge_image, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+           [
+             achievement.lesson_achievement_id,
+             achievement.lesson_id,
+             achievement.name,
+             achievement.badge_image,
+             now,
+             now,
+           ]
+         );
+       }
+     }
+   } catch (error) {
+     console.error('Lesson achievement seeding failed:', error);
+   }
+
+   try {
+     for (let index = 0; index < DEFAULT_MODULE_ACHIEVEMENT.length; index += 1) {
+       const achievement = DEFAULT_MODULE_ACHIEVEMENT[index];
+       const now = new Date().toISOString();
+
+       const existing = await db.getFirstAsync<{ count: number }>(
+         'SELECT COUNT(*) as count FROM module_achievement WHERE module_achievement_id = ?',
+         [achievement.module_achievement_id]
+       );
+
+       if ((existing?.count ?? 0) === 0) {
+         await db.runAsync(
+           `INSERT INTO module_achievement
+             (module_achievement_id, module_id, name, badge_image, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+           [
+             achievement.module_achievement_id,
+             achievement.module_id,
+             achievement.name,
+             achievement.badge_image,
+             now,
+             now,
+           ]
+         );
+       }
+     }
+   } catch (error) {
+     console.error('Module achievement seeding failed:', error);
+   }
 }
 
 export async function getSetting(key: string): Promise<string | null> {
@@ -1153,6 +1244,44 @@ export async function getLessonAchievementById(achievementId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.getFirstAsync<LessonAchievementRecord>('SELECT * FROM lesson_achievement WHERE lesson_achievement_id = ?', [achievementId]);
+}
+
+export async function createStudentLessonAchievement(payload: Omit<StudentLessonAchievementRecord, 'stud_lesson_achievement_id' | 'created_at' | 'updated_at'>) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  const result = await db.runAsync(
+    `INSERT INTO student_lesson_achievement
+      (lesson_achievement_id, user_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?)`,
+    [payload.lesson_achievement_id, payload.user_id, now, now]
+  );
+  const id = result?.lastInsertRowId ?? 0;
+  return { stud_lesson_achievement_id: Number(id), ...payload, created_at: now, updated_at: now };
+}
+
+export async function listStudentLessonAchievementByUser(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<StudentLessonAchievementRecord>(
+    'SELECT * FROM student_lesson_achievement WHERE user_id = ? ORDER BY stud_lesson_achievement_id ASC',
+    [userId]
+  );
+}
+
+export async function listStudentLessonAchievementByUserAndLessonAchievement(userId: number, lessonAchievementId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<StudentLessonAchievementRecord>(
+    'SELECT * FROM student_lesson_achievement WHERE user_id = ? AND lesson_achievement_id = ? ORDER BY stud_lesson_achievement_id ASC',
+    [userId, lessonAchievementId]
+  );
+}
+
+export async function deleteStudentLessonAchievement(studId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.runAsync('DELETE FROM student_lesson_achievement WHERE stud_lesson_achievement_id = ?', [studId]);
 }
 
 export async function listLessonContent() {
@@ -1498,6 +1627,7 @@ export async function resetAndSeedLocalData() {
    await db.runAsync('DELETE FROM module_achievement');
    await db.runAsync('DELETE FROM performance_checklist');
    await db.runAsync('DELETE FROM lesson_achievement');
+   await db.runAsync('DELETE FROM student_lesson_achievement');
   try {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_content'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lessons'");
@@ -1513,6 +1643,7 @@ export async function resetAndSeedLocalData() {
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'module_achievement'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'performance_checklist'");
     await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'lesson_achievement'");
+    await db.runAsync("DELETE FROM sqlite_sequence WHERE name = 'student_lesson_achievement'");
   } catch {
     // sqlite_sequence may not exist in some SQLite versions/environments.
   }

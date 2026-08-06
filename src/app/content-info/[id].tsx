@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { useCustomAlert } from '@/lib/custom-alert';
@@ -11,7 +11,7 @@ import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ContentInfoRecord, LessonContentRecord, LessonRecord, ModuleRecord, JobSheetAnswerRecord, JobSheetRecord, PerformanceAnswerRecord, PerformanceChecklistRecord, createLessonContentProgress, listLessonContentProgressByUserAndLessonContent, updateLessonContentProgress, createLessonContentBookmark, updateLessonContentBookmark, listLessonContentBookmarkByUserAndLessonContent, getLessonContentById, getLessonById, getModuleById, listContentInfoByLessonContentId, createQuestionAnswersBatch, listQuestionInstructByLessonContentId, listQuestionContentByLessonContentId, listQuestionChoiceByQuestionId, listQuestionAnswersByUserAndQuestions, createJobSheetAnswer, listJobSheetByLessonContentId, listJobSheetAnswersByUserAndJob, createPerformanceAnswer, listPerformanceCheckByLessonContentId, listPerformanceAnswersByUser } from '@/lib/auth-api';
+import { ContentInfoRecord, LessonContentRecord, LessonRecord, ModuleRecord, JobSheetAnswerRecord, JobSheetRecord, PerformanceAnswerRecord, PerformanceChecklistRecord, createLessonContentProgress, listLessonContentProgressByUserAndLessonContent, listLessonContentProgressByUser, listLessonAchievementsByLesson, createStudentLessonAchievement, listStudentLessonAchievementByUserAndLessonAchievement, updateLessonContentProgress, createLessonContentBookmark, updateLessonContentBookmark, listLessonContentBookmarkByUserAndLessonContent, getLessonContentById, getLessonById, getModuleById, listContentInfoByLessonContentId, listLessonContentByLessonId, createQuestionAnswersBatch, listQuestionInstructByLessonContentId, listQuestionContentByLessonContentId, listQuestionChoiceByQuestionId, listQuestionAnswersByUserAndQuestions, createJobSheetAnswer, listJobSheetByLessonContentId, listJobSheetAnswersByUserAndJob, createPerformanceAnswer, listPerformanceCheckByLessonContentId, listPerformanceAnswersByUser } from '@/lib/auth-api';
 import { resolveContentInfoAsset } from '@/lib/content-info-assets';
 
 let ImagePicker: any = null;
@@ -83,6 +83,8 @@ export default function ContentInfoScreen() {
   const [error, setError] = useState('');
   const [isRead, setIsRead] = useState(false);
   const [markingRead, setMarkingRead] = useState(false);
+  const [lessonAchieved, setLessonAchieved] = useState(false);
+  const [currentLessonId, setCurrentLessonId] = useState<number | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [togglingBookmark, setTogglingBookmark] = useState(false);
   const [activeTab, setActiveTab] = useState<'content' | 'exercise' | 'job' | 'performance'>('content');
@@ -161,6 +163,10 @@ export default function ContentInfoScreen() {
     markAsReadButtonOutline: {
       backgroundColor: 'transparent',
       borderColor: isDark ? '#86efac' : '#166534',
+    },
+    markAsReadButtonAcquired: {
+      backgroundColor: isDark ? 'rgba(147, 51, 234, 0.18)' : '#f3e8ff',
+      borderColor: isDark ? '#a855f7' : '#a855f7',
     },
     markAsReadButtonText: {
       color: isDark ? theme.text : '#000000',
@@ -402,6 +408,49 @@ export default function ContentInfoScreen() {
     },
   }), [theme, isDark]);
 
+  const checkLessonAchieved = useCallback(async (lessonId: number | null | undefined) => {
+    if (!lessonId) {
+      setLessonAchieved(false);
+      return;
+    }
+    const lessonAchievementRecords = await listLessonAchievementsByLesson(lessonId);
+    if (lessonAchievementRecords.length === 0) {
+      setLessonAchieved(false);
+      return;
+    }
+    const lessonContents = await listLessonContentByLessonId(lessonId);
+    const progressRecords = await listLessonContentProgressByUser(activeUserId);
+    const contentIds = lessonContents.map((c) => c.lesson_content_id);
+    const readIds = new Set(
+      progressRecords
+        .filter((r) => r.is_read && contentIds.includes(r.lesson_content_id))
+        .map((r) => r.lesson_content_id)
+    );
+    const allContentRead = contentIds.length > 0 && contentIds.every((id) => readIds.has(id));
+
+    if (allContentRead) {
+      for (const la of lessonAchievementRecords) {
+        const existing = await listStudentLessonAchievementByUserAndLessonAchievement(activeUserId, la.lesson_achievement_id);
+        if (existing.length === 0) {
+          await createStudentLessonAchievement({
+            lesson_achievement_id: la.lesson_achievement_id,
+            user_id: activeUserId,
+          });
+        }
+      }
+    }
+
+    let hasAnyRecord = false;
+    for (const la of lessonAchievementRecords) {
+      const existing = await listStudentLessonAchievementByUserAndLessonAchievement(activeUserId, la.lesson_achievement_id);
+      if (existing.length > 0) {
+        hasAnyRecord = true;
+        break;
+      }
+    }
+    setLessonAchieved(allContentRead || hasAnyRecord);
+  }, [activeUserId]);
+
   const loadContentInfo = useCallback(async () => {
     setError('');
     setLoading(true);
@@ -440,12 +489,17 @@ export default function ContentInfoScreen() {
 
       const existingBookmark = await listLessonContentBookmarkByUserAndLessonContent(activeUserId, lessonContentId);
       setIsBookmarked(existingBookmark.length > 0 && Boolean(existingBookmark[0].is_bookmark));
+
+      if (lessonContent?.lesson_id) {
+        setCurrentLessonId(lessonContent.lesson_id);
+        await checkLessonAchieved(lessonContent.lesson_id);
+      }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load content info.');
     } finally {
       setLoading(false);
     }
-  }, [lessonContentId]);
+  }, [lessonContentId, checkLessonAchieved]);
 
   useEffect(() => {
     if (Number.isInteger(lessonContentId) && lessonContentId > 0) {
@@ -459,6 +513,13 @@ export default function ContentInfoScreen() {
 
   const markAsRead = useCallback(async () => {
     if (markingRead) return;
+    if (isRead && lessonAchieved) {
+      showAlert(
+        'Cannot unmark content',
+        'This lesson achievement has been acquired. You cannot mark content as unread once the lesson is complete.'
+      );
+      return;
+    }
     const confirmed = await new Promise<boolean>((resolve) =>
       showAlert(
         isRead ? 'Mark as Unread' : 'Mark as Read',
@@ -494,12 +555,15 @@ export default function ContentInfoScreen() {
         }
         setIsRead(true);
       }
+      if (currentLessonId) {
+        await checkLessonAchieved(currentLessonId);
+      }
     } catch (markError) {
       showAlert('Unable to update progress', markError instanceof Error ? markError.message : 'Please try again.');
     } finally {
       setMarkingRead(false);
     }
-  }, [isRead, lessonContentId, activeUserId, markingRead]);
+   }, [isRead, lessonContentId, activeUserId, markingRead, lessonAchieved, currentLessonId, checkLessonAchieved]);
 
   const toggleBookmark = useCallback(async () => {
     if (togglingBookmark) return;
@@ -1010,15 +1074,18 @@ export default function ContentInfoScreen() {
                   </View>
                 )}
 
-                <Pressable
-                  onPress={markAsRead}
-                  disabled={markingRead}
-                  style={[styles.markAsReadButton, dynamicStyles.markAsReadButton, isRead && styles.markAsReadButtonOutline, isRead && dynamicStyles.markAsReadButtonOutline, isCompact && styles.markAsReadButtonCompact]}
-                >
-                  <Text style={[styles.markAsReadButtonText, dynamicStyles.markAsReadButtonText, isRead && styles.markAsReadButtonTextOutline, isRead && dynamicStyles.markAsReadButtonTextOutline]}>
-                    {markingRead ? 'Saving...' : isRead ? 'Mark as Unread' : 'Mark as Read'}
-                  </Text>
-                </Pressable>
+                 <Pressable
+                   onPress={markAsRead}
+                   disabled={markingRead || (isRead && lessonAchieved)}
+                   style={[styles.markAsReadButton, dynamicStyles.markAsReadButton, isRead && styles.markAsReadButtonOutline, isRead && dynamicStyles.markAsReadButtonOutline, (isRead && lessonAchieved) && styles.markAsReadButtonAcquired, (isRead && lessonAchieved) && dynamicStyles.markAsReadButtonAcquired, isCompact && styles.markAsReadButtonCompact]}
+                 >
+                   <Text style={[styles.markAsReadButtonText, dynamicStyles.markAsReadButtonText, isRead && styles.markAsReadButtonTextOutline, isRead && dynamicStyles.markAsReadButtonTextOutline]}>
+                     {markingRead ? 'Saving...' : isRead ? 'Mark as Unread' : 'Mark as Read'}
+                   </Text>
+                   {isRead && lessonAchieved ? (
+                     <Ionicons name="lock-closed" size={12} color={isDark ? '#ffffff' : '#ffffff'} style={{ marginLeft: 4 }} />
+                   ) : null}
+                 </Pressable>
 
                 <Pressable
                   onPress={toggleBookmark}
@@ -1277,6 +1344,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#166534',
+  },
+  markAsReadButtonAcquired: {
+    borderWidth: 1,
+    opacity: 0.6,
   },
   markAsReadButtonCompact: {
     paddingVertical: 12,

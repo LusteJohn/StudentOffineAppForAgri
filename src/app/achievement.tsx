@@ -6,7 +6,7 @@ import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
-import { ModuleAchievementRecord, ModuleRecord, LessonRecord, LessonAchievementRecord, LessonContentRecord, LessonContentProgressRecord, listModuleAchievements, listModules, listLessons, listLessonAchievements, listLessonContentProgressByUser, listLessonContentByLessonId } from '@/lib/auth-api';
+import { ModuleAchievementRecord, ModuleRecord, LessonRecord, LessonAchievementRecord, LessonContentRecord, LessonContentProgressRecord, StudentLessonAchievementRecord, listModuleAchievements, listModules, listLessons, listLessonAchievements, listLessonContentProgressByUser, listStudentLessonAchievementByUser, listStudentLessonAchievementByUserAndLessonAchievement, createStudentLessonAchievement, listLessonContentByLessonId } from '@/lib/auth-api';
 
 const PRIMARY = '#5bec13';
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -58,6 +58,7 @@ export default function AchievementScreen() {
   const [lessons, setLessons] = useState<LessonRecord[]>([]);
    const [lessonContents, setLessonContents] = useState<Record<number, LessonContentRecord[]>>({});
    const [lessonContentProgress, setLessonContentProgress] = useState<LessonContentProgressRecord[]>([]);
+   const [studentLessonAchievements, setStudentLessonAchievements] = useState<StudentLessonAchievementRecord[]>([]);
    const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<AchievementTab>('module');
@@ -144,17 +145,19 @@ export default function AchievementScreen() {
     setError('');
     setLoading(true);
     try {
-      const [moduleAchievementRecords, lessonAchievementRecords, moduleRecords, lessonRecords, progressRecords] = await Promise.all([
+      const [moduleAchievementRecords, lessonAchievementRecords, moduleRecords, lessonRecords, progressRecords, studentLessonAchievementRecords] = await Promise.all([
         listModuleAchievements(),
         listLessonAchievements(),
         listModules(),
         listLessons(),
         listLessonContentProgressByUser(activeUserId),
+        listStudentLessonAchievementByUser(activeUserId),
       ]);
       setModuleAchievements(moduleAchievementRecords);
       setLessonAchievements(lessonAchievementRecords);
       setLessons(lessonRecords);
       setLessonContentProgress(progressRecords);
+      setStudentLessonAchievements(studentLessonAchievementRecords);
       const moduleMap: Record<number, ModuleRecord> = {};
       for (const m of moduleRecords) {
         moduleMap[m.module_id] = m;
@@ -162,11 +165,39 @@ export default function AchievementScreen() {
       setModules(moduleMap);
 
       const contentMap: Record<number, LessonContentRecord[]> = {};
+      const studentAchievedIds: number[] = [];
       for (const la of lessonAchievementRecords) {
         const contents = await listLessonContentByLessonId(la.lesson_id);
         contentMap[la.lesson_id] = contents;
+        const contentIds = contents.map((c) => c.lesson_content_id);
+        const readContentIds = new Set(
+          progressRecords
+            .filter((r) => r.is_read && contentIds.includes(r.lesson_content_id))
+            .map((r) => r.lesson_content_id)
+        );
+        const allContentRead = contentIds.length > 0 && contentIds.every((id) => readContentIds.has(id));
+        if (allContentRead) {
+          studentAchievedIds.push(la.lesson_achievement_id);
+        }
       }
       setLessonContents(contentMap);
+
+      for (const achievedId of studentAchievedIds) {
+        if (!studentLessonAchievementRecords.some((r) => r.lesson_achievement_id === achievedId)) {
+          try {
+            await createStudentLessonAchievement({
+              lesson_achievement_id: achievedId,
+              user_id: activeUserId,
+            });
+            const newRecord = await listStudentLessonAchievementByUserAndLessonAchievement(activeUserId, achievedId);
+            if (newRecord.length > 0) {
+              setStudentLessonAchievements((prev) => [...prev, ...newRecord]);
+            }
+          } catch {
+            // ignore duplicate key or insert errors
+          }
+        }
+      }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load achievements.');
     } finally {
@@ -310,9 +341,11 @@ export default function AchievementScreen() {
                 const readContentIds = new Set(
                   lessonContentProgress
                     .filter((r) => r.is_read && lessonContentIds.includes(r.lesson_content_id))
-                    .map((r) => r.lesson_content_id)
-                );
-                const isAcquired = contents.length > 0 && lessonContentIds.every((id) => readContentIds.has(id));
+                     .map((r) => r.lesson_content_id)
+                 );
+                const allContentRead = contents.length > 0 && lessonContentIds.every((id) => readContentIds.has(id));
+                const hasStudentRecord = studentLessonAchievements.some((r) => r.lesson_achievement_id === achievement.lesson_achievement_id);
+                const isAcquired = hasStudentRecord || allContentRead;
 
                 return (
                   <View key={achievement.lesson_achievement_id} style={styles.achievementCardContainer}>
