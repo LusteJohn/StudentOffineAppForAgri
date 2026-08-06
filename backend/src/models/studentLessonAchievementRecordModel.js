@@ -2,7 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
-const DATA_FILE = path.join(DATA_DIR, 'student-module-achievement-record.json');
+const DATA_FILE = path.join(DATA_DIR, 'student-lesson-achievement-record.json');
 
 function normalizeText(value) {
   return String(value || '').trim();

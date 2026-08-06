@@ -6,7 +6,7 @@ import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
-import { ModuleAchievementRecord, ModuleRecord, LessonRecord, LessonAchievementRecord, LessonContentRecord, LessonContentProgressRecord, StudentLessonAchievementRecord, listModuleAchievements, listModules, listLessons, listLessonAchievements, listLessonContentProgressByUser, listStudentLessonAchievementByUser, listStudentLessonAchievementByUserAndLessonAchievement, createStudentLessonAchievement, listLessonContentByLessonId } from '@/lib/auth-api';
+  import { ModuleAchievementRecord, ModuleRecord, LessonRecord, LessonAchievementRecord, LessonContentRecord, LessonContentProgressRecord, StudentLessonAchievementRecord, StudentModuleAchievementRecord, listModuleAchievements, listModules, listLessons, listLessonAchievements, listLessonContentProgressByUser, listStudentLessonAchievementByUser, listStudentLessonAchievementByUserAndLessonAchievement, createStudentLessonAchievement, listStudentModuleAchievementByUser, listStudentModuleAchievementByUserAndModuleAchievement, createStudentModuleAchievement, listLessonContentByLessonId } from '@/lib/auth-api';
 
 const PRIMARY = '#5bec13';
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -58,7 +58,8 @@ export default function AchievementScreen() {
   const [lessons, setLessons] = useState<LessonRecord[]>([]);
    const [lessonContents, setLessonContents] = useState<Record<number, LessonContentRecord[]>>({});
    const [lessonContentProgress, setLessonContentProgress] = useState<LessonContentProgressRecord[]>([]);
-   const [studentLessonAchievements, setStudentLessonAchievements] = useState<StudentLessonAchievementRecord[]>([]);
+    const [studentLessonAchievements, setStudentLessonAchievements] = useState<StudentLessonAchievementRecord[]>([]);
+   const [studentModuleAchievements, setStudentModuleAchievements] = useState<StudentModuleAchievementRecord[]>([]);
    const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<AchievementTab>('module');
@@ -145,19 +146,21 @@ export default function AchievementScreen() {
     setError('');
     setLoading(true);
     try {
-      const [moduleAchievementRecords, lessonAchievementRecords, moduleRecords, lessonRecords, progressRecords, studentLessonAchievementRecords] = await Promise.all([
-        listModuleAchievements(),
-        listLessonAchievements(),
-        listModules(),
-        listLessons(),
-        listLessonContentProgressByUser(activeUserId),
-        listStudentLessonAchievementByUser(activeUserId),
-      ]);
-      setModuleAchievements(moduleAchievementRecords);
-      setLessonAchievements(lessonAchievementRecords);
-      setLessons(lessonRecords);
-      setLessonContentProgress(progressRecords);
-      setStudentLessonAchievements(studentLessonAchievementRecords);
+       const [moduleAchievementRecords, lessonAchievementRecords, moduleRecords, lessonRecords, progressRecords, studentLessonAchievementRecords, studentModuleAchievementRecords] = await Promise.all([
+         listModuleAchievements(),
+         listLessonAchievements(),
+         listModules(),
+         listLessons(),
+         listLessonContentProgressByUser(activeUserId),
+         listStudentLessonAchievementByUser(activeUserId),
+         listStudentModuleAchievementByUser(activeUserId),
+       ]);
+       setModuleAchievements(moduleAchievementRecords);
+       setLessonAchievements(lessonAchievementRecords);
+       setLessons(lessonRecords);
+       setLessonContentProgress(progressRecords);
+       setStudentLessonAchievements(studentLessonAchievementRecords);
+       setStudentModuleAchievements(studentModuleAchievementRecords);
       const moduleMap: Record<number, ModuleRecord> = {};
       for (const m of moduleRecords) {
         moduleMap[m.module_id] = m;
@@ -192,6 +195,53 @@ export default function AchievementScreen() {
             const newRecord = await listStudentLessonAchievementByUserAndLessonAchievement(activeUserId, achievedId);
             if (newRecord.length > 0) {
               setStudentLessonAchievements((prev) => [...prev, ...newRecord]);
+            }
+          } catch {
+            // ignore duplicate key or insert errors
+          }
+        }
+      }
+
+      const studentModuleAchievedIds: number[] = [];
+      for (const ma of moduleAchievementRecords) {
+        const moduleLessons = lessonRecords.filter(
+          (l) => (ma.module_id === 0 ? true : l.module_id === ma.module_id),
+        );
+        if (moduleLessons.length === 0) {
+          continue;
+        }
+        let allLessonsComplete = true;
+        for (const lesson of moduleLessons) {
+          const contents = contentMap[lesson.lesson_id] ?? [];
+          const contentIds = contents.map((c) => c.lesson_content_id);
+          if (contentIds.length === 0) {
+            continue;
+          }
+          const readContentIds = new Set(
+            progressRecords
+              .filter((r) => r.is_read && contentIds.includes(r.lesson_content_id))
+              .map((r) => r.lesson_content_id),
+          );
+          if (!contentIds.every((id) => readContentIds.has(id))) {
+            allLessonsComplete = false;
+            break;
+          }
+        }
+        if (allLessonsComplete) {
+          studentModuleAchievedIds.push(ma.module_achievement_id);
+        }
+      }
+
+      for (const achievedId of studentModuleAchievedIds) {
+        if (!studentModuleAchievementRecords.some((r) => r.module_achievement_id === achievedId)) {
+          try {
+            await createStudentModuleAchievement({
+              module_achievement_id: achievedId,
+              user_id: activeUserId,
+            });
+            const newRecord = await listStudentModuleAchievementByUserAndModuleAchievement(activeUserId, achievedId);
+            if (newRecord.length > 0) {
+              setStudentModuleAchievements((prev) => [...prev, ...newRecord]);
             }
           } catch {
             // ignore duplicate key or insert errors
@@ -254,53 +304,83 @@ export default function AchievementScreen() {
             </View>
           ) : (
             <View style={styles.achievementList}>
-              {moduleAchievements.map((achievement) => {
-                const moduleRecord = achievement.module_id > 0 ? modules[achievement.module_id] : null;
-                const lessonCount = moduleRecord
-                  ? lessons.filter((l) => l.module_id === moduleRecord.module_id).length
-                  : 0;
-                const isCompleteBadge = achievement.module_id === 0;
-                const isExpanded = expandedModuleId === achievement.module_achievement_id;
-                const moduleLessons = moduleRecord
-                  ? lessons.filter((l) => l.module_id === moduleRecord.module_id).sort((a, b) => a.order_number - b.order_number || a.lesson_id - b.lesson_id)
-                  : [];
+               {moduleAchievements.map((achievement) => {
+                 const moduleRecord = achievement.module_id > 0 ? modules[achievement.module_id] : null;
+                 const lessonCount = moduleRecord
+                   ? lessons.filter((l) => l.module_id === moduleRecord.module_id).length
+                   : 0;
+                 const isCompleteBadge = achievement.module_id === 0;
+                 const isExpanded = expandedModuleId === achievement.module_achievement_id;
+                 const moduleLessons = moduleRecord
+                   ? lessons.filter((l) => l.module_id === moduleRecord.module_id).sort((a, b) => a.order_number - b.order_number || a.lesson_id - b.lesson_id)
+                   : [];
 
-                return (
-                  <View key={achievement.module_achievement_id} style={styles.achievementCardContainer}>
-                    <Pressable
-                      onPress={() => toggleModuleAchievement(achievement.module_achievement_id)}
-                      style={[styles.achievementCard, isCompleteBadge && styles.achievementCardComplete, isCompact && styles.achievementCardCompact]}
-                    >
-                      <View style={styles.achievementImageWrap}>
-                        {getModuleBadgeImage(achievement.module_achievement_id) ? (
-                          <Image
-                            source={getModuleBadgeImage(achievement.module_achievement_id)}
-                            style={styles.achievementBadge}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Ionicons name="trophy" size={32} color={PRIMARY} />
-                        )}
-                      </View>
-                      <View style={styles.achievementTextGroup}>
-                        <Text style={[styles.achievementName, dynamicStyles.achievementName]}>{achievement.name}</Text>
-                        {moduleRecord ? (
-                          <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>
-                            {moduleRecord.module_name} • {lessonCount} lessons
-                          </Text>
-                        ) : isCompleteBadge ? (
-                          <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>Overall completion badge</Text>
-                        ) : (
-                          <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>Module badge</Text>
-                        )}
-                      </View>
-                      <Ionicons
-                        name={isExpanded ? 'chevron-down' : 'chevron-forward'}
-                        size={18}
-                        color={theme.textSecondary}
-                        style={isExpanded ? { transform: [{ rotate: '90deg' }] } : undefined}
-                      />
-                    </Pressable>
+                 const allLessonsComplete = (() => {
+                   if (moduleLessons.length === 0) return false;
+                   for (const lesson of moduleLessons) {
+                     const contents = lessonContents[lesson.lesson_id] ?? [];
+                     const contentIds = contents.map((c) => c.lesson_content_id);
+                     if (contentIds.length === 0) continue;
+                     const readContentIds = new Set(
+                       lessonContentProgress
+                         .filter((r) => r.is_read && contentIds.includes(r.lesson_content_id))
+                         .map((r) => r.lesson_content_id),
+                     );
+                     if (!contentIds.every((id) => readContentIds.has(id))) return false;
+                   }
+                   return true;
+                 })();
+                 const hasStudentRecord = studentModuleAchievements.some(
+                   (r) => r.module_achievement_id === achievement.module_achievement_id,
+                 );
+                 const isAcquired = hasStudentRecord || allLessonsComplete;
+
+                 return (
+                   <View key={achievement.module_achievement_id} style={styles.achievementCardContainer}>
+                     <Pressable
+                       onPress={() => toggleModuleAchievement(achievement.module_achievement_id)}
+                       style={[styles.achievementCard, isCompleteBadge && styles.achievementCardComplete, isCompact && styles.achievementCardCompact]}
+                     >
+                       <View style={[styles.achievementImageWrap, dynamicStyles.achievementImageWrap]}>
+                         {getModuleBadgeImage(achievement.module_achievement_id) ? (
+                           <Image
+                             source={getModuleBadgeImage(achievement.module_achievement_id)}
+                             style={styles.achievementBadge}
+                             resizeMode="cover"
+                           />
+                         ) : (
+                           <Ionicons name="trophy" size={32} color={PRIMARY} />
+                         )}
+                         {isAcquired ? (
+                           <View style={[styles.acquiredBadge, dynamicStyles.acquiredBadge]}>
+                             <Ionicons name="checkmark-circle" size={14} color={isDark ? "#000000" : "#ffffff"} />
+                           </View>
+                         ) : null}
+                       </View>
+                       <View style={styles.achievementTextGroup}>
+                         <Text style={[styles.achievementName, dynamicStyles.achievementName]}>{achievement.name}</Text>
+                         {moduleRecord ? (
+                           <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>
+                             {moduleRecord.module_name} • {lessonCount} lessons
+                           </Text>
+                         ) : isCompleteBadge ? (
+                           <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>Overall completion badge</Text>
+                         ) : (
+                           <Text style={[styles.achievementModule, dynamicStyles.achievementModule]}>Module badge</Text>
+                         )}
+                         {isAcquired ? (
+                           <Text style={[styles.acquiredLabel, dynamicStyles.acquiredLabel]}>Acquired</Text>
+                         ) : (
+                           <Text style={[styles.acquiredLabel, dynamicStyles.acquiredLabelPending]}>Not acquired</Text>
+                         )}
+                       </View>
+                       <Ionicons
+                         name={isExpanded ? 'chevron-down' : 'chevron-forward'}
+                         size={18}
+                         color={theme.textSecondary}
+                         style={isExpanded ? { transform: [{ rotate: '90deg' }] } : undefined}
+                       />
+                     </Pressable>
 
                     {isExpanded && moduleLessons.length > 0 ? (
                       <View style={styles.lessonList}>
