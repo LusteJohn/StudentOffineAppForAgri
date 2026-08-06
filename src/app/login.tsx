@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { router } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { BackHandler, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useFocusEffect, router } from 'expo-router';
 
 import { useCustomAlert } from '@/lib/custom-alert';
 import { useTheme } from '@/hooks/use-theme';
@@ -19,6 +19,30 @@ export default function LoginScreen() {
   const { showAlert } = useCustomAlert();
   const theme = useTheme();
   const isDark = theme.text === '#ffffff';
+
+  const handleExitConfirm = useCallback(() => {
+    BackHandler.exitApp();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        showAlert(
+          'Exit app',
+          'Are you sure you want to exit the app?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Exit', style: 'destructive', onPress: handleExitConfirm },
+          ],
+          { cancelable: true }
+        );
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
+    }, [showAlert, handleExitConfirm])
+  );
 
   const dynamicStyles = useMemo(() => StyleSheet.create({
     screen: {
