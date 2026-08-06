@@ -7,6 +7,15 @@ const {
   listStudentInfoHandler,
   updateStudentInfoHandler,
 } = require('../controllers/studentInfoController');
+const {
+  listStudentTutorialHandler,
+  listStudentTutorialByUserHandler,
+  getStudentTutorialByUserHandler,
+  getStudentTutorialByIdHandler,
+  createStudentTutorialHandler,
+  updateStudentTutorialHandler,
+  deleteStudentTutorialHandler,
+} = require('../controllers/studentTutorialController');
 
 async function handleAuthRoutes(req, res, pathname, body) {
   if (req.method === 'GET' && pathname === '/api/health') {
@@ -47,6 +56,40 @@ async function handleAuthRoutes(req, res, pathname, body) {
 
     if (req.method === 'DELETE') {
       return deleteStudentInfoHandler(res, studentId);
+    }
+  }
+
+  if (req.method === 'GET' && pathname === '/api/student-tutorial') {
+    return listStudentTutorialHandler(res);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/student-tutorial') {
+    return createStudentTutorialHandler(res, body);
+  }
+
+  if (req.method === 'GET' && pathname.startsWith('/api/student-tutorial/by-user/')) {
+    const userId = pathname.split('/').pop();
+    return getStudentTutorialByUserHandler(res, userId);
+  }
+
+  if (req.method === 'GET' && pathname.startsWith('/api/student-tutorial/list-by-user/')) {
+    const userId = pathname.split('/').pop();
+    return listStudentTutorialByUserHandler(res, userId);
+  }
+
+  if (pathname.startsWith('/api/student-tutorial/')) {
+    const tutorialId = pathname.split('/').pop();
+
+    if (req.method === 'GET') {
+      return getStudentTutorialByIdHandler(res, tutorialId);
+    }
+
+    if (req.method === 'PUT' || req.method === 'PATCH') {
+      return updateStudentTutorialHandler(res, tutorialId, body);
+    }
+
+    if (req.method === 'DELETE') {
+      return deleteStudentTutorialHandler(res, tutorialId);
     }
   }
 

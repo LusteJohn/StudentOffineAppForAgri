@@ -206,6 +206,17 @@ export type StudentModuleAchievementRecord = {
   updated_at: string;
 }
 
+export type StudentTutorialRecord = {
+  tutorial_id: number;
+  user_id: number;
+  completed: number;
+  step1_done: number;
+  step2_done: number;
+  step3_done: number;
+  created_at: string;
+  updated_at: string;
+}
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -723,12 +734,24 @@ async function ensureDatabase() {
         FOREIGN KEY (module_achievement_id) REFERENCES module_achievement(module_achievement_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id),
         UNIQUE(user_id, module_achievement_id)
+      );`,
+        `CREATE TABLE IF NOT EXISTS app_settings (
+         setting_key TEXT PRIMARY KEY NOT NULL,
+         setting_value TEXT NOT NULL
        )`,
-       `CREATE TABLE IF NOT EXISTS app_settings (
-        setting_key TEXT PRIMARY KEY NOT NULL,
-        setting_value TEXT NOT NULL
-      )`,
-     ];
+       `CREATE TABLE IF NOT EXISTS student_tutorials (
+         tutorial_id INTEGER PRIMARY KEY NOT NULL,
+         user_id INTEGER NOT NULL,
+         completed INTEGER NOT NULL DEFAULT 0,
+         step1_done INTEGER NOT NULL DEFAULT 0,
+         step2_done INTEGER NOT NULL DEFAULT 0,
+         step3_done INTEGER NOT NULL DEFAULT 0,
+         created_at TEXT NOT NULL,
+         updated_at TEXT NOT NULL,
+         FOREIGN KEY (user_id) REFERENCES users(user_id),
+         UNIQUE(user_id)
+       )`,
+      ];
 
    try {
      const tableExists = await db.getFirstAsync<{ type: string }>('SELECT type FROM sqlite_master WHERE type = ? AND name = ?', ['table', 'student_lesson_achievement']);
@@ -1331,6 +1354,90 @@ export async function listStudentModuleAchievementByUserAndModuleAchievement(use
   return db.getAllAsync<StudentModuleAchievementRecord>(
     'SELECT * FROM student_module_achievement WHERE user_id = ? AND module_achievement_id = ? ORDER BY stud_module_achievement_id ASC',
     [userId, moduleAchievementId]
+  );
+ }
+
+export async function createStudentTutorial(payload: Omit<StudentTutorialRecord, 'tutorial_id' | 'completed' | 'created_at' | 'updated_at' | 'step1_done' | 'step2_done' | 'step3_done'> & { completed?: boolean; step1_done?: boolean; step2_done?: boolean; step3_done?: boolean }) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  const result = await db.runAsync(
+    `INSERT INTO student_tutorials
+      (user_id, completed, step1_done, step2_done, step3_done, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      payload.user_id,
+      payload.completed ? 1 : 0,
+      payload.step1_done ? 1 : 0,
+      payload.step2_done ? 1 : 0,
+      payload.step3_done ? 1 : 0,
+      now,
+      now,
+    ]
+  );
+  const id = result?.lastInsertRowId ?? 0;
+  return {
+    tutorial_id: Number(id),
+    user_id: payload.user_id,
+    completed: payload.completed ? 1 : 0,
+    step1_done: payload.step1_done ? 1 : 0,
+    step2_done: payload.step2_done ? 1 : 0,
+    step3_done: payload.step3_done ? 1 : 0,
+    created_at: now,
+    updated_at: now,
+  };
+}
+
+export async function getStudentTutorialByUserId(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const rows = await db.getAllAsync<StudentTutorialRecord>(
+    'SELECT * FROM student_tutorials WHERE user_id = ? ORDER BY tutorial_id ASC',
+    [userId]
+  );
+  return rows[0] ?? null;
+}
+
+export async function listStudentTutorialByUser(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<StudentTutorialRecord>(
+    'SELECT * FROM student_tutorials WHERE user_id = ? ORDER BY tutorial_id ASC',
+    [userId]
+  );
+}
+
+export async function updateStudentTutorial(tutorialId: number, payload: Partial<Omit<StudentTutorialRecord, 'tutorial_id' | 'created_at' | 'updated_at'>>) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  const sets: string[] = [];
+  const vals: any[] = [];
+  if (payload.user_id !== undefined) {
+    sets.push('user_id = ?');
+    vals.push(payload.user_id);
+  }
+  if (payload.completed !== undefined) {
+    sets.push('completed = ?');
+    vals.push(payload.completed);
+  }
+  if (payload.step1_done !== undefined) {
+    sets.push('step1_done = ?');
+    vals.push(payload.step1_done);
+  }
+  if (payload.step2_done !== undefined) {
+    sets.push('step2_done = ?');
+    vals.push(payload.step2_done);
+  }
+  if (payload.step3_done !== undefined) {
+    sets.push('step3_done = ?');
+    vals.push(payload.step3_done);
+  }
+  if (sets.length === 0) return;
+  vals.push(now, tutorialId);
+  await db.runAsync(
+    `UPDATE student_tutorials SET ${sets.join(', ')}, updated_at = ? WHERE tutorial_id = ?`,
+    vals
   );
 }
 
