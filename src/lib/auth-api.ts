@@ -198,6 +198,14 @@ export type StudentLessonAchievementRecord = {
   updated_at: string;
 }
 
+export type StudentModuleAchievementRecord = {
+  stud_module_achievement_id: number;
+  module_achievement_id: number;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
 type StoredStudentUser = StudentUser & {
   password: string;
 }
@@ -705,6 +713,16 @@ async function ensureDatabase() {
         FOREIGN KEY (lesson_achievement_id) REFERENCES lesson_achievement(lesson_achievement_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id),
         UNIQUE(user_id, lesson_achievement_id)
+       )`,
+       `CREATE TABLE IF NOT EXISTS student_module_achievement (
+        stud_module_achievement_id INTEGER PRIMARY KEY NOT NULL,
+        module_achievement_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (module_achievement_id) REFERENCES module_achievement(module_achievement_id),
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        UNIQUE(user_id, module_achievement_id)
        )`,
        `CREATE TABLE IF NOT EXISTS app_settings (
         setting_key TEXT PRIMARY KEY NOT NULL,
@@ -1282,6 +1300,38 @@ export async function deleteStudentLessonAchievement(studId: number) {
   await ensureDatabase();
   const db = await databasePromise;
   return db.runAsync('DELETE FROM student_lesson_achievement WHERE stud_lesson_achievement_id = ?', [studId]);
+}
+
+export async function createStudentModuleAchievement(payload: Omit<StudentModuleAchievementRecord, 'stud_module_achievement_id' | 'created_at' | 'updated_at'>) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  const now = new Date().toISOString();
+  const result = await db.runAsync(
+    `INSERT INTO student_module_achievement
+      (module_achievement_id, user_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?)`,
+    [payload.module_achievement_id, payload.user_id, now, now]
+  );
+  const id = result?.lastInsertRowId ?? 0;
+  return { stud_module_achievement_id: Number(id), ...payload, created_at: now, updated_at: now };
+}
+
+export async function listStudentModuleAchievementByUser(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<StudentModuleAchievementRecord>(
+    'SELECT * FROM student_module_achievement WHERE user_id = ? ORDER BY stud_module_achievement_id ASC',
+    [userId]
+  );
+}
+
+export async function listStudentModuleAchievementByUserAndModuleAchievement(userId: number, moduleAchievementId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<StudentModuleAchievementRecord>(
+    'SELECT * FROM student_module_achievement WHERE user_id = ? AND module_achievement_id = ? ORDER BY stud_module_achievement_id ASC',
+    [userId, moduleAchievementId]
+  );
 }
 
 export async function listLessonContent() {
