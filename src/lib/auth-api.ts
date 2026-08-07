@@ -206,6 +206,18 @@ export type StudentModuleAchievementRecord = {
   updated_at: string;
 };
 
+export type StudentReportData = {
+  user: StudentUser | null;
+  studentInfo: StudentProfile | null;
+  questionAnswers: QuestionAnswerRecord[];
+  jobSheetAnswers: JobSheetAnswerRecord[];
+  performanceAnswers: PerformanceAnswerRecord[];
+  lessonContentProgress: LessonContentProgressRecord[];
+  lessonContentBookmarks: LessonContentBookmarkRecord[];
+  studentLessonAchievements: StudentLessonAchievementRecord[];
+  studentModuleAchievements: StudentModuleAchievementRecord[];
+};
+
 export type StudentTutorialRecord = {
   tutorial_id: number;
   user_id: number;
@@ -3087,6 +3099,35 @@ export async function listLessonContentBookmarkByUser(userId: number) {
     "SELECT * FROM lesson_content_bookmark WHERE user_id = ? AND is_bookmark = 1 ORDER BY lesson_content_bookmark_id ASC",
     [userId],
   );
+}
+
+export async function getStudentReportData(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+
+  const [user, studentInfo, questionAnswers, jobSheetAnswers, performanceAnswers, lessonContentProgress, lessonContentBookmarks, studentLessonAchievements, studentModuleAchievements] = await Promise.all([
+    db.getFirstAsync<StudentUser>("SELECT user_id, username, email, role, created_at FROM users WHERE user_id = ?", [userId]),
+    db.getFirstAsync<StudentProfile>("SELECT * FROM student_info WHERE user_id = ?", [userId]),
+    db.getAllAsync<QuestionAnswerRecord>("SELECT * FROM question_answers WHERE user_id = ? ORDER BY answer_id ASC", [userId]),
+    db.getAllAsync<JobSheetAnswerRecord>("SELECT * FROM job_sheet_answers WHERE user_id = ? ORDER BY answer_id ASC", [userId]),
+    db.getAllAsync<PerformanceAnswerRecord>("SELECT * FROM performance_answer WHERE user_id = ? ORDER BY performance_answer_id ASC", [userId]),
+    db.getAllAsync<LessonContentProgressRecord>("SELECT * FROM lesson_content_progress WHERE user_id = ? ORDER BY progress_lesson_id ASC", [userId]),
+    db.getAllAsync<LessonContentBookmarkRecord>("SELECT * FROM lesson_content_bookmark WHERE user_id = ? ORDER BY lesson_content_bookmark_id ASC", [userId]),
+    db.getAllAsync<StudentLessonAchievementRecord>("SELECT * FROM student_lesson_achievement WHERE user_id = ? ORDER BY stud_lesson_achievement_id ASC", [userId]),
+    db.getAllAsync<StudentModuleAchievementRecord>("SELECT * FROM student_module_achievement WHERE user_id = ? ORDER BY stud_module_achievement_id ASC", [userId]),
+  ]);
+
+  return {
+    user: user ?? null,
+    studentInfo: studentInfo ?? null,
+    questionAnswers: questionAnswers ?? [],
+    jobSheetAnswers: jobSheetAnswers ?? [],
+    performanceAnswers: performanceAnswers ?? [],
+    lessonContentProgress: lessonContentProgress ?? [],
+    lessonContentBookmarks: lessonContentBookmarks ?? [],
+    studentLessonAchievements: studentLessonAchievements ?? [],
+    studentModuleAchievements: studentModuleAchievements ?? [],
+  };
 }
 
 export async function resetAndSeedLocalData() {
