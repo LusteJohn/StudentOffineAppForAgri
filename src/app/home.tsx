@@ -526,9 +526,6 @@ export default function HomeScreen() {
             ? "rgba(255,255,255,0.06)"
             : "rgba(148, 163, 184, 0.12)",
         },
-        activityItemType: {
-          color: theme.textSecondary,
-        },
         activityItemText: {
           color: theme.text,
         },
@@ -539,7 +536,7 @@ export default function HomeScreen() {
           color: isDark ? "#86efac" : "#166534",
         },
         activityItemModule: {
-          color: isDark ? "#a855f7" : "#7c3aed",
+          color: isDark ? "#c084fc" : "#7c3aed",
         },
         activityItemTime: {
           color: theme.textSecondary,
@@ -1231,51 +1228,105 @@ export default function HomeScreen() {
             </View>
 
             {dailyLoading ? (
-              <Text style={styles.summaryText}>Loading activity...</Text>
-            ) : dailyActivity && dailyActivity.length > 0 ? (
-              <View style={styles.modalContentList}>
-                {dailyActivity.map((item) => (
-                  <View key={`${item.activity_type}-${item.id}`} style={[styles.activityItem, dynamicStyles.activityItem]}>
-                    <View style={styles.activityItemHeader}>
-                      <Text style={[styles.activityItemType, dynamicStyles.activityItemType]}>
-                        {item.activity_type === "quiz" ? "QUIZ" :
-                         item.activity_type === "job_sheet" ? "JOB SHEET" :
-                         item.activity_type === "performance" ? "PERFORMANCE" :
-                         item.activity_type === "progress" ? "LESSON PROGRESS" :
-                         item.activity_type === "bookmark" ? "BOOKMARK" :
-                         item.activity_type === "lesson_achievement" ? "LESSON ACHIEVEMENT" :
-                         item.activity_type === "module_achievement" ? "MODULE ACHIEVEMENT" :
-                         "ACTIVITY"}
-                      </Text>
-                      <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
-                        {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </Text>
-                    </View>
-                    <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
-                      {item.title}
-                    </Text>
-                    {item.description ? (
-                      <Text style={[styles.activityItemDesc, dynamicStyles.activityItemDesc]}>
-                        {item.description}
-                      </Text>
-                    ) : null}
-                    {item.lesson_name ? (
-                      <Text style={[styles.activityItemLesson, dynamicStyles.activityItemLesson]}>
-                        Lesson: {item.lesson_name}
-                      </Text>
-                    ) : null}
-                    {item.module_name ? (
-                      <Text style={[styles.activityItemModule, dynamicStyles.activityItemModule]}>
-                        Module: {item.module_name}
-                      </Text>
-                    ) : null}
-                  </View>
-                ))}
+              <View style={styles.activityLoadingContainer}>
+                <Text style={styles.summaryText}>
+                  Loading activity...
+                </Text>
               </View>
+            ) : dailyActivity && dailyActivity.length > 0 ? (
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={styles.modalContentList}
+              >
+                {(() => {
+                  const groups: Record<string, DailyActivityRecord[]> = {};
+                  const groupOrder = [
+                    "quiz", "job_sheet", "performance", "progress",
+                    "bookmark", "lesson_achievement", "module_achievement",
+                  ];
+                  for (const item of dailyActivity) {
+                    if (!groups[item.activity_type]) {
+                      groups[item.activity_type] = [];
+                    }
+                    groups[item.activity_type].push(item);
+                  }
+
+                  const groupLabels: Record<string, { label: string; icon: string; color: string }> = {
+                    quiz: { label: "Quiz Submissions", icon: "help-circle", color: "#2563eb" },
+                    job_sheet: { label: "Job Sheet Answers", icon: "document-text", color: "#dc2626" },
+                    performance: { label: "Performance Answers", icon: "checkmark-circle", color: "#7c3aed" },
+                    progress: { label: "Lesson Progress", icon: "bookmarks", color: "#059669" },
+                    bookmark: { label: "Bookmarks", icon: "bookmark", color: "#d97706" },
+                    lesson_achievement: { label: "Lesson Achievements", icon: "trophy", color: "#ca8a04" },
+                    module_achievement: { label: "Module Achievements", icon: "podium", color: "#be12ce" },
+                  };
+
+                  const orderedTypes = groupOrder.filter((t) => groups[t]);
+
+                  return orderedTypes.map((type) => {
+                    const items = groups[type];
+                    const meta = groupLabels[type];
+                    return (
+                      <View key={type} style={styles.activityGroup}>
+                        <View style={[styles.activityGroupHeader, { borderLeftColor: meta.color }]}>
+                          <Ionicons name={meta.icon as any} size={16} color={meta.color} />
+                          <Text style={[styles.activityGroupLabel, dynamicStyles.activityItemText]}>
+                            {meta.label}
+                          </Text>
+                          <View style={[styles.activityGroupCount, { backgroundColor: meta.color }]}>
+                            <Text style={styles.activityGroupCountText}>
+                              {items.length}
+                            </Text>
+                          </View>
+                        </View>
+                        {items.map((item) => (
+                          <View key={`${item.activity_type}-${item.id}`} style={[styles.activityItem, dynamicStyles.activityItem]}>
+                            <View style={styles.activityItemHeader}>
+                              <Text style={[styles.activityItemType, { color: meta.color }]}>
+                                {meta.label.split(" ")[0]}
+                              </Text>
+                              <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
+                                {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </Text>
+                            </View>
+                            <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
+                              {item.title}
+                            </Text>
+                            {item.description ? (
+                              <Text style={[styles.activityItemDesc, dynamicStyles.activityItemDesc]}>
+                                {item.description}
+                              </Text>
+                            ) : null}
+                            {item.lesson_name ? (
+                              <View style={styles.activityItemMetaRow}>
+                                <Ionicons name="book-outline" size={12} color={isDark ? "#86efac" : "#166534"} />
+                                <Text style={[styles.activityItemLesson, dynamicStyles.activityItemLesson]}>
+                                  {item.lesson_name}
+                                </Text>
+                              </View>
+                            ) : null}
+                            {item.module_name ? (
+                              <View style={styles.activityItemMetaRow}>
+                                <Ionicons name="library-outline" size={12} color={isDark ? "#c084fc" : "#7c3aed"} />
+                                <Text style={[styles.activityItemModule, dynamicStyles.activityItemModule]}>
+                                  {item.module_name}
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
+                        ))}
+                      </View>
+                    );
+                  });
+                })()}
+              </ScrollView>
             ) : (
-              <Text style={[styles.noDataText, dynamicStyles.noDataText]}>
-                No activity recorded on this day.
-              </Text>
+              <View style={styles.activityLoadingContainer}>
+                <Ionicons name="calendar-outline" size={48} color={isDark ? "#4b5563" : "#cbd5e1"} />
+                <Text style={[styles.noDataText, dynamicStyles.noDataText]}>
+                  No activity recorded on this day.
+                </Text>
+              </View>
             )}
 
             <Pressable
@@ -1713,6 +1764,7 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: "#ffffff",
     alignSelf: "stretch",
+    flex: 1,
   },
   modalHeaderRow: {
     flexDirection: "row",
@@ -1767,6 +1819,7 @@ const styles = StyleSheet.create({
   },
   modalContentList: {
     flex: 1,
+    maxHeight: "75%",
   },
   progressContentCard: {
     borderRadius: 14,
@@ -1832,7 +1885,8 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     alignItems: "center",
     backgroundColor: "#0f172a",
-    marginTop: 8,
+    marginTop: 16,
+    alignSelf: "stretch",
   },
   closeButtonText: {
     color: "#ffffff",
@@ -1911,14 +1965,48 @@ const styles = StyleSheet.create({
     color: "#64748b",
     textAlign: "center",
   },
+  activityLoadingContainer: {
+    alignItems: "center",
+    paddingVertical: 24,
+    gap: 8,
+  },
+  activityGroup: {
+    marginBottom: 16,
+  },
+  activityGroupHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(148, 163, 184, 0.12)",
+    borderLeftWidth: 3,
+  },
+  activityGroupLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    flex: 1,
+  },
+  activityGroupCount: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  activityGroupCountText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
   activityItem: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "rgba(148, 163, 184, 0.12)",
-    marginBottom: 10,
+    marginBottom: 8,
     gap: 6,
   },
   activityItemHeader: {
@@ -1930,7 +2018,6 @@ const styles = StyleSheet.create({
   activityItemType: {
     fontSize: 11,
     fontWeight: "800",
-    color: "#64748b",
     textTransform: "uppercase",
     letterSpacing: 0.6,
   },
@@ -1946,17 +2033,21 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 4,
   },
+  activityItemMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
   activityItemLesson: {
     fontSize: 12,
-    color: "#166534",
     fontWeight: "600",
-    marginTop: 2,
+    marginTop: 0,
   },
   activityItemModule: {
     fontSize: 12,
-    color: "#7c3aed",
     fontWeight: "600",
-    marginTop: 2,
+    marginTop: 0,
   },
   activityItemTime: {
     fontSize: 11,
