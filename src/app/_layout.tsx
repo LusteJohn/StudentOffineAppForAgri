@@ -5,21 +5,16 @@ import { useEffect } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { ThemeProvider as AppThemeProvider, useThemeContext } from '@/contexts/theme-context';
 import { CustomAlertProvider } from '@/lib/custom-alert';
-import { useTheme } from '@/hooks/use-theme';
 
 SplashScreen.preventAutoHideAsync();
 
 const APP_NAME = 'Organic Agriculture Production Learning App';
 
 function LoadingScreen() {
-  const { effectiveColorScheme } = useThemeContext();
-  const theme = useTheme();
-  const isDark = effectiveColorScheme === 'dark';
-
   return (
-    <View style={[styles.loadingContainer, { backgroundColor: isDark ? theme.background : '#ffffff' }]}>
+    <View style={styles.loadingContainer}>
       <Image source={require('@/assets/images/app.png')} style={styles.loadingLogo} resizeMode="contain" />
-      <Text style={[styles.loadingAppName, { color: isDark ? theme.text : '#102318' }]}>{APP_NAME}</Text>
+      <Text style={styles.loadingAppName}>{APP_NAME}</Text>
     </View>
   );
 }

@@ -3187,6 +3187,17 @@ export async function getWeeklyActivity(userId: number) {
   });
 }
 
+export type DailyActivityRecord = {
+  id: number;
+  user_id: number;
+  activity_type: string;
+  title: string;
+  description: string;
+  lesson_name: string | null;
+  module_name: string | null;
+  created_at: string;
+};
+
 export async function getDailyActivity(userId: number, dateStr: string) {
   await ensureDatabase();
   const db = await databasePromise;
@@ -3197,23 +3208,209 @@ export async function getDailyActivity(userId: number, dateStr: string) {
   const startStr = start.toISOString();
   const endStr = end.toISOString();
 
-  const [questionAnswers, jobSheetAnswers, performanceAnswers, lessonProgress, lessonAchievements, moduleAchievements] = await Promise.all([
-    db.getAllAsync<QuestionAnswerRecord>("SELECT * FROM question_answers WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
-    db.getAllAsync<JobSheetAnswerRecord>("SELECT * FROM job_sheet_answers WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
-    db.getAllAsync<PerformanceAnswerRecord>("SELECT * FROM performance_answer WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
-    db.getAllAsync<LessonContentProgressRecord>("SELECT * FROM lesson_content_progress WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
-    db.getAllAsync<StudentLessonAchievementRecord>("SELECT * FROM student_lesson_achievement WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
-    db.getAllAsync<StudentModuleAchievementRecord>("SELECT * FROM student_module_achievement WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
-  ]);
+  const records: DailyActivityRecord[] = [];
 
-  return {
-    questionAnswers: questionAnswers ?? [],
-    jobSheetAnswers: jobSheetAnswers ?? [],
-    performanceAnswers: performanceAnswers ?? [],
-    lessonProgress: lessonProgress ?? [],
-    lessonAchievements: lessonAchievements ?? [],
-    moduleAchievements: moduleAchievements ?? [],
-  };
+  const qa = await db.getAllAsync<{
+    answer_id: number;
+    answer_text: string;
+    question_id: number;
+    created_at: string;
+    lesson_name: string;
+  }>(
+    `SELECT qa.answer_id, qa.answer_text, qa.question_id, qa.created_at, l.lesson_name
+     FROM question_answers qa
+     JOIN question_content qc ON qc.question_id = qa.question_id
+     JOIN lesson_content lc ON lc.lesson_content_id = qc.lesson_content_id
+     JOIN lessons l ON l.lesson_id = lc.lesson_id
+     WHERE qa.user_id = ? AND qa.created_at >= ? AND qa.created_at <= ?
+     ORDER BY qa.created_at ASC`,
+    [userId, startStr, endStr],
+  );
+  for (const r of qa) {
+    records.push({
+      id: r.answer_id,
+      user_id: userId,
+      activity_type: "quiz",
+      title: `Quiz Submission (Question #${r.question_id})`,
+      description: r.answer_text,
+      lesson_name: r.lesson_name,
+      module_name: null,
+      created_at: r.created_at,
+    });
+  }
+
+  const jsa = await db.getAllAsync<{
+    answer_id: number;
+    answer_text: string;
+    job_id: number;
+    created_at: string;
+    lesson_name: string;
+  }>(
+    `SELECT ja.answer_id, ja.answer_text, ja.job_id, ja.created_at, l.lesson_name
+     FROM job_sheet_answers ja
+     JOIN job_sheet js ON js.job_id = ja.job_id
+     JOIN lesson_content lc ON lc.lesson_content_id = js.lesson_content_id
+     JOIN lessons l ON l.lesson_id = lc.lesson_id
+     WHERE ja.user_id = ? AND ja.created_at >= ? AND ja.created_at <= ?
+     ORDER BY ja.created_at ASC`,
+    [userId, startStr, endStr],
+  );
+  for (const r of jsa) {
+    records.push({
+      id: r.answer_id,
+      user_id: userId,
+      activity_type: "job_sheet",
+      title: `Job Sheet #${r.job_id}`,
+      description: r.answer_text,
+      lesson_name: r.lesson_name,
+      module_name: null,
+      created_at: r.created_at,
+    });
+  }
+
+  const pa = await db.getAllAsync<{
+    performance_answer_id: number;
+    performance_answer_text: string;
+    performance_id: number;
+    created_at: string;
+    lesson_name: string;
+  }>(
+    `SELECT pa.performance_answer_id, pa.performance_answer_text, pa.performance_id, pa.created_at, l.lesson_name
+     FROM performance_answer pa
+     JOIN performance_checklist pc ON pc.performance_id = pa.performance_id
+     JOIN lesson_content lc ON lc.lesson_content_id = pc.lesson_content_id
+     JOIN lessons l ON l.lesson_id = lc.lesson_id
+     WHERE pa.user_id = ? AND pa.created_at >= ? AND pa.created_at <= ?
+     ORDER BY pa.created_at ASC`,
+    [userId, startStr, endStr],
+  );
+  for (const r of pa) {
+    records.push({
+      id: r.performance_answer_id,
+      user_id: userId,
+      activity_type: "performance",
+      title: `Performance Answer (Performance #${r.performance_id})`,
+      description: r.performance_answer_text,
+      lesson_name: r.lesson_name,
+      module_name: null,
+      created_at: r.created_at,
+    });
+  }
+
+  const lp = await db.getAllAsync<{
+    progress_lesson_id: number;
+    lesson_content_id: number;
+    is_read: boolean;
+    read_at: string;
+    created_at: string;
+    lesson_name: string;
+  }>(
+    `SELECT lcp.progress_lesson_id, lcp.lesson_content_id, lcp.is_read, lcp.read_at, lcp.created_at, l.lesson_name
+     FROM lesson_content_progress lcp
+     JOIN lesson_content lc ON lc.lesson_content_id = lcp.lesson_content_id
+     JOIN lessons l ON l.lesson_id = lc.lesson_id
+     WHERE lcp.user_id = ? AND lcp.created_at >= ? AND lcp.created_at <= ?
+     ORDER BY lcp.created_at ASC`,
+    [userId, startStr, endStr],
+  );
+  for (const r of lp) {
+    records.push({
+      id: r.progress_lesson_id,
+      user_id: userId,
+      activity_type: "progress",
+      title: `Lesson Content #${r.lesson_content_id} ${r.is_read ? "marked as read" : "updated"}`,
+      description: r.read_at ? `Read at: ${r.read_at}` : "",
+      lesson_name: r.lesson_name,
+      module_name: null,
+      created_at: r.created_at,
+    });
+  }
+
+  const lb = await db.getAllAsync<{
+    lesson_content_bookmark_id: number;
+    lesson_content_id: number;
+    is_bookmark: boolean;
+    created_at: string;
+    lesson_name: string;
+  }>(
+    `SELECT lcb.lesson_content_bookmark_id, lcb.lesson_content_id, lcb.is_bookmark, lcb.created_at, l.lesson_name
+     FROM lesson_content_bookmark lcb
+     JOIN lesson_content lc ON lc.lesson_content_id = lcb.lesson_content_id
+     JOIN lessons l ON l.lesson_id = lc.lesson_id
+     WHERE lcb.user_id = ? AND lcb.created_at >= ? AND lcb.created_at <= ?
+     ORDER BY lcb.created_at ASC`,
+    [userId, startStr, endStr],
+  );
+  for (const r of lb) {
+    records.push({
+      id: r.lesson_content_bookmark_id,
+      user_id: userId,
+      activity_type: "bookmark",
+      title: `Lesson Content #${r.lesson_content_id} ${r.is_bookmark ? "bookmarked" : "unbookmarked"}`,
+      description: "",
+      lesson_name: r.lesson_name,
+      module_name: null,
+      created_at: r.created_at,
+    });
+  }
+
+  const la = await db.getAllAsync<{
+    stud_lesson_achievement_id: number;
+    lesson_achievement_id: number;
+    created_at: string;
+    lesson_name: string;
+  }>(
+    `SELECT sla.stud_lesson_achievement_id, sla.lesson_achievement_id, sla.created_at, l.lesson_name
+     FROM student_lesson_achievement sla
+     JOIN lesson_achievement la ON la.lesson_achievement_id = sla.lesson_achievement_id
+     JOIN lessons l ON l.lesson_id = la.lesson_id
+     WHERE sla.user_id = ? AND sla.created_at >= ? AND sla.created_at <= ?
+     ORDER BY sla.created_at ASC`,
+    [userId, startStr, endStr],
+  );
+  for (const r of la) {
+    records.push({
+      id: r.stud_lesson_achievement_id,
+      user_id: userId,
+      activity_type: "lesson_achievement",
+      title: `Lesson Achievement #${r.lesson_achievement_id} acquired`,
+      description: "",
+      lesson_name: r.lesson_name,
+      module_name: null,
+      created_at: r.created_at,
+    });
+  }
+
+  const ma = await db.getAllAsync<{
+    stud_module_achievement_id: number;
+    module_achievement_id: number;
+    created_at: string;
+    module_name: string;
+  }>(
+    `SELECT sma.stud_module_achievement_id, sma.module_achievement_id, sma.created_at, m.module_name
+     FROM student_module_achievement sma
+     JOIN module_achievement ma ON ma.module_achievement_id = sma.module_achievement_id
+     JOIN modules m ON m.module_id = ma.module_id
+     WHERE sma.user_id = ? AND sma.created_at >= ? AND sma.created_at <= ?
+     ORDER BY sma.created_at ASC`,
+    [userId, startStr, endStr],
+  );
+  for (const r of ma) {
+    records.push({
+      id: r.stud_module_achievement_id,
+      user_id: userId,
+      activity_type: "module_achievement",
+      title: `Module Achievement #${r.module_achievement_id} acquired`,
+      description: "",
+      lesson_name: null,
+      module_name: r.module_name,
+      created_at: r.created_at,
+    });
+  }
+
+  records.sort((a, b) => a.created_at.localeCompare(b.created_at));
+
+  return records;
 }
 
 export async function resetAndSeedLocalData() {
