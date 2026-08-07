@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView, Platform, Image, Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useFocusEffect, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -1024,7 +1024,11 @@ export default function SettingsScreen() {
                 <Ionicons name="close" size={18} color={colors.text} />
               </Pressable>
             </View>
-             <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
+             <KeyboardAvoidingView
+               style={styles.keyboardAvoidingView}
+               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+             >
+              <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
                <View style={styles.imageUploadBlock}>
                  <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Student Photo</ThemedText>
                  <Pressable onPress={pickImage} style={[styles.imageUploadButton, dynamicStyles.imageUploadButton]}>
@@ -1096,9 +1100,10 @@ export default function SettingsScreen() {
                    onChangeText={setGradeLevel}
                  />
                </View>
-             </ScrollView>
+              </ScrollView>
+             </KeyboardAvoidingView>
 
-             <View style={styles.modalActions}>
+              <View style={styles.modalActions}>
                <Pressable disabled={saving} onPress={closeModal} style={[styles.cancelButton, dynamicStyles.cancelButton]}>
                  <ThemedText style={[styles.cancelButtonText, dynamicStyles.cancelButtonText]}>Cancel</ThemedText>
                </Pressable>
@@ -1533,6 +1538,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: 'rgba(92, 107, 97, 0.12)',
+    flex: 1,
   },
   dateModalCard: {
     width: '100%',
@@ -1575,6 +1581,9 @@ const styles = StyleSheet.create({
   modalScrollContent: {
     gap: 12,
     paddingBottom: 4,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   input: {
     borderWidth: 1,
