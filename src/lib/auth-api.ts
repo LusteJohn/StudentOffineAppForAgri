@@ -3939,3 +3939,12 @@ export async function listJobSheetAnswersByUserAndJob(
     [userId, jobId],
   );
 }
+
+export async function listJobSheetAnswersByUser(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+  return db.getAllAsync<JobSheetAnswerRecord>(
+    "SELECT * FROM job_sheet_answers WHERE user_id = ? ORDER BY answer_id ASC",
+    [userId],
+  );
+}
