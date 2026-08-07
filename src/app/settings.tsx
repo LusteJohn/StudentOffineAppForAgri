@@ -11,7 +11,17 @@ import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { createStudentProfile, getStudentProfileByUserId, resetAndSeedLocalData, StudentProfile, updateStudentProfile, listLessonContentBookmarkByUser, getLessonContentById, getLessonById, getModuleById, LessonContentBookmarkRecord, LessonContentRecord, LessonRecord, ModuleRecord } from '@/lib/auth-api';
+import { createStudentProfile, getStudentProfileByUserId, resetAndSeedLocalData, StudentProfile, updateStudentProfile, listLessonContentBookmarkByUser, getLessonContentById, getLessonById, getModuleById, LessonContentBookmarkRecord, LessonContentRecord, LessonRecord, ModuleRecord, getStudentReportData, StudentReportData } from '@/lib/auth-api';
+
+let Print: any;
+let Sharing: any;
+try {
+  Print = require('expo-print');
+  Sharing = require('expo-sharing');
+} catch {
+  Print = null;
+  Sharing = null;
+}
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -63,6 +73,9 @@ export default function SettingsScreen() {
   const [bookmarks, setBookmarks] = useState<BookmarkDetail[]>([]);
   const [bookmarksLoaded, setBookmarksLoaded] = useState(false);
   const [bookmarksLoading, setBookmarksLoading] = useState(false);
+
+  const [exporting, setExporting] = useState(false);
+  const [reportData, setReportData] = useState<StudentReportData | null>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -510,41 +523,150 @@ export default function SettingsScreen() {
   };
 
   const handleImportResources = async () => {
-    showAlert(
-      'Import offline resources',
-      'This will replace your local competency, module, lesson, lesson-content, and content-info records with the default offline resources. This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Import',
-          style: 'destructive',
-          onPress: async () => {
-            setImporting(true);
-            setMessage('');
-            try {
-              const result = await resetAndSeedLocalData();
-              if (result.alreadyImported) {
-                 setMessage(
-                   `Offline resources are already imported for this device. Currently stored: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, ${result.jobSheet} job sheets, ${result.performanceCheck} performance checks, ${result.moduleAchievement} module achievements, and ${result.lessonAchievement} lesson achievements.`
-                 );
-               } else {
-                 setMessage(
-                   `Import completed: ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info records, ${result.lessonInfo} lesson info records, ${result.lessonLink} lesson link records, ${result.questionInstruct} question instructs, ${result.questionContent} questions, ${result.questionChoice} question choices, ${result.jobSheet} job sheets, ${result.performanceCheck} performance checks, ${result.moduleAchievement} module achievements, and ${result.lessonAchievement} lesson achievements saved to this device.`
-                 );
-               }
-            } catch (importError) {
-              setMessage(
-                importError instanceof Error
-                  ? importError.message
-                  : 'Failed to import offline resources. Please try again.'
-              );
-            } finally {
-              setImporting(false);
-            }
-          },
-        },
-      ]
-    );
+    // ... existing code ...
+  };
+
+  const handleExportReport = async () => {
+    setExporting(true);
+    try {
+      const data = await getStudentReportData(activeUserId);
+      setReportData(data);
+      await generateAndShareReport(data);
+    } catch (exportError) {
+      showAlert(
+        'Export failed',
+        exportError instanceof Error ? exportError.message : 'Unable to generate report. Please try again.',
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const generateAndShareReport = async (data: StudentReportData) => {
+    if (!Print || !Sharing) {
+      showAlert(
+        'Export unavailable',
+        'PDF export requires expo-print and expo-sharing modules. Please rebuild the app after installing new dependencies: npx expo prebuild && npx expo run:android (or ios)',
+      );
+      return;
+    }
+
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const studentName = data.studentInfo
+      ? [data.studentInfo.first_name, data.studentInfo.middle_name, data.studentInfo.last_name].filter(Boolean).join(' ')
+      : 'Student';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Student Report - ${studentName}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 24px; color: #1f2937; }
+          h1 { font-size: 22px; margin-bottom: 4px; color: #111827; }
+          h2 { font-size: 16px; margin-top: 20px; margin-bottom: 8px; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+          .subtitle { font-size: 12px; color: #6b7280; margin-bottom: 16px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12px; }
+          th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
+          th { background: #f3f4f6; font-weight: 600; }
+          tr:nth-child(even) { background: #f9fafb; }
+          .meta { margin-bottom: 16px; }
+          .meta-item { margin-bottom: 4px; font-size: 13px; }
+          .meta-label { font-weight: 600; color: #4b5563; }
+          .empty { color: #9ca3af; font-style: italic; }
+        </style>
+      </head>
+      <body>
+        <h1>Student Report</h1>
+        <div class="subtitle">Generated on ${now.toLocaleString()} | ${data.user?.username || '-'} (${data.user?.email || '-'})</div>
+
+        <h2>Student Information</h2>
+        ${data.studentInfo ? `
+          <div class="meta">
+            <div class="meta-item"><span class="meta-label">Name:</span> ${data.studentInfo.first_name} ${data.studentInfo.middle_name || ''} ${data.studentInfo.last_name}</div>
+            <div class="meta-item"><span class="meta-label">Birthdate:</span> ${data.studentInfo.birthdate}</div>
+            <div class="meta-item"><span class="meta-label">Address:</span> ${data.studentInfo.home_address}</div>
+            <div class="meta-item"><span class="meta-label">Grade Level:</span> ${data.studentInfo.grade_level}</div>
+            <div class="meta-item"><span class="meta-label">Created:</span> ${new Date(data.studentInfo.created_at).toLocaleString()}</div>
+            <div class="meta-item"><span class="meta-label">Updated:</span> ${new Date(data.studentInfo.updated_at).toLocaleString()}</div>
+          </div>
+        ` : '<p class="empty">No student profile found.</p>'}
+
+        <h2>Question Answers (${data.questionAnswers.length})</h2>
+        ${data.questionAnswers.length > 0 ? `
+          <table>
+            <tr><th>ID</th><th>Question ID</th><th>Answer</th><th>Created</th></tr>
+            ${data.questionAnswers.map(a => `<tr><td>${a.answer_id}</td><td>${a.question_id}</td><td>${a.answer_text}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
+          </table>
+        ` : '<p class="empty">No question answers recorded.</p>'}
+
+        <h2>Job Sheet Answers (${data.jobSheetAnswers.length})</h2>
+        ${data.jobSheetAnswers.length > 0 ? `
+          <table>
+            <tr><th>ID</th><th>Job ID</th><th>Answer</th><th>Created</th></tr>
+            ${data.jobSheetAnswers.map(a => `<tr><td>${a.answer_id}</td><td>${a.job_id}</td><td>${a.answer_text}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
+          </table>
+        ` : '<p class="empty">No job sheet answers recorded.</p>'}
+
+        <h2>Performance Answers (${data.performanceAnswers.length})</h2>
+        ${data.performanceAnswers.length > 0 ? `
+          <table>
+            <tr><th>ID</th><th>Performance ID</th><th>Answer</th><th>Created</th></tr>
+            ${data.performanceAnswers.map(a => `<tr><td>${a.performance_answer_id}</td><td>${a.performance_id}</td><td>${a.performance_answer_text}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
+          </table>
+        ` : '<p class="empty">No performance answers recorded.</p>'}
+
+        <h2>Lesson Content Progress (${data.lessonContentProgress.length})</h2>
+        ${data.lessonContentProgress.length > 0 ? `
+          <table>
+            <tr><th>Progress ID</th><th>Lesson Content ID</th><th>Read</th><th>Read At</th><th>Created</th></tr>
+            ${data.lessonContentProgress.map(p => `<tr><td>${p.progress_lesson_id}</td><td>${p.lesson_content_id}</td><td>${p.is_read ? 'Yes' : 'No'}</td><td>${p.read_at ? new Date(p.read_at).toLocaleString() : '-'}</td><td>${new Date(p.created_at).toLocaleString()}</td></tr>`).join('')}
+          </table>
+        ` : '<p class="empty">No lesson content progress recorded.</p>'}
+
+        <h2>Bookmarks (${data.lessonContentBookmarks.length})</h2>
+        ${data.lessonContentBookmarks.length > 0 ? `
+          <table>
+            <tr><th>ID</th><th>Lesson Content ID</th><th>Bookmarked</th><th>Created</th></tr>
+            ${data.lessonContentBookmarks.map(b => `<tr><td>${b.lesson_content_bookmark_id}</td><td>${b.lesson_content_id}</td><td>${b.is_bookmark ? 'Yes' : 'No'}</td><td>${new Date(b.created_at).toLocaleString()}</td></tr>`).join('')}
+          </table>
+        ` : '<p class="empty">No bookmarks recorded.</p>'}
+
+        <h2>Lesson Achievements (${data.studentLessonAchievements.length})</h2>
+        ${data.studentLessonAchievements.length > 0 ? `
+          <table>
+            <tr><th>Achievement ID</th><th>Lesson Achievement ID</th><th>Created</th></tr>
+            ${data.studentLessonAchievements.map(a => `<tr><td>${a.stud_lesson_achievement_id}</td><td>${a.lesson_achievement_id}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
+          </table>
+        ` : '<p class="empty">No lesson achievements recorded.</p>'}
+
+        <h2>Module Achievements (${data.studentModuleAchievements.length})</h2>
+        ${data.studentModuleAchievements.length > 0 ? `
+          <table>
+            <tr><th>Achievement ID</th><th>Module Achievement ID</th><th>Created</th></tr>
+            ${data.studentModuleAchievements.map(a => `<tr><td>${a.stud_module_achievement_id}</td><td>${a.module_achievement_id}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
+          </table>
+        ` : '<p class="empty">No module achievements recorded.</p>'}
+      </body>
+      </html>
+    `;
+
+    try {
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri, {
+        mimeType: 'application/pdf',
+        dialogTitle: `Student Report - ${studentName}`,
+        UTI: 'com.adobe.pdf',
+      });
+    } catch (printError) {
+      showAlert(
+        'Export failed',
+        'Unable to generate PDF. Please rebuild the app after installing new dependencies: npx expo prebuild && npx expo run:android (or ios)',
+      );
+    }
   };
 
   const profileDisplayName = profile
@@ -727,6 +849,33 @@ export default function SettingsScreen() {
           ) : null}
          </View>
 
+         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
+           <View style={styles.sectionHeader}>
+             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+               <Ionicons name="document-text-outline" size={18} color={colors.text} />
+             </View>
+             <View style={styles.sectionHeaderText}>
+               <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
+                 Reports
+               </ThemedText>
+               <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
+                 Export student report
+               </ThemedText>
+             </View>
+           </View>
+           <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
+             Download a PDF report containing your student profile, answers, progress, bookmarks, and achievements.
+           </ThemedText>
+
+           <Pressable
+             onPress={handleExportReport}
+             disabled={exporting}
+             style={[styles.primaryButton, dynamicStyles.primaryButton, exporting && styles.primaryButtonDisabled]}>
+             <Ionicons name="download-outline" size={18} color={isDark ? '#000000' : '#0f172a'} />
+             <ThemedText style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>{exporting ? 'Generating report...' : 'Export student report'}</ThemedText>
+           </Pressable>
+         </View>
+
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
@@ -808,7 +957,7 @@ export default function SettingsScreen() {
             />
             <ThemeOption
               label="System"
-              icon="phoneport-outline"
+               icon="contrast-outline"
               value="system"
               selected={themeCtx.themeMode === 'system'}
               onPress={() => themeCtx.setThemeMode('system')}
