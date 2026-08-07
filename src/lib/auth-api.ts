@@ -3130,6 +3130,92 @@ export async function getStudentReportData(userId: number) {
   };
 }
 
+export async function getWeeklyActivity(userId: number) {
+  await ensureDatabase();
+  const db = await databasePromise;
+
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+
+  const mondayStr = monday.toISOString();
+  const sundayStr = sunday.toISOString();
+
+  const rows = await db.getAllAsync<{ created_at: string }>(
+    `SELECT created_at FROM question_answers WHERE user_id = ? AND created_at >= ? AND created_at <= ?
+     UNION ALL
+     SELECT created_at FROM job_sheet_answers WHERE user_id = ? AND created_at >= ? AND created_at <= ?
+     UNION ALL
+     SELECT created_at FROM performance_answer WHERE user_id = ? AND created_at >= ? AND created_at <= ?
+     UNION ALL
+     SELECT created_at FROM lesson_content_progress WHERE user_id = ? AND created_at >= ? AND created_at <= ?
+     UNION ALL
+     SELECT created_at FROM student_lesson_achievement WHERE user_id = ? AND created_at >= ? AND created_at <= ?
+     UNION ALL
+     SELECT created_at FROM student_module_achievement WHERE user_id = ? AND created_at >= ? AND created_at <= ?`,
+    [
+      userId, mondayStr, sundayStr,
+      userId, mondayStr, sundayStr,
+      userId, mondayStr, sundayStr,
+      userId, mondayStr, sundayStr,
+      userId, mondayStr, sundayStr,
+      userId, mondayStr, sundayStr,
+    ]
+  );
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const activityMap = new Map<string, number>();
+  for (const row of rows) {
+    const d = new Date(row.created_at);
+    const localDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    activityMap.set(localDate, (activityMap.get(localDate) || 0) + 1);
+  }
+
+  const days = ["M", "T", "W", "T", "F", "S", "S"];
+  return days.map((_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return activityMap.get(dateStr) || 0;
+  });
+}
+
+export async function getDailyActivity(userId: number, dateStr: string) {
+  await ensureDatabase();
+  const db = await databasePromise;
+
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+  const end = new Date(year, month - 1, day, 23, 59, 59, 999);
+  const startStr = start.toISOString();
+  const endStr = end.toISOString();
+
+  const [questionAnswers, jobSheetAnswers, performanceAnswers, lessonProgress, lessonAchievements, moduleAchievements] = await Promise.all([
+    db.getAllAsync<QuestionAnswerRecord>("SELECT * FROM question_answers WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
+    db.getAllAsync<JobSheetAnswerRecord>("SELECT * FROM job_sheet_answers WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
+    db.getAllAsync<PerformanceAnswerRecord>("SELECT * FROM performance_answer WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
+    db.getAllAsync<LessonContentProgressRecord>("SELECT * FROM lesson_content_progress WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
+    db.getAllAsync<StudentLessonAchievementRecord>("SELECT * FROM student_lesson_achievement WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
+    db.getAllAsync<StudentModuleAchievementRecord>("SELECT * FROM student_module_achievement WHERE user_id = ? AND created_at >= ? AND created_at <= ? ORDER BY created_at ASC", [userId, startStr, endStr]),
+  ]);
+
+  return {
+    questionAnswers: questionAnswers ?? [],
+    jobSheetAnswers: jobSheetAnswers ?? [],
+    performanceAnswers: performanceAnswers ?? [],
+    lessonProgress: lessonProgress ?? [],
+    lessonAchievements: lessonAchievements ?? [],
+    moduleAchievements: moduleAchievements ?? [],
+  };
+}
+
 export async function resetAndSeedLocalData() {
   await ensureDatabase();
   const db = await databasePromise;

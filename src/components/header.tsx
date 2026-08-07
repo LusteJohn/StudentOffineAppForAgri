@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/use-theme';
-import { getUserById } from '@/lib/auth-api';
+import { getUserById, getStudentProfileByUserId } from '@/lib/auth-api';
 
 type HeaderProps = {
   title?: string;
@@ -19,7 +19,7 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
   const userId = Number(params.userId ?? '1');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
-  const [name, setName] = useState('');
+  const [userName, setUserName] = useState('');
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
@@ -27,10 +27,17 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
 
   const loadUser = useCallback(async () => {
     try {
-      const user = await getUserById(userId);
+      const [user, profile] = await Promise.all([
+        getUserById(userId),
+        getStudentProfileByUserId(userId),
+      ]);
       if (user) {
         setEmail(user.email);
         setRole(user.role);
+      }
+      if (profile) {
+        const fullName = [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ');
+        setUserName(fullName);
       }
     } catch {
       // ignore header load errors
@@ -44,6 +51,7 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
   );
 
   const displayRole = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Student';
+  const displayName = userName || 'Student';
 
   const handleBack = () => {
     if (onBack) {
@@ -76,8 +84,11 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
         </View>
         <View style={styles.meta}>
           <Text style={[styles.metaTitle, { color: textColor }]}>{title}</Text>
-          <View style={styles.metaRow}>
-            <Text style={[styles.metaText, { color: secondaryTextColor }]} numberOfLines={1}>{email}</Text>
+          <View style={styles.userRow}>
+            <View style={styles.userInfo}>
+              <Text style={[styles.userName, { color: textColor }]} numberOfLines={1}>{displayName}</Text>
+              <Text style={[styles.userEmail, { color: secondaryTextColor }]} numberOfLines={1}>{email}</Text>
+            </View>
             <View style={[styles.roleBadge, { backgroundColor: isDark ? '#2E3135' : '#e4f8d6' }]}>
               <Text style={[styles.roleText, { color: textColor }]}>{displayRole}</Text>
             </View>
@@ -130,24 +141,33 @@ const styles = StyleSheet.create({
   },
   meta: {
     flexDirection: 'column',
-    alignItems: 'center',
-    gap: 4,
+    alignItems: 'flex-end',
+    gap: 2,
   },
   metaTitle: {
     fontSize: 18,
     fontWeight: '700',
-    textAlign: 'center',
+    textAlign: 'right',
   },
-  metaRow: {
+  userRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    alignSelf: 'flex-end',
   },
-  metaText: {
+  userInfo: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    maxWidth: 160,
+  },
+  userName: {
     fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'right',
+  },
+  userEmail: {
+    fontSize: 11,
     fontWeight: '500',
-    maxWidth: 140,
+    textAlign: 'right',
   },
   roleBadge: {
     paddingHorizontal: 8,
@@ -155,7 +175,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   roleText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
