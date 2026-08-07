@@ -24,6 +24,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#ffffff',
   },
   loadingLogo: {
     width: 120,
@@ -35,6 +36,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     textAlign: 'center',
     lineHeight: 28,
+    color: '#0f172a',
   },
 });
 
