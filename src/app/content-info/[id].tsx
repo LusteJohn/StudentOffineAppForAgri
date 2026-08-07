@@ -56,7 +56,6 @@ import {
   listQuestionAnswersByUserAndQuestions,
   createJobSheetAnswer,
   listJobSheetByLessonContentId,
-  listJobSheetAnswersByUserAndJob,
   listJobSheetAnswersByUser,
   createPerformanceAnswer,
   listPerformanceCheckByLessonContentId,

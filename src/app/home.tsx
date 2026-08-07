@@ -33,6 +33,7 @@ import {
   createStudentTutorial,
   getWeeklyActivity,
   getDailyActivity,
+  DailyActivityRecord,
 } from "@/lib/auth-api";
 
 function WeekCalendar({ data, color, onDayPress }: { data: number[]; color: string; onDayPress?: (index: number) => void }) {
@@ -327,14 +328,7 @@ export default function HomeScreen() {
     null,
   );
   const [selectedDayDate, setSelectedDayDate] = useState<string>("");
-  const [dailyActivity, setDailyActivity] = useState<{
-    questionAnswers: any[];
-    jobSheetAnswers: any[];
-    performanceAnswers: any[];
-    lessonProgress: any[];
-    lessonAchievements: any[];
-    moduleAchievements: any[];
-  } | null>(null);
+  const [dailyActivity, setDailyActivity] = useState<DailyActivityRecord[] | null>(null);
   const [dailyLoading, setDailyLoading] = useState(false);
   const [activityModalVisible, setActivityModalVisible] = useState(false);
   const { width } = useWindowDimensions();
@@ -526,17 +520,26 @@ export default function HomeScreen() {
         emptyContentText: {
           color: theme.textSecondary,
         },
-        activitySectionTitle: {
-          color: theme.text,
-        },
         activityItem: {
-          backgroundColor: isDark ? theme.backgroundSelected : "#f8fafc",
+          backgroundColor: isDark ? theme.backgroundSelected : "#ffffff",
           borderColor: isDark
             ? "rgba(255,255,255,0.06)"
             : "rgba(148, 163, 184, 0.12)",
         },
+        activityItemType: {
+          color: theme.textSecondary,
+        },
         activityItemText: {
           color: theme.text,
+        },
+        activityItemDesc: {
+          color: theme.textSecondary,
+        },
+        activityItemLesson: {
+          color: isDark ? "#86efac" : "#166534",
+        },
+        activityItemModule: {
+          color: isDark ? "#a855f7" : "#7c3aed",
         },
         activityItemTime: {
           color: theme.textSecondary,
@@ -1229,133 +1232,49 @@ export default function HomeScreen() {
 
             {dailyLoading ? (
               <Text style={styles.summaryText}>Loading activity...</Text>
-            ) : dailyActivity ? (
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                style={styles.modalContentList}
-              >
-                {dailyActivity.questionAnswers.length > 0 && (
-                  <View style={styles.activitySection}>
-                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
-                      Quiz Submissions ({dailyActivity.questionAnswers.length})
+            ) : dailyActivity && dailyActivity.length > 0 ? (
+              <View style={styles.modalContentList}>
+                {dailyActivity.map((item) => (
+                  <View key={`${item.activity_type}-${item.id}`} style={[styles.activityItem, dynamicStyles.activityItem]}>
+                    <View style={styles.activityItemHeader}>
+                      <Text style={[styles.activityItemType, dynamicStyles.activityItemType]}>
+                        {item.activity_type === "quiz" ? "QUIZ" :
+                         item.activity_type === "job_sheet" ? "JOB SHEET" :
+                         item.activity_type === "performance" ? "PERFORMANCE" :
+                         item.activity_type === "progress" ? "LESSON PROGRESS" :
+                         item.activity_type === "bookmark" ? "BOOKMARK" :
+                         item.activity_type === "lesson_achievement" ? "LESSON ACHIEVEMENT" :
+                         item.activity_type === "module_achievement" ? "MODULE ACHIEVEMENT" :
+                         "ACTIVITY"}
+                      </Text>
+                      <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
+                        {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                    </View>
+                    <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
+                      {item.title}
                     </Text>
-                    {dailyActivity.questionAnswers.map((qa: any) => (
-                      <View key={qa.answer_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
-                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
-                          Question #{qa.question_id}: {qa.answer_text}
-                        </Text>
-                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
-                          {new Date(qa.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                      </View>
-                    ))}
+                    {item.description ? (
+                      <Text style={[styles.activityItemDesc, dynamicStyles.activityItemDesc]}>
+                        {item.description}
+                      </Text>
+                    ) : null}
+                    {item.lesson_name ? (
+                      <Text style={[styles.activityItemLesson, dynamicStyles.activityItemLesson]}>
+                        Lesson: {item.lesson_name}
+                      </Text>
+                    ) : null}
+                    {item.module_name ? (
+                      <Text style={[styles.activityItemModule, dynamicStyles.activityItemModule]}>
+                        Module: {item.module_name}
+                      </Text>
+                    ) : null}
                   </View>
-                )}
-
-                {dailyActivity.jobSheetAnswers.length > 0 && (
-                  <View style={styles.activitySection}>
-                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
-                      Job Sheet Answers ({dailyActivity.jobSheetAnswers.length})
-                    </Text>
-                    {dailyActivity.jobSheetAnswers.map((jsa: any) => (
-                      <View key={jsa.answer_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
-                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
-                          Job #{jsa.job_id}: {jsa.answer_text}
-                        </Text>
-                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
-                          {new Date(jsa.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                {dailyActivity.performanceAnswers.length > 0 && (
-                  <View style={styles.activitySection}>
-                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
-                      Performance Answers ({dailyActivity.performanceAnswers.length})
-                    </Text>
-                    {dailyActivity.performanceAnswers.map((pa: any) => (
-                      <View key={pa.performance_answer_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
-                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
-                          Performance #{pa.performance_id}: {pa.performance_answer_text}
-                        </Text>
-                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
-                          {new Date(pa.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                {dailyActivity.lessonProgress.length > 0 && (
-                  <View style={styles.activitySection}>
-                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
-                      Lesson Content Progress ({dailyActivity.lessonProgress.length})
-                    </Text>
-                    {dailyActivity.lessonProgress.map((lp: any) => (
-                      <View key={lp.progress_lesson_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
-                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
-                          Lesson Content #{lp.lesson_content_id}: {lp.is_read ? 'Marked as read' : 'Updated'}
-                        </Text>
-                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
-                          {new Date(lp.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                {dailyActivity.lessonAchievements.length > 0 && (
-                  <View style={styles.activitySection}>
-                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
-                      Lesson Achievements ({dailyActivity.lessonAchievements.length})
-                    </Text>
-                    {dailyActivity.lessonAchievements.map((la: any) => (
-                      <View key={la.stud_lesson_achievement_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
-                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
-                          Lesson Achievement #{la.lesson_achievement_id} acquired
-                        </Text>
-                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
-                          {new Date(la.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                {dailyActivity.moduleAchievements.length > 0 && (
-                  <View style={styles.activitySection}>
-                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
-                      Module Achievements ({dailyActivity.moduleAchievements.length})
-                    </Text>
-                    {dailyActivity.moduleAchievements.map((ma: any) => (
-                      <View key={ma.stud_module_achievement_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
-                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
-                          Module Achievement #{ma.module_achievement_id} acquired
-                        </Text>
-                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
-                          {new Date(ma.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                {dailyActivity.questionAnswers.length === 0 &&
-                  dailyActivity.jobSheetAnswers.length === 0 &&
-                  dailyActivity.performanceAnswers.length === 0 &&
-                  dailyActivity.lessonProgress.length === 0 &&
-                  dailyActivity.lessonAchievements.length === 0 &&
-                  dailyActivity.moduleAchievements.length === 0 && (
-                    <Text style={[styles.noDataText, dynamicStyles.noDataText]}>
-                      No activity recorded on this day.
-                    </Text>
-                  )}
-              </ScrollView>
+                ))}
+              </View>
             ) : (
               <Text style={[styles.noDataText, dynamicStyles.noDataText]}>
-                No activity data available.
+                No activity recorded on this day.
               </Text>
             )}
 
@@ -1992,33 +1911,56 @@ const styles = StyleSheet.create({
     color: "#64748b",
     textAlign: "center",
   },
-  activitySection: {
-    marginBottom: 16,
-  },
-  activitySectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0f172a",
-    marginBottom: 8,
-  },
   activityItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: "#f8fafc",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "rgba(148, 163, 184, 0.12)",
-    marginBottom: 6,
-    gap: 4,
+    marginBottom: 10,
+    gap: 6,
+  },
+  activityItemHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  activityItemType: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
   },
   activityItemText: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#334155",
+    lineHeight: 20,
+    fontWeight: "600",
+  },
+  activityItemDesc: {
+    fontSize: 13,
+    color: "#64748b",
     lineHeight: 18,
+    marginTop: 4,
+  },
+  activityItemLesson: {
+    fontSize: 12,
+    color: "#166534",
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  activityItemModule: {
+    fontSize: 12,
+    color: "#7c3aed",
+    fontWeight: "600",
+    marginTop: 2,
   },
   activityItemTime: {
     fontSize: 11,
-    color: "#64748b",
+    color: "#94a3b8",
     fontWeight: "500",
   },
 });

@@ -523,7 +523,23 @@ export default function SettingsScreen() {
   };
 
   const handleImportResources = async () => {
-    // ... existing code ...
+    setImporting(true);
+    setMessage('');
+    try {
+      const result = await resetAndSeedLocalData();
+      if (result.alreadyImported) {
+        setMessage(`Resources already imported. Found ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info, ${result.lessonInfo} lesson info, ${result.lessonLink} lesson links, ${result.questionInstruct} question instructions, ${result.questionContent} questions, ${result.questionChoice} choices, ${result.jobSheet} job sheets, ${result.performanceCheck} performance checklists, ${result.lessonAchievement} lesson achievements, and ${result.moduleAchievement} module achievements.`);
+      } else {
+        setMessage(`Import successful. Loaded ${result.competencies} competencies, ${result.modules} modules, ${result.lessons} lessons, ${result.lessonContents} lesson contents, ${result.contentInfo} content info, ${result.lessonInfo} lesson info, ${result.lessonLink} lesson links, ${result.questionInstruct} question instructions, ${result.questionContent} questions, ${result.questionChoice} choices, ${result.jobSheet} job sheets, ${result.performanceCheck} performance checklists, ${result.lessonAchievement} lesson achievements, and ${result.moduleAchievement} module achievements.`);
+      }
+    } catch (importError) {
+      setMessage('Failed to import resources. Please try again.');
+      if (importError instanceof Error) {
+        showAlert('Import failed', importError.message);
+      }
+    } finally {
+      setImporting(false);
+    }
   };
 
   const handleExportReport = async () => {
