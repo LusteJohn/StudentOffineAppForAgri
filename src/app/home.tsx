@@ -31,7 +31,75 @@ import {
   getStudentTutorialByUserId,
   updateStudentTutorial,
   createStudentTutorial,
+  getWeeklyActivity,
+  getDailyActivity,
 } from "@/lib/auth-api";
+
+function WeekCalendar({ data, color, onDayPress }: { data: number[]; color: string; onDayPress?: (index: number) => void }) {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayOffset);
+
+  const days = ["M", "T", "W", "T", "F", "S", "S"];
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return {
+      day: days[i],
+      date: d.getDate(),
+      isToday: d.toDateString() === today.toDateString(),
+    };
+  });
+
+  const maxValue = Math.max(...data, 1);
+
+  return (
+    <View style={styles.weekCalendar}>
+      <View style={styles.weekHeader}>
+        {weekDates.map((item, index) => (
+          <Pressable
+            key={index}
+            style={styles.weekDayCell}
+            onPress={() => onDayPress?.(index)}
+          >
+            {({ pressed }) => (
+              <>
+                <Text style={[styles.weekDayLabel, item.isToday && styles.weekDayLabelActive, pressed && { opacity: 0.6 }]}>
+                  {item.day}
+                </Text>
+                <View style={[styles.weekDateCircle, item.isToday && styles.weekDateCircleActive, pressed && { opacity: 0.7 }]}>
+                  <Text style={[styles.weekDateText, item.isToday && styles.weekDateTextActive, pressed && { opacity: 0.7 }]}>
+                    {item.date}
+                  </Text>
+                </View>
+                <View style={styles.weekActivityRow}>
+                  {[1, 2, 3].map((level) => {
+                    const threshold = (level / 3) * maxValue;
+                    const hasActivity = (data[index] || 0) >= threshold;
+                    return (
+                      <View
+                        key={level}
+                        style={[
+                          styles.weekActivityDot,
+                          {
+                            backgroundColor: hasActivity ? color : "#e2e8f0",
+                          },
+                          pressed && { opacity: 0.6 },
+                        ]}
+                      />
+                    );
+                  })}
+                </View>
+              </>
+            )}
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 function LineChart({
   data,
@@ -212,6 +280,21 @@ function ProgressBar({
 
 const PRIMARY = "#5bec13";
 
+function SummaryCard({ label, value, icon }: { label: string; value: string; icon: string }) {
+  const theme = useTheme();
+  const isDark = theme.text === "#ffffff";
+
+  return (
+    <View style={[styles.summaryCard, { backgroundColor: isDark ? "#2a2a2e" : "#f8fafc", borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(148, 163, 184, 0.12)" }]}>
+      <View style={[styles.summaryCardIcon, { backgroundColor: isDark ? "rgba(91, 236, 19, 0.15)" : "#e7f8d5" }]}>
+        <Ionicons name={icon as any} size={20} color={isDark ? "#86efac" : "#166534"} />
+      </View>
+      <Text style={[styles.summaryCardValue, { color: theme.text }]}>{value}</Text>
+      <Text style={[styles.summaryCardLabel, { color: theme.textSecondary }]}>{label}</Text>
+    </View>
+  );
+}
+
 export default function HomeScreen() {
   const params = useLocalSearchParams<{ userId?: string }>();
   const router = useRouter();
@@ -237,6 +320,23 @@ export default function HomeScreen() {
   >([]);
   const [continueLoading, setContinueLoading] = useState(false);
   const continueLearningLoaded = useRef(false);
+  const [weeklyActivity, setWeeklyActivity] = useState<number[]>([
+    0, 0, 0, 0, 0, 0, 0,
+  ]);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(
+    null,
+  );
+  const [selectedDayDate, setSelectedDayDate] = useState<string>("");
+  const [dailyActivity, setDailyActivity] = useState<{
+    questionAnswers: any[];
+    jobSheetAnswers: any[];
+    performanceAnswers: any[];
+    lessonProgress: any[];
+    lessonAchievements: any[];
+    moduleAchievements: any[];
+  } | null>(null);
+  const [dailyLoading, setDailyLoading] = useState(false);
+  const [activityModalVisible, setActivityModalVisible] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
   const theme = useTheme();
@@ -426,6 +526,21 @@ export default function HomeScreen() {
         emptyContentText: {
           color: theme.textSecondary,
         },
+        activitySectionTitle: {
+          color: theme.text,
+        },
+        activityItem: {
+          backgroundColor: isDark ? theme.backgroundSelected : "#f8fafc",
+          borderColor: isDark
+            ? "rgba(255,255,255,0.06)"
+            : "rgba(148, 163, 184, 0.12)",
+        },
+        activityItemText: {
+          color: theme.text,
+        },
+        activityItemTime: {
+          color: theme.textSecondary,
+        },
       }),
     [theme, isDark],
   );
@@ -447,6 +562,7 @@ export default function HomeScreen() {
         perfAnswers,
         qAnswers,
         progressData,
+        weeklyData,
       ] = await Promise.all([
         listCompetencies(),
         listModules(),
@@ -455,6 +571,7 @@ export default function HomeScreen() {
         listPerformanceAnswersByUser(userId),
         listQuestionAnswersByUser(userId),
         listLessonContentProgressByUser(userId),
+        getWeeklyActivity(userId),
       ]);
       setCompetencies(compData);
       setModules(modData);
@@ -463,6 +580,7 @@ export default function HomeScreen() {
       setPerformanceAnswers(perfAnswers);
       setQuestionAnswers(qAnswers);
       setLessonContentProgress(progressData);
+      setWeeklyActivity(weeklyData);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Unable to load dashboard data.",
@@ -560,15 +678,6 @@ export default function HomeScreen() {
     setTutorialVisible(false);
   }, [userId]);
 
-  const totalLessons = lessons.length;
-  const completedLessons = lessonContents.length;
-  const totalPerformanceAnswers = performanceAnswers.length;
-  const totalQuestionAnswers = questionAnswers.length;
-  const totalRecords = totalPerformanceAnswers + totalQuestionAnswers;
-
-  const progressPercent =
-    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
-
   const moduleCompletionData = useMemo(() => {
     const readContentIds = new Set(
       lessonContentProgress
@@ -593,12 +702,6 @@ export default function HomeScreen() {
       };
     });
   }, [modules, lessons, lessonContents, lessonContentProgress]);
-
-  const lineChartData = useMemo(() => {
-    const labels = ["W1", "W2", "W3", "W4"];
-    const values = [5, 12, 8, totalRecords];
-    return { labels, values };
-  }, [totalRecords]);
 
   const selectedModule =
     selectedModuleIndex !== null
@@ -638,28 +741,37 @@ export default function HomeScreen() {
     setSelectedModuleIndex(null);
   };
 
-  const tableData = useMemo(() => {
-    const rows = [
-      { label: "Competencies", value: String(competencies.length) },
-      { label: "Modules", value: String(modules.length) },
-      { label: "Lessons", value: String(lessons.length) },
-      { label: "Lesson Contents", value: String(lessonContents.length) },
-      { label: "Performance Answers", value: String(totalPerformanceAnswers) },
-      { label: "Question Answers", value: String(totalQuestionAnswers) },
-      { label: "Total Records", value: String(totalRecords) },
-      { label: "Progress", value: `${progressPercent}%` },
-    ];
-    return rows;
-  }, [
-    competencies,
-    modules,
-    lessons,
-    lessonContents,
-    totalPerformanceAnswers,
-    totalQuestionAnswers,
-    totalRecords,
-    progressPercent,
-  ]);
+  const openDayActivity = async (index: number) => {
+    setSelectedDayIndex(index);
+    setDailyLoading(true);
+    setActivityModalVisible(true);
+    try {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + mondayOffset);
+      monday.setHours(0, 0, 0, 0);
+      const target = new Date(monday);
+      target.setDate(monday.getDate() + index);
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const dateStr = `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(target.getDate())}`;
+      setSelectedDayDate(dateStr);
+      const data = await getDailyActivity(userId, dateStr);
+      setDailyActivity(data);
+    } catch {
+      setDailyActivity(null);
+    } finally {
+      setDailyLoading(false);
+    }
+  };
+
+  const closeDayActivity = () => {
+    setActivityModalVisible(false);
+    setSelectedDayIndex(null);
+    setSelectedDayDate("");
+    setDailyActivity(null);
+  };
 
   if (loading) {
     return (
@@ -740,10 +852,6 @@ export default function HomeScreen() {
             style={[styles.welcomeText, dynamicStyles.welcomeText]}
           >
             Welcome, Student #{userId}
-          </ThemedText>
-          <ThemedText themeColor="textSecondary" style={styles.progressText}>
-            Overall Progress: {progressPercent}% ({completedLessons}/
-            {totalLessons} lessons)
           </ThemedText>
         </View>
 
@@ -849,17 +957,31 @@ export default function HomeScreen() {
           </View>
         )}
 
+        <View style={[styles.card, styles.surfaceCard, dynamicStyles.card, dynamicStyles.surfaceCard]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.summaryCarousel}
+          >
+            <View style={styles.summaryCarouselContent}>
+              <SummaryCard label="Competencies" value={String(competencies.length)} icon="school-outline" />
+              <SummaryCard label="Modules" value={String(modules.length)} icon="library-outline" />
+              <SummaryCard label="Lessons" value={String(lessons.length)} icon="book-outline" />
+              <SummaryCard label="Lesson Contents" value={String(lessonContents.length)} icon="document-text-outline" />
+            </View>
+          </ScrollView>
+        </View>
+
         <View style={[styles.chartContainer, dynamicStyles.chartContainer]}>
           <Text style={[styles.chartTitle, dynamicStyles.chartTitle]}>
             Weekly Activity
           </Text>
           <View style={styles.chart}>
-            {lineChartData.values.length > 0 ? (
-              <LineChart
-                data={lineChartData.values}
-                labels={lineChartData.labels}
-                color="#2563eb"
-                screenWidth={width}
+            {weeklyActivity.some((v) => v > 0) ? (
+              <WeekCalendar
+                data={weeklyActivity}
+                color={PRIMARY}
+                onDayPress={openDayActivity}
               />
             ) : (
               <Text style={[styles.noDataText, dynamicStyles.noDataText]}>
@@ -883,77 +1005,6 @@ export default function HomeScreen() {
               No module data yet
             </Text>
           )}
-        </View>
-
-        <View
-          style={[
-            styles.tableContainer,
-            styles.surfaceCard,
-            dynamicStyles.tableContainer,
-            dynamicStyles.surfaceCard,
-          ]}
-        >
-          <Text style={[styles.chartTitle, dynamicStyles.chartTitle]}>
-            Data Records Overview
-          </Text>
-          <View style={styles.tableWrapper}>
-            <View style={[styles.tableHeader, dynamicStyles.tableHeader]}>
-              <Text
-                style={[styles.tableHeaderCell, dynamicStyles.tableHeaderCell]}
-              >
-                Record Type
-              </Text>
-              <Text
-                style={[styles.tableHeaderCell, dynamicStyles.tableHeaderCell]}
-              >
-                Count
-              </Text>
-            </View>
-            {tableData.map((row, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.tableRow,
-                  index % 2 === 0 && styles.tableRowEven,
-                  dynamicStyles.tableRow,
-                  index % 2 === 0 && dynamicStyles.tableRowEven,
-                ]}
-              >
-                <Text style={[styles.tableCell, dynamicStyles.tableCell]}>
-                  {row.label}
-                </Text>
-                <Text
-                  style={[
-                    styles.tableCell,
-                    styles.tableCellValue,
-                    dynamicStyles.tableCell,
-                    dynamicStyles.tableCellValue,
-                  ]}
-                >
-                  {row.value}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View
-          style={[
-            styles.card,
-            styles.surfaceCard,
-            dynamicStyles.card,
-            dynamicStyles.surfaceCard,
-          ]}
-        >
-          <ThemedText type="code" themeColor="textSecondary">
-            Dashboard summary
-          </ThemedText>
-          <ThemedText themeColor="textSecondary" style={styles.summaryText}>
-            You have {totalRecords} total records across all categories.
-            {competencies.length} competencies, {modules.length} modules,{" "}
-            {lessons.length} lessons, and {lessonContents.length} lesson
-            contents loaded.
-          </ThemedText>
         </View>
       </ScrollView>
 
@@ -1139,6 +1190,192 @@ export default function HomeScreen() {
         ) : null}
       </Modal>
 
+      <Modal
+        transparent
+        animationType="fade"
+        visible={activityModalVisible}
+        onRequestClose={closeDayActivity}
+      >
+        <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+          <View style={[styles.modalCard, dynamicStyles.modalCard]}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>
+                {selectedDayDate
+                  ? new Date(selectedDayDate + 'T00:00:00').toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : 'Daily Activity'}
+              </Text>
+              <Pressable
+                onPress={closeDayActivity}
+                style={[
+                  styles.modalCloseButton,
+                  dynamicStyles.modalCloseButton,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.modalCloseText,
+                    dynamicStyles.modalCloseText,
+                  ]}
+                >
+                  ✕
+                </Text>
+              </Pressable>
+            </View>
+
+            {dailyLoading ? (
+              <Text style={styles.summaryText}>Loading activity...</Text>
+            ) : dailyActivity ? (
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={styles.modalContentList}
+              >
+                {dailyActivity.questionAnswers.length > 0 && (
+                  <View style={styles.activitySection}>
+                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
+                      Quiz Submissions ({dailyActivity.questionAnswers.length})
+                    </Text>
+                    {dailyActivity.questionAnswers.map((qa: any) => (
+                      <View key={qa.answer_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
+                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
+                          Question #{qa.question_id}: {qa.answer_text}
+                        </Text>
+                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
+                          {new Date(qa.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {dailyActivity.jobSheetAnswers.length > 0 && (
+                  <View style={styles.activitySection}>
+                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
+                      Job Sheet Answers ({dailyActivity.jobSheetAnswers.length})
+                    </Text>
+                    {dailyActivity.jobSheetAnswers.map((jsa: any) => (
+                      <View key={jsa.answer_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
+                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
+                          Job #{jsa.job_id}: {jsa.answer_text}
+                        </Text>
+                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
+                          {new Date(jsa.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {dailyActivity.performanceAnswers.length > 0 && (
+                  <View style={styles.activitySection}>
+                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
+                      Performance Answers ({dailyActivity.performanceAnswers.length})
+                    </Text>
+                    {dailyActivity.performanceAnswers.map((pa: any) => (
+                      <View key={pa.performance_answer_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
+                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
+                          Performance #{pa.performance_id}: {pa.performance_answer_text}
+                        </Text>
+                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
+                          {new Date(pa.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {dailyActivity.lessonProgress.length > 0 && (
+                  <View style={styles.activitySection}>
+                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
+                      Lesson Content Progress ({dailyActivity.lessonProgress.length})
+                    </Text>
+                    {dailyActivity.lessonProgress.map((lp: any) => (
+                      <View key={lp.progress_lesson_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
+                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
+                          Lesson Content #{lp.lesson_content_id}: {lp.is_read ? 'Marked as read' : 'Updated'}
+                        </Text>
+                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
+                          {new Date(lp.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {dailyActivity.lessonAchievements.length > 0 && (
+                  <View style={styles.activitySection}>
+                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
+                      Lesson Achievements ({dailyActivity.lessonAchievements.length})
+                    </Text>
+                    {dailyActivity.lessonAchievements.map((la: any) => (
+                      <View key={la.stud_lesson_achievement_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
+                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
+                          Lesson Achievement #{la.lesson_achievement_id} acquired
+                        </Text>
+                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
+                          {new Date(la.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {dailyActivity.moduleAchievements.length > 0 && (
+                  <View style={styles.activitySection}>
+                    <Text style={[styles.activitySectionTitle, dynamicStyles.activitySectionTitle]}>
+                      Module Achievements ({dailyActivity.moduleAchievements.length})
+                    </Text>
+                    {dailyActivity.moduleAchievements.map((ma: any) => (
+                      <View key={ma.stud_module_achievement_id} style={[styles.activityItem, dynamicStyles.activityItem]}>
+                        <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
+                          Module Achievement #{ma.module_achievement_id} acquired
+                        </Text>
+                        <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
+                          {new Date(ma.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {dailyActivity.questionAnswers.length === 0 &&
+                  dailyActivity.jobSheetAnswers.length === 0 &&
+                  dailyActivity.performanceAnswers.length === 0 &&
+                  dailyActivity.lessonProgress.length === 0 &&
+                  dailyActivity.lessonAchievements.length === 0 &&
+                  dailyActivity.moduleAchievements.length === 0 && (
+                    <Text style={[styles.noDataText, dynamicStyles.noDataText]}>
+                      No activity recorded on this day.
+                    </Text>
+                  )}
+              </ScrollView>
+            ) : (
+              <Text style={[styles.noDataText, dynamicStyles.noDataText]}>
+                No activity data available.
+              </Text>
+            )}
+
+            <Pressable
+              onPress={closeDayActivity}
+              style={[styles.closeButton, dynamicStyles.closeButton]}
+            >
+              <Text
+                style={[
+                  styles.closeButtonText,
+                  dynamicStyles.closeButtonText,
+                ]}
+              >
+                Close
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       <TutorialOverlay
         visible={tutorialVisible}
         userId={userId}
@@ -1217,10 +1454,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: "#000000",
-  },
-  progressText: {
-    fontSize: 14,
-    lineHeight: 20,
   },
   chartContainer: {
     backgroundColor: "#ffffff",
@@ -1382,6 +1615,56 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: "#64748b",
+  },
+  weekCalendar: {
+    paddingVertical: 8,
+  },
+  weekHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  weekDayCell: {
+    flex: 1,
+    alignItems: "center",
+    gap: 8,
+  },
+  weekDayLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  weekDayLabelActive: {
+    color: "#5bec13",
+  },
+  weekDateCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f1f5f9",
+  },
+  weekDateCircleActive: {
+    backgroundColor: "#5bec13",
+  },
+  weekDateText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#334155",
+  },
+  weekDateTextActive: {
+    color: "#000000",
+  },
+  weekActivityRow: {
+    flexDirection: "row",
+    gap: 4,
+    alignItems: "center",
+  },
+  weekActivityDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   noDataText: {
     fontSize: 14,
@@ -1675,5 +1958,67 @@ const styles = StyleSheet.create({
   },
   continueItemLesson: {
     fontSize: 11,
+  },
+  summaryCarousel: {
+    marginTop: 8,
+  },
+  summaryCarouselContent: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  summaryCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    alignItems: "center",
+    gap: 8,
+    minWidth: 120,
+  },
+  summaryCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  summaryCardValue: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  summaryCardLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+    textAlign: "center",
+  },
+  activitySection: {
+    marginBottom: 16,
+  },
+  activitySectionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: 8,
+  },
+  activityItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.12)",
+    marginBottom: 6,
+    gap: 4,
+  },
+  activityItemText: {
+    fontSize: 13,
+    color: "#334155",
+    lineHeight: 18,
+  },
+  activityItemTime: {
+    fontSize: 11,
+    color: "#64748b",
+    fontWeight: "500",
   },
 });
