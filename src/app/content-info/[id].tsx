@@ -57,6 +57,7 @@ import {
   createJobSheetAnswer,
   listJobSheetByLessonContentId,
   listJobSheetAnswersByUserAndJob,
+  listJobSheetAnswersByUser,
   createPerformanceAnswer,
   listPerformanceCheckByLessonContentId,
   listPerformanceAnswersByUser,
@@ -1109,11 +1110,11 @@ export default function ContentInfoScreen() {
       setJobSheets(sheets);
 
       if (sheets.length > 0) {
-        const existingAnswers = await listJobSheetAnswersByUserAndJob(
-          activeUserId,
-          sheets[0].job_id,
+        const allAnswers = await listJobSheetAnswersByUser(activeUserId);
+        const relevantAnswers = allAnswers.filter((answer) =>
+          sheets.some((sheet) => sheet.job_id === answer.job_id),
         );
-        setJobAnswers(existingAnswers);
+        setJobAnswers(relevantAnswers);
       }
     } catch (jobError) {
       showAlert(
@@ -1216,14 +1217,16 @@ export default function ContentInfoScreen() {
           onPress: async () => {
             setJobSubmitting(true);
             try {
-              await createJobSheetAnswer({
+              const newAnswer = await createJobSheetAnswer({
                 job_id: selectedSheet.job_id,
                 user_id: activeUserId,
                 answer_text: answerTextToSave,
               });
+              if (newAnswer) {
+                setJobAnswers((prev) => [...prev, newAnswer]);
+              }
               showAlert("Submitted", "Your job sheet answer has been saved.");
               closeAnswerModal();
-              loadJobSheet();
             } catch (submitError) {
               showAlert(
                 "Submit failed",
@@ -1297,8 +1300,8 @@ export default function ContentInfoScreen() {
         });
       }
 
+      setPerfAlreadySubmitted(true);
       showAlert("Submitted", "Performance checklist submitted successfully.");
-      loadPerformanceCheck();
     } catch (submitError) {
       showAlert(
         "Submit failed",
