@@ -593,6 +593,20 @@ export default function SettingsScreen() {
           .meta-item { margin-bottom: 4px; font-size: 13px; }
           .meta-label { font-weight: 600; color: #4b5563; }
           .empty { color: #9ca3af; font-style: italic; }
+          .record { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; background: #ffffff; }
+          .record-title { font-weight: 600; color: #374151; margin-bottom: 2px; }
+          .record-sub { color: #6b7280; margin-bottom: 4px; font-size: 11px; }
+          .record-meta { display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
+          .chart-box { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 16px; background: #ffffff; }
+          .chart-bar-row { display: flex; align-items: flex-end; gap: 4px; height: 120px; margin-top: 8px; }
+          .chart-bar { flex: 1; min-width: 12px; background: #2563eb; border-radius: 3px 3px 0 0; position: relative; min-height: 2px; }
+          .chart-bar-label { position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font-size: 10px; color: #6b7280; transform: rotate(-35deg); transform-origin: left; white-space: nowrap; }
+          .chart-bar-value { position: absolute; top: -14px; left: 0; right: 0; text-align: center; font-size: 10px; color: #374151; font-weight: 600; }
+          .chart-day-label { position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font-size: 10px; color: #6b7280; }
+          .module-progress-item { margin-bottom: 8px; }
+          .module-progress-label { display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 12px; font-weight: 600; }
+          .module-progress-bar-container { width: 100%; height: 14px; background: #f3f4f6; border-radius: 7px; overflow: hidden; }
+          .module-progress-bar { height: 100%; background: #2563eb; border-radius: 7px; }
         </style>
       </head>
       <body>
@@ -611,60 +625,125 @@ export default function SettingsScreen() {
           </div>
         ` : '<p class="empty">No student profile found.</p>'}
 
+        <h2>Weekly Activity</h2>
+        ${data.weeklyActivity.length === 7 && data.weeklyActivity.every((v) => v === 0) ? `
+          <p class="empty">No activity recorded this week.</p>
+        ` : `
+          <div class="chart-box">
+            <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Activity count</div>
+            <div class="chart-bar-row">
+              ${data.weeklyActivity.map((count, i) => {
+                const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+                const maxCount = Math.max(...data.weeklyActivity, 1);
+                const height = (count / maxCount) * 100;
+                return `
+                  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 120px; justify-content: flex-end;">
+                    <div class="chart-bar" style="height: ${height}%; min-height: 2px; max-height: 100%;"></div>
+                    <div class="chart-day-label">${days[i]}</div>
+                    ${count > 0 ? `<div class="chart-bar-value">${count}</div>` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `}
+
+        <h2>Module Completion</h2>
+        ${data.moduleProgress.length > 0 ? `
+          ${data.moduleProgress.map((m) => {
+            const pct = m.total > 0 ? Math.round((m.completed / m.total) * 100) : 0;
+            return `
+              <div class="module-progress-item">
+                <div class="module-progress-label">${m.module_name} (${m.completed}/${m.total})</div>
+                <div class="module-progress-bar-container">
+                  <div class="module-progress-bar" style="width: ${pct}%;"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        ` : '<p class="empty">No module data available.</p>'}
+
         <h2>Question Answers (${data.questionAnswers.length})</h2>
         ${data.questionAnswers.length > 0 ? `
-          <table>
-            <tr><th>ID</th><th>Question ID</th><th>Answer</th><th>Created</th></tr>
-            ${data.questionAnswers.map(a => `<tr><td>${a.answer_id}</td><td>${a.question_id}</td><td>${a.answer_text}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
-          </table>
+          ${data.questionAnswers.map(a => `
+            <div class="record">
+              <div class="record-title">${a.question_text || `Question #${a.question_id}`}</div>
+              <div class="record-sub">${a.answer_text}</div>
+              <div class="record-meta"><span>Answer ID: ${a.answer_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+            </div>
+          `).join('')}
         ` : '<p class="empty">No question answers recorded.</p>'}
 
         <h2>Job Sheet Answers (${data.jobSheetAnswers.length})</h2>
         ${data.jobSheetAnswers.length > 0 ? `
-          <table>
-            <tr><th>ID</th><th>Job ID</th><th>Answer</th><th>Created</th></tr>
-            ${data.jobSheetAnswers.map(a => `<tr><td>${a.answer_id}</td><td>${a.job_id}</td><td>${a.answer_text}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
-          </table>
+          ${data.jobSheetAnswers.map(a => `
+            <div class="record">
+              <div class="record-title">${a.job_title || `Job Sheet #${a.job_id}`}</div>
+              <div class="record-sub">${a.answer_text}</div>
+              <div class="record-meta"><span>Answer ID: ${a.answer_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+            </div>
+          `).join('')}
         ` : '<p class="empty">No job sheet answers recorded.</p>'}
 
         <h2>Performance Answers (${data.performanceAnswers.length})</h2>
         ${data.performanceAnswers.length > 0 ? `
-          <table>
-            <tr><th>ID</th><th>Performance ID</th><th>Answer</th><th>Created</th></tr>
-            ${data.performanceAnswers.map(a => `<tr><td>${a.performance_answer_id}</td><td>${a.performance_id}</td><td>${a.performance_answer_text}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
-          </table>
+          ${data.performanceAnswers.map(a => `
+            <div class="record">
+              <div class="record-title">${a.performance_question || `Performance #${a.performance_id}`}</div>
+              <div class="record-sub">${a.performance_answer_text}</div>
+              <div class="record-meta"><span>Answer ID: ${a.performance_answer_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+            </div>
+          `).join('')}
         ` : '<p class="empty">No performance answers recorded.</p>'}
 
         <h2>Lesson Content Progress (${data.lessonContentProgress.length})</h2>
         ${data.lessonContentProgress.length > 0 ? `
-          <table>
-            <tr><th>Progress ID</th><th>Lesson Content ID</th><th>Read</th><th>Read At</th><th>Created</th></tr>
-            ${data.lessonContentProgress.map(p => `<tr><td>${p.progress_lesson_id}</td><td>${p.lesson_content_id}</td><td>${p.is_read ? 'Yes' : 'No'}</td><td>${p.read_at ? new Date(p.read_at).toLocaleString() : '-'}</td><td>${new Date(p.created_at).toLocaleString()}</td></tr>`).join('')}
-          </table>
+          ${data.lessonContentProgress.map(p => {
+            const lessonLabel = (p.lesson_name && p.lesson_name !== 'null') ? p.lesson_name : `Lesson #${p.lesson_content_id}`;
+            const contentLabel = (p.content_name && p.content_name !== 'null') ? p.content_name : `Lesson Content #${p.lesson_content_id}`;
+            return `
+              <div class="record">
+                <div class="record-title">${lessonLabel} — ${contentLabel}</div>
+                <div class="record-sub">${p.is_read ? '✓ Marked as read' : '✗ Not yet read'} ${p.read_at ? `| Read at: ${new Date(p.read_at).toLocaleString()}` : ''}</div>
+                <div class="record-meta"><span>Progress ID: ${p.progress_lesson_id}</span><span>${new Date(p.created_at).toLocaleString()}</span></div>
+              </div>
+            `;
+          }).join('')}
         ` : '<p class="empty">No lesson content progress recorded.</p>'}
 
         <h2>Bookmarks (${data.lessonContentBookmarks.length})</h2>
         ${data.lessonContentBookmarks.length > 0 ? `
-          <table>
-            <tr><th>ID</th><th>Lesson Content ID</th><th>Bookmarked</th><th>Created</th></tr>
-            ${data.lessonContentBookmarks.map(b => `<tr><td>${b.lesson_content_bookmark_id}</td><td>${b.lesson_content_id}</td><td>${b.is_bookmark ? 'Yes' : 'No'}</td><td>${new Date(b.created_at).toLocaleString()}</td></tr>`).join('')}
-          </table>
+          ${data.lessonContentBookmarks.map(b => {
+            const lessonLabel = (b.lesson_name && b.lesson_name !== 'null') ? b.lesson_name : `Lesson #${b.lesson_content_id}`;
+            const contentLabel = (b.content_name && b.content_name !== 'null') ? b.content_name : `Lesson Content #${b.lesson_content_id}`;
+            return `
+              <div class="record">
+                <div class="record-title">${lessonLabel} — ${contentLabel}</div>
+                <div class="record-sub">${b.is_bookmark ? '✓ Bookmarked' : '✗ Unbookmarked'}</div>
+                <div class="record-meta"><span>Bookmark ID: ${b.lesson_content_bookmark_id}</span><span>${new Date(b.created_at).toLocaleString()}</span></div>
+              </div>
+            `;
+          }).join('')}
         ` : '<p class="empty">No bookmarks recorded.</p>'}
 
         <h2>Lesson Achievements (${data.studentLessonAchievements.length})</h2>
         ${data.studentLessonAchievements.length > 0 ? `
-          <table>
-            <tr><th>Achievement ID</th><th>Lesson Achievement ID</th><th>Created</th></tr>
-            ${data.studentLessonAchievements.map(a => `<tr><td>${a.stud_lesson_achievement_id}</td><td>${a.lesson_achievement_id}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
-          </table>
+          ${data.studentLessonAchievements.map(a => `
+            <div class="record">
+              <div class="record-title">${a.achievement_name || `Lesson Achievement #${a.lesson_achievement_id}`}</div>
+              <div class="record-meta"><span>ID: ${a.stud_lesson_achievement_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+            </div>
+          `).join('')}
         ` : '<p class="empty">No lesson achievements recorded.</p>'}
 
         <h2>Module Achievements (${data.studentModuleAchievements.length})</h2>
         ${data.studentModuleAchievements.length > 0 ? `
-          <table>
-            <tr><th>Achievement ID</th><th>Module Achievement ID</th><th>Created</th></tr>
-            ${data.studentModuleAchievements.map(a => `<tr><td>${a.stud_module_achievement_id}</td><td>${a.module_achievement_id}</td><td>${new Date(a.created_at).toLocaleString()}</td></tr>`).join('')}
-          </table>
+          ${data.studentModuleAchievements.map(a => `
+            <div class="record">
+              <div class="record-title">${a.achievement_name || `Module Achievement #${a.module_achievement_id}`}</div>
+              <div class="record-meta"><span>ID: ${a.stud_module_achievement_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+            </div>
+          `).join('')}
         ` : '<p class="empty">No module achievements recorded.</p>'}
       </body>
       </html>
