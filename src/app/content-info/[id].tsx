@@ -30,6 +30,9 @@ import {
   JobSheetRecord,
   PerformanceAnswerRecord,
   PerformanceChecklistRecord,
+  LessonAchievementRecord,
+  ModuleAchievementRecord,
+  StudentProfile,
   createLessonContentProgress,
   listLessonContentProgressByUserAndLessonContent,
   listLessonContentProgressByUser,
@@ -47,6 +50,7 @@ import {
   getLessonContentById,
   getLessonById,
   getModuleById,
+  getStudentProfileByUserId,
   listContentInfoByLessonContentId,
   listLessonContentByLessonId,
   createQuestionAnswersBatch,
@@ -62,6 +66,7 @@ import {
   listPerformanceAnswersByUser,
 } from "@/lib/auth-api";
 import { resolveContentInfoAsset } from "@/lib/content-info-assets";
+import { resolveAchievementAsset } from "@/lib/achievement-assets";
 
 let ImagePicker: any = null;
 try {
@@ -199,6 +204,11 @@ export default function ContentInfoScreen() {
   const [perfSubmitting, setPerfSubmitting] = useState(false);
   const [perfAlreadySubmitted, setPerfAlreadySubmitted] = useState(false);
   const [perfLoaded, setPerfLoaded] = useState(false);
+  const [congratsModalVisible, setCongratsModalVisible] = useState(false);
+  const [congratsType, setCongratsType] = useState<"lesson" | "module">("lesson");
+  const [congratsAchievementName, setCongratsAchievementName] = useState("");
+  const [congratsBadgeImage, setCongratsBadgeImage] = useState<string | null>(null);
+  const [congratsStudentName, setCongratsStudentName] = useState("");
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
   const { showAlert } = useCustomAlert();
@@ -545,17 +555,17 @@ export default function ContentInfoScreen() {
     [theme, isDark],
   );
 
-  const checkLessonAchieved = useCallback(
+   const checkLessonAchieved = useCallback(
     async (lessonId: number | null | undefined) => {
       if (!lessonId) {
         setLessonAchieved(false);
-        return;
+        return { newlyAcquired: false, achievementName: undefined, badgeImage: null };
       }
       const lessonAchievementRecords =
         await listLessonAchievementsByLesson(lessonId);
       if (lessonAchievementRecords.length === 0) {
         setLessonAchieved(false);
-        return;
+        return { newlyAcquired: false, achievementName: undefined, badgeImage: null };
       }
       const lessonContents = await listLessonContentByLessonId(lessonId);
       const progressRecords =
@@ -569,6 +579,8 @@ export default function ContentInfoScreen() {
       const allContentRead =
         contentIds.length > 0 && contentIds.every((id) => readIds.has(id));
 
+      let newlyAcquiredAchievement: LessonAchievementRecord | null = null;
+
       if (allContentRead) {
         for (const la of lessonAchievementRecords) {
           const existing =
@@ -581,6 +593,7 @@ export default function ContentInfoScreen() {
               lesson_achievement_id: la.lesson_achievement_id,
               user_id: activeUserId,
             });
+            newlyAcquiredAchievement = la;
           }
         }
       }
@@ -598,6 +611,15 @@ export default function ContentInfoScreen() {
         }
       }
       setLessonAchieved(allContentRead || hasAnyRecord);
+
+      if (newlyAcquiredAchievement) {
+        return {
+          newlyAcquired: true,
+          achievementName: newlyAcquiredAchievement.name,
+          badgeImage: newlyAcquiredAchievement.badge_image,
+        };
+      }
+      return { newlyAcquired: false, achievementName: undefined, badgeImage: null };
     },
     [activeUserId],
   );
@@ -606,12 +628,12 @@ export default function ContentInfoScreen() {
     async (moduleId: number | null | undefined) => {
       if (!moduleId) {
         setModuleAchieved(false);
-        return;
+        return { newlyAcquired: false, achievementName: undefined, badgeImage: null };
       }
       const moduleAchievementRecords = await listModuleAchievementsByModule(moduleId);
       if (moduleAchievementRecords.length === 0) {
         setModuleAchieved(false);
-        return;
+        return { newlyAcquired: false, achievementName: undefined, badgeImage: null };
       }
       const lessonRecords = await listLessons();
       const moduleLessons = lessonRecords.filter((l) => l.module_id === moduleId);
@@ -638,6 +660,8 @@ export default function ContentInfoScreen() {
         }
       }
 
+      let newlyAcquiredAchievement: ModuleAchievementRecord | null = null;
+
       if (allLessonsComplete) {
         for (const ma of moduleAchievementRecords) {
           const existing = await listStudentModuleAchievementByUserAndModuleAchievement(
@@ -649,6 +673,7 @@ export default function ContentInfoScreen() {
               module_achievement_id: ma.module_achievement_id,
               user_id: activeUserId,
             });
+            newlyAcquiredAchievement = ma;
           }
         }
       }
@@ -665,6 +690,15 @@ export default function ContentInfoScreen() {
         }
       }
       setModuleAchieved(allLessonsComplete || hasAnyRecord);
+
+      if (newlyAcquiredAchievement) {
+        return {
+          newlyAcquired: true,
+          achievementName: newlyAcquiredAchievement.name,
+          badgeImage: newlyAcquiredAchievement.badge_image,
+        };
+      }
+      return { newlyAcquired: false, achievementName: undefined, badgeImage: null };
     },
     [activeUserId],
   );
@@ -811,11 +845,34 @@ export default function ContentInfoScreen() {
         }
         setIsRead(true);
       }
-      if (currentLessonId) {
-        await checkLessonAchieved(currentLessonId);
+       if (currentLessonId) {
+        const lessonResult = await checkLessonAchieved(currentLessonId);
+        let moduleResult: { newlyAcquired: boolean; achievementName?: string; badgeImage: string | null } = { newlyAcquired: false, achievementName: undefined, badgeImage: null };
         const lesson = await getLessonById(currentLessonId);
         if (lesson?.module_id) {
-          await checkModuleAchieved(lesson.module_id);
+          moduleResult = await checkModuleAchieved(lesson.module_id);
+        }
+
+        if (lessonResult.newlyAcquired) {
+          const profile = await getStudentProfileByUserId(activeUserId);
+          const fullName = [profile?.last_name, profile?.first_name, profile?.middle_name]
+            .filter(Boolean)
+            .join(", ");
+          setCongratsType("lesson");
+          setCongratsAchievementName(lessonResult.achievementName ?? "");
+          setCongratsBadgeImage(lessonResult.badgeImage);
+          setCongratsStudentName(fullName || "Student");
+          setCongratsModalVisible(true);
+        } else if (moduleResult.newlyAcquired) {
+          const profile = await getStudentProfileByUserId(activeUserId);
+          const fullName = [profile?.last_name, profile?.first_name, profile?.middle_name]
+            .filter(Boolean)
+            .join(", ");
+          setCongratsType("module");
+          setCongratsAchievementName(moduleResult.achievementName ?? "");
+          setCongratsBadgeImage(moduleResult.badgeImage);
+          setCongratsStudentName(fullName || "Student");
+          setCongratsModalVisible(true);
         }
       }
     } catch (markError) {
@@ -2134,6 +2191,62 @@ export default function ContentInfoScreen() {
       </ScrollView>
 
       <BottomNavbar activeTab="content-info" userId={activeUserId} />
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={congratsModalVisible}
+        onRequestClose={() => setCongratsModalVisible(false)}
+      >
+        <View style={styles.congratsOverlay}>
+          <View style={[styles.congratsCard, { backgroundColor: isDark ? theme.backgroundElement : "#ffffff" }]}>
+            {congratsBadgeImage ? (
+              <Image
+                source={resolveAchievementAsset(congratsBadgeImage) ?? require("@/assets/lesson_badges/badge_m1_l1.png")}
+                style={styles.congratsBadge}
+                resizeMode="contain"
+              />
+            ) : (
+              <View style={styles.congratsBadgePlaceholder}>
+                <MaterialCommunityIcons name="trophy-variant" size={48} color={congratsType === "lesson" ? "#ca8a04" : "#be12ce"} />
+              </View>
+            )}
+            <Text style={[styles.congratsTitle, { color: isDark ? theme.text : "#111827" }]}>
+              Congratulations!
+            </Text>
+            <Text style={styles.congratsStudentName}>
+              {congratsStudentName}
+            </Text>
+            <Text style={styles.congratsMessage}>
+              For achieving {congratsAchievementName}
+            </Text>
+            <View style={styles.congratsButtonRow}>
+              <Pressable
+                onPress={() => setCongratsModalVisible(false)}
+                style={[styles.congratsOkButton, { backgroundColor: isDark ? theme.backgroundSelected : "#f1f5f9" }]}
+              >
+                <Text style={[styles.congratsOkButtonText, { color: isDark ? theme.text : "#475569" }]}>
+                  OK
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setCongratsModalVisible(false);
+                  router.replace({
+                    pathname: "/achievement",
+                    params: { userId: String(activeUserId) },
+                  });
+                }}
+                style={styles.congratsViewButton}
+              >
+                <Text style={styles.congratsViewButtonText}>
+                  View
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
@@ -2738,5 +2851,74 @@ const styles = StyleSheet.create({
   },
   checkItemCompact: {
     padding: 12,
+  },
+  congratsOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  congratsCard: {
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+    gap: 12,
+    maxWidth: 360,
+    width: "100%",
+    elevation: 10,
+  },
+  congratsBadge: {
+    width: 100,
+    height: 100,
+  },
+  congratsBadgePlaceholder: {
+    width: 100,
+    height: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(168, 168, 172, 0.2)",
+    borderRadius: 14,
+  },
+  congratsTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  congratsStudentName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  congratsMessage: {
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+  },
+  congratsButtonRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+  congratsOkButton: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  congratsOkButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  congratsViewButton: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#2563eb",
+  },
+  congratsViewButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#ffffff",
   },
 });
