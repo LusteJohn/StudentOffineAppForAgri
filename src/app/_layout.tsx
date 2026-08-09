@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { ThemeProvider as AppThemeProvider, useThemeContext } from '@/contexts/theme-context';
 import { CustomAlertProvider } from '@/lib/custom-alert';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,7 +42,8 @@ const styles = StyleSheet.create({
 });
 
 function RootLayoutInner() {
-  const { effectiveColorScheme, loading } = useThemeContext();
+  const { loading } = useThemeContext();
+  const resolvedColorScheme = useColorScheme();
 
   useEffect(() => {
     if (!loading) {
@@ -54,7 +56,7 @@ function RootLayoutInner() {
   }
 
   return (
-    <ExpoRouterThemeProvider value={effectiveColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ExpoRouterThemeProvider value={resolvedColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <CustomAlertProvider>
         <Stack screenOptions={{ headerShown: false }} />
       </CustomAlertProvider>
