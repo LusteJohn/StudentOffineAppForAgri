@@ -1561,7 +1561,15 @@ export default function ContentInfoScreen() {
         onBack={() =>
           router.replace({
             pathname: "/lesson",
-            params: { userId: String(activeUserId) },
+            params: {
+              userId: String(activeUserId),
+              ...(moduleItem?.module_id
+                ? { moduleId: String(moduleItem.module_id) }
+                : {}),
+              ...(currentLessonId
+                ? { lessonId: String(currentLessonId) }
+                : {}),
+            },
           })
         }
       />

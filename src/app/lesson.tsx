@@ -18,7 +18,7 @@ type LessonGroup = {
 };
 
 export default function LessonScreen() {
-  const params = useLocalSearchParams<{ userId?: string; moduleId?: string }>();
+  const params = useLocalSearchParams<{ userId?: string; moduleId?: string; lessonId?: string }>();
   const activeUserId = useMemo(() => {
     const parsed = Number(params.userId);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
@@ -28,6 +28,11 @@ export default function LessonScreen() {
     const parsed = Number(params.moduleId);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
   }, [params.moduleId]);
+
+  const initialLessonId = useMemo(() => {
+    const parsed = Number(params.lessonId);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  }, [params.lessonId]);
 
   const [modules, setModules] = useState<ModuleRecord[]>([]);
   const [lessons, setLessons] = useState<LessonRecord[]>([]);
@@ -212,6 +217,21 @@ export default function LessonScreen() {
       if (initialModuleId && moduleRecords.some((m) => m.module_id === initialModuleId)) {
         setExpandedModuleId(initialModuleId);
       }
+      if (initialLessonId && lessonRecords.some((l) => l.lesson_id === initialLessonId)) {
+        const initialLesson = lessonRecords.find((l) => l.lesson_id === initialLessonId);
+        if (initialLesson) {
+          setSelectedLesson(initialLesson);
+          setDetailVisible(true);
+          const contents = await listLessonContentByLessonId(initialLesson.lesson_id);
+          setLessonContents(contents);
+          const [infos, links] = await Promise.all([
+            listLessonInfoByLessonId(initialLesson.lesson_id),
+            listLessonLinkByLessonId(initialLesson.lesson_id),
+          ]);
+          setLessonInfos(infos);
+          setLessonLinks(links);
+        }
+      }
 
       const parsedUserId = Number(activeUserId);
       if (Number.isInteger(parsedUserId) && parsedUserId > 0) {
@@ -228,7 +248,7 @@ export default function LessonScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [initialModuleId, activeUserId]);
+  }, [initialModuleId, initialLessonId, activeUserId]);
 
   useFocusEffect(
     useCallback(() => {
