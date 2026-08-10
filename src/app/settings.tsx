@@ -838,6 +838,50 @@ export default function SettingsScreen() {
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="moon-outline" size={18} color={colors.text} />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
+                Appearance
+              </ThemedText>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
+                Dark mode
+              </ThemedText>
+            </View>
+          </View>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Choose how the app appearance adapts to light or dark mode.</ThemedText>
+
+          <View style={styles.themeOptionGroup}>
+            <ThemeOption
+              label="Light"
+              icon="sunny-outline"
+              value="light"
+              selected={themeCtx.themeMode === 'light'}
+              onPress={() => themeCtx.setThemeMode('light')}
+              isDark={isDark}
+            />
+            <ThemeOption
+              label="Dark"
+              icon="moon-outline"
+              value="dark"
+              selected={themeCtx.themeMode === 'dark'}
+              onPress={() => themeCtx.setThemeMode('dark')}
+              isDark={isDark}
+            />
+            <ThemeOption
+              label="System"
+               icon="contrast-outline"
+              value="system"
+              selected={themeCtx.themeMode === 'system'}
+              onPress={() => themeCtx.setThemeMode('system')}
+              isDark={isDark}
+            />
+          </View>
+        </View>
+
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
               <Ionicons name="cloud-download-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
@@ -1017,54 +1061,10 @@ export default function SettingsScreen() {
           </View>
          </View>
 
-        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
-              <Ionicons name="moon-outline" size={18} color={colors.text} />
-            </View>
-            <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
-                Appearance
-              </ThemedText>
-              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-                Dark mode
-              </ThemedText>
-            </View>
-          </View>
-          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Choose how the app appearance adapts to light or dark mode.</ThemedText>
-
-          <View style={styles.themeOptionGroup}>
-            <ThemeOption
-              label="Light"
-              icon="sunny-outline"
-              value="light"
-              selected={themeCtx.themeMode === 'light'}
-              onPress={() => themeCtx.setThemeMode('light')}
-              isDark={isDark}
-            />
-            <ThemeOption
-              label="Dark"
-              icon="moon-outline"
-              value="dark"
-              selected={themeCtx.themeMode === 'dark'}
-              onPress={() => themeCtx.setThemeMode('dark')}
-              isDark={isDark}
-            />
-            <ThemeOption
-              label="System"
-               icon="contrast-outline"
-              value="system"
-              selected={themeCtx.themeMode === 'system'}
-              onPress={() => themeCtx.setThemeMode('system')}
-              isDark={isDark}
-            />
-          </View>
-        </View>
-
-        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
-              <Ionicons name="log-out-outline" size={18} color={colors.text} />
+         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
+           <View style={styles.sectionHeader}>
+             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+               <Ionicons name="log-out-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
               <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
