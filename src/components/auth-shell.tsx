@@ -138,10 +138,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 24,
+    paddingBottom: 40,
   },
   scrollContentCompact: {
     paddingHorizontal: 16,
