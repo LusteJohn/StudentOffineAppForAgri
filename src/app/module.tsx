@@ -1,10 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
-import { AnimatedModal, StaggeredFadeInView } from '@/components/animated-modal';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { CompetencyRecord, ModuleRecord, listCompetencies, listModules } from '@/lib/auth-api';
@@ -333,20 +332,16 @@ export default function ModuleScreen() {
 
       <BottomNavbar activeTab="library" userId={activeUserId} />
 
-      <AnimatedModal
-        visible={detailVisible}
-        onRequestClose={closeCompetencyDetail}
-        overlayStyle={{ backgroundColor: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(2, 6, 23, 0.45)' }}
-      >
-        <View style={[styles.modalCard, dynamicStyles.modalCard]}>
-          <View style={styles.modalHeaderRow}>
-            <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>{selectedCompetency?.competency_name}</Text>
-            <Pressable onPress={closeCompetencyDetail} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
-              <Text style={[styles.modalCloseText, dynamicStyles.modalCloseText]}>✕</Text>
-            </Pressable>
-          </View>
+      <Modal transparent animationType="fade" visible={detailVisible} onRequestClose={closeCompetencyDetail}>
+        <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+          <View style={[styles.modalCard, dynamicStyles.modalCard]}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>{selectedCompetency?.competency_name}</Text>
+              <Pressable onPress={closeCompetencyDetail} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
+                <Text style={[styles.modalCloseText, dynamicStyles.modalCloseText]}>✕</Text>
+              </Pressable>
+            </View>
 
-          <StaggeredFadeInView delay={50}>
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Sector</Text>
@@ -362,60 +357,58 @@ export default function ModuleScreen() {
               </View>
             </View>
 
-            <StaggeredFadeInView delay={100}>
-              <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Modules</Text>
-              <ScrollView
-                style={styles.moduleList}
-                contentContainerStyle={styles.moduleListContent}
-                showsVerticalScrollIndicator={false}>
-                {selectedModules.length > 0 ? (
-                  selectedModules.map((moduleItem) => (
-                    <View key={moduleItem.module_id} style={[styles.moduleCard, dynamicStyles.moduleCard]}>
-                      <View style={styles.moduleInfo}>
-                        <Text style={[styles.moduleName, dynamicStyles.moduleName]}>{moduleItem.module_name}</Text>
-                        <Text style={[styles.moduleDescription, dynamicStyles.moduleDescription]} numberOfLines={3}>
-                          {moduleItem.description}
-                        </Text>
-                      </View>
+            <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Modules</Text>
+            <ScrollView
+              style={styles.moduleList}
+              contentContainerStyle={styles.moduleListContent}
+              showsVerticalScrollIndicator={false}>
+              {selectedModules.length > 0 ? (
+                selectedModules.map((moduleItem) => (
+                   <View key={moduleItem.module_id} style={[styles.moduleCard, dynamicStyles.moduleCard]}>
+                     <View style={styles.moduleInfo}>
+                       <Text style={[styles.moduleName, dynamicStyles.moduleName]}>{moduleItem.module_name}</Text>
+                       <Text style={[styles.moduleDescription, dynamicStyles.moduleDescription]} numberOfLines={3}>
+                         {moduleItem.description}
+                       </Text>
+                     </View>
 
-                      {getModuleImage(moduleItem.module_id) ? (
-                        <Image
-                          source={getModuleImage(moduleItem.module_id)}
-                          style={styles.moduleThumbnail}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View style={[styles.moduleThumbnailPlaceholder, dynamicStyles.moduleThumbnailPlaceholder]} />
-                      )}
+                     {getModuleImage(moduleItem.module_id) ? (
+                       <Image
+                         source={getModuleImage(moduleItem.module_id)}
+                         style={styles.moduleThumbnail}
+                         resizeMode="cover"
+                       />
+                     ) : (
+                       <View style={[styles.moduleThumbnailPlaceholder, dynamicStyles.moduleThumbnailPlaceholder]} />
+                     )}
 
-                      <View style={styles.moduleCardBody}>
-                        <View style={styles.moduleMetaRow}>
-                          <View style={styles.moduleMetaItem}>
-                            <Text style={[styles.moduleMetaLabel, dynamicStyles.moduleMetaLabel]}>PDF</Text>
-                            <Text style={[styles.moduleMetaValue, dynamicStyles.moduleMetaValue]} numberOfLines={1}>
-                              {moduleItem.module_pdf}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
+                     <View style={styles.moduleCardBody}>
+                       <View style={styles.moduleMetaRow}>
+                         <View style={styles.moduleMetaItem}>
+                           <Text style={[styles.moduleMetaLabel, dynamicStyles.moduleMetaLabel]}>PDF</Text>
+                           <Text style={[styles.moduleMetaValue, dynamicStyles.moduleMetaValue]} numberOfLines={1}>
+                             {moduleItem.module_pdf}
+                           </Text>
+                         </View>
+                       </View>
+                     </View>
 
                       <View style={styles.moduleCardActions}>
                         <Pressable onPress={() => handleModuleStart(moduleItem)} style={[styles.modulePrimaryButton, dynamicStyles.modulePrimaryButton]}>
                           <Text style={[styles.modulePrimaryButtonText, dynamicStyles.modulePrimaryButtonText]}>Start</Text>
                         </Pressable>
                       </View>
-                    </View>
-                  ))
-                ) : (
-                  <View style={[styles.noModuleCard, dynamicStyles.noModuleCard]}>
-                    <Text style={[styles.noModuleText, dynamicStyles.noModuleText]}>No modules available for this competency.</Text>
-                  </View>
-                )}
-              </ScrollView>
-            </StaggeredFadeInView>
-          </StaggeredFadeInView>
+                   </View>
+                ))
+              ) : (
+                <View style={[styles.noModuleCard, dynamicStyles.noModuleCard]}>
+                  <Text style={[styles.noModuleText, dynamicStyles.noModuleText]}>No modules available for this competency.</Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
         </View>
-      </AnimatedModal>
+      </Modal>
     </ThemedView>
   );
 }

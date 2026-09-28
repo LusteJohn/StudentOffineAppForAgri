@@ -1,7 +1,5 @@
 import { createContext, useCallback, useContext, useState, useRef, ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-
-import { AnimatedModal, StaggeredFadeInView } from '@/components/animated-modal';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 type AlertButton = {
   text?: string;
@@ -89,41 +87,40 @@ export function CustomAlertProvider({ children }: { children: ReactNode }) {
   return (
     <CustomAlertContext.Provider value={{ showAlert }}>
       {children}
-          <AnimatedModal
-            visible={alertState.visible}
-            onRequestClose={handleBackdropPress}
-            overlayStyle={styles.overlay}
-          >
-           <Pressable
-             style={styles.overlay}
-             onPress={handleBackdropPress}
-           >
-             <Pressable style={styles.modalCard}>
-               <StaggeredFadeInView delay={50}>
-               <Text style={styles.alertTitle}>{alertState.title}</Text>
-               {alertState.message ? (
-                 <Text style={styles.alertMessage}>{alertState.message}</Text>
-               ) : null}
-               <View style={styles.buttonRow}>
-                 {alertState.buttons.map((button, index) => {
-                   const { textColor, backgroundColor } = getButtonStyle(button.style);
-                   return (
-                     <Pressable
-                       key={index}
-                       onPress={() => handleButtonPress(button, index)}
-                       style={[styles.alertButton, { backgroundColor }]}
-                     >
-                       <Text style={[styles.alertButtonText, { color: textColor }]}>
-                         {button.text || 'OK'}
-                       </Text>
-                     </Pressable>
-                   );
-                 })}
-               </View>
-               </StaggeredFadeInView>
-             </Pressable>
-           </Pressable>
-          </AnimatedModal>
+      <Modal
+        transparent
+        animationType="fade"
+        visible={alertState.visible}
+        onRequestClose={handleBackdropPress}
+      >
+        <Pressable
+          style={styles.overlay}
+          onPress={handleBackdropPress}
+        >
+          <Pressable style={styles.modalCard}>
+            <Text style={styles.alertTitle}>{alertState.title}</Text>
+            {alertState.message ? (
+              <Text style={styles.alertMessage}>{alertState.message}</Text>
+            ) : null}
+            <View style={styles.buttonRow}>
+              {alertState.buttons.map((button, index) => {
+                const { textColor, backgroundColor } = getButtonStyle(button.style);
+                return (
+                  <Pressable
+                    key={index}
+                    onPress={() => handleButtonPress(button, index)}
+                    style={[styles.alertButton, { backgroundColor }]}
+                  >
+                    <Text style={[styles.alertButtonText, { color: textColor }]}>
+                      {button.text || 'OK'}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </CustomAlertContext.Provider>
   );
 }
