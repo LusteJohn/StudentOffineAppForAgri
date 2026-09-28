@@ -1,44 +1,70 @@
+import { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 
 import { Colors } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCustomAlert } from '@/lib/custom-alert';
 
 type BottomNavbarProps = {
-  activeTab: 'home' | 'library' | 'lesson' | 'achievement' | 'content-info' | 'settings';
+  activeTab?: 'home' | 'library' | 'lesson' | 'achievement' | 'content-info' | 'settings';
   userId: number;
 };
 
 export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
+  const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { showAlert } = useCustomAlert();
   const isCompact = width < 390;
   const theme = useTheme();
 
+  const getActiveTab = (): 'home' | 'library' | 'lesson' | 'achievement' | 'content-info' | 'settings' => {
+    if (activeTab) return activeTab;
+    if (pathname === '/home') return 'home';
+    if (pathname === '/module') return 'library';
+    if (pathname === '/lesson') return 'lesson';
+    if (pathname === '/achievement') return 'achievement';
+    if (pathname === '/settings') return 'settings';
+    if (pathname.startsWith('/content-info')) return 'content-info';
+    return 'home';
+  };
+
+  const currentTab = getActiveTab();
+  const scrollRef = useRef<ScrollView>(null);
+  const tabOrder: ('home' | 'library' | 'lesson' | 'content-info' | 'achievement' | 'settings')[] = ['home', 'library', 'lesson', 'content-info', 'achievement', 'settings'];
+  const tabIndex = tabOrder.indexOf(currentTab);
+
+  useEffect(() => {
+    if (scrollRef.current && tabIndex >= 0) {
+      const estimatedTabWidth = isCompact ? 76 : 90;
+      const targetOffset = tabIndex * estimatedTabWidth;
+      scrollRef.current.scrollTo({ x: Math.max(0, targetOffset), animated: true });
+    }
+  }, [currentTab, tabIndex, isCompact]);
+
   const goHome = () => {
-    if (activeTab !== 'home') {
+    if (currentTab !== 'home') {
       router.replace({ pathname: '/home', params: { userId: String(userId) } });
     }
   };
 
   const goLibrary = () => {
-    if (activeTab !== 'library') {
+    if (currentTab !== 'library') {
       router.replace({ pathname: '/module', params: { userId: String(userId) } });
     }
   };
 
   const goLesson = () => {
-    if (activeTab !== 'lesson') {
+    if (currentTab !== 'lesson') {
       router.replace({ pathname: '/lesson', params: { userId: String(userId) } });
     }
   };
 
   const goContentInfo = () => {
-    if (activeTab !== 'content-info') {
+    if (currentTab !== 'content-info') {
       showAlert(
         'Select a lesson first',
         'Please select a module and lesson from the Lesson page before viewing the content info.',
@@ -53,13 +79,13 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   };
 
   const goAchievement = () => {
-    if (activeTab !== 'achievement') {
+    if (currentTab !== 'achievement') {
       router.replace({ pathname: '/achievement', params: { userId: String(userId) } });
     }
   };
 
   const goSettings = () => {
-    if (activeTab !== 'settings') {
+    if (currentTab !== 'settings') {
       router.replace({ pathname: '/settings', params: { userId: String(userId) } });
     }
   };
@@ -75,64 +101,64 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
       paddingBottom: Math.max(insets.bottom, 16),
       backgroundColor: 'transparent',
     }]}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={[styles.bar, isCompact ? styles.barCompact : styles.barWide, {
           backgroundColor: theme.backgroundElement,
           borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(92, 107, 97, 0.16)',
           shadowColor: isDark ? '#000000' : '#0f172a',
         }]}>
-          <Pressable onPress={goHome} style={[styles.tabButton, activeTab === 'home' && styles.activeTabButton, activeTab === 'home' && { backgroundColor: activeColor }]}>
+          <Pressable onPress={goHome} style={[styles.tabButton, currentTab === 'home' && styles.activeTabButton, currentTab === 'home' && { backgroundColor: activeColor }]}>
             <Ionicons
-              name={activeTab === 'home' ? 'home' : 'home-outline'}
+              name={currentTab === 'home' ? 'home' : 'home-outline'}
               size={22}
-              color={activeTab === 'home' ? activeTextColor : inactiveColor}
+              color={currentTab === 'home' ? activeTextColor : inactiveColor}
             />
-            <Text style={[styles.tabLabel, activeTab === 'home' && styles.activeTabLabel, { color: activeTab === 'home' ? activeTextColor : inactiveColor }]}>Home</Text>
+            <Text style={[styles.tabLabel, currentTab === 'home' && styles.activeTabLabel, { color: currentTab === 'home' ? activeTextColor : inactiveColor }]}>Home</Text>
           </Pressable>
 
-          <Pressable onPress={goLibrary} style={[styles.tabButton, activeTab === 'library' && styles.activeTabButton, activeTab === 'library' && { backgroundColor: activeColor }]}>
+          <Pressable onPress={goLibrary} style={[styles.tabButton, currentTab === 'library' && styles.activeTabButton, currentTab === 'library' && { backgroundColor: activeColor }]}>
             <Ionicons
-              name={activeTab === 'library' ? 'book' : 'book-outline'}
+              name={currentTab === 'library' ? 'book' : 'book-outline'}
               size={22}
-              color={activeTab === 'library' ? activeTextColor : inactiveColor}
+              color={currentTab === 'library' ? activeTextColor : inactiveColor}
             />
-            <Text style={[styles.tabLabel, activeTab === 'library' && styles.activeTabLabel, { color: activeTab === 'library' ? activeTextColor : inactiveColor }]}>Library</Text>
+            <Text style={[styles.tabLabel, currentTab === 'library' && styles.activeTabLabel, { color: currentTab === 'library' ? activeTextColor : inactiveColor }]}>Library</Text>
           </Pressable>
 
-          <Pressable onPress={goLesson} style={[styles.tabButton, activeTab === 'lesson' && styles.activeTabButton, activeTab === 'lesson' && { backgroundColor: activeColor }]}>
+          <Pressable onPress={goLesson} style={[styles.tabButton, currentTab === 'lesson' && styles.activeTabButton, currentTab === 'lesson' && { backgroundColor: activeColor }]}>
             <Ionicons
-              name={activeTab === 'lesson' ? 'document' : 'document-outline'}
+              name={currentTab === 'lesson' ? 'document' : 'document-outline'}
               size={22}
-              color={activeTab === 'lesson' ? activeTextColor : inactiveColor}
+              color={currentTab === 'lesson' ? activeTextColor : inactiveColor}
             />
-            <Text style={[styles.tabLabel, activeTab === 'lesson' && styles.activeTabLabel, { color: activeTab === 'lesson' ? activeTextColor : inactiveColor }]}>Lesson</Text>
+            <Text style={[styles.tabLabel, currentTab === 'lesson' && styles.activeTabLabel, { color: currentTab === 'lesson' ? activeTextColor : inactiveColor }]}>Lesson</Text>
           </Pressable>
 
-          <Pressable onPress={goContentInfo} style={[styles.tabButton, activeTab === 'content-info' && styles.activeTabButton, activeTab === 'content-info' && { backgroundColor: activeColor }]}>
+          <Pressable onPress={goContentInfo} style={[styles.tabButton, currentTab === 'content-info' && styles.activeTabButton, currentTab === 'content-info' && { backgroundColor: activeColor }]}>
             <Ionicons
-              name={activeTab === 'content-info' ? 'information-circle' : 'information-circle-outline'}
+              name={currentTab === 'content-info' ? 'information-circle' : 'information-circle-outline'}
               size={22}
-              color={activeTab === 'content-info' ? activeTextColor : inactiveColor}
+              color={currentTab === 'content-info' ? activeTextColor : inactiveColor}
             />
-            <Text style={[styles.tabLabel, activeTab === 'content-info' && styles.activeTabLabel, { color: activeTab === 'content-info' ? activeTextColor : inactiveColor }]}>Content Info</Text>
+            <Text style={[styles.tabLabel, currentTab === 'content-info' && styles.activeTabLabel, { color: currentTab === 'content-info' ? activeTextColor : inactiveColor }]}>Content Info</Text>
           </Pressable>
 
-          <Pressable onPress={goAchievement} style={[styles.tabButton, activeTab === 'achievement' && styles.activeTabButton, activeTab === 'achievement' && { backgroundColor: activeColor }]}>
+          <Pressable onPress={goAchievement} style={[styles.tabButton, currentTab === 'achievement' && styles.activeTabButton, currentTab === 'achievement' && { backgroundColor: activeColor }]}>
             <Ionicons
-              name={activeTab === 'achievement' ? 'trophy' : 'trophy-outline'}
+              name={currentTab === 'achievement' ? 'trophy' : 'trophy-outline'}
               size={22}
-              color={activeTab === 'achievement' ? activeTextColor : inactiveColor}
+              color={currentTab === 'achievement' ? activeTextColor : inactiveColor}
             />
-            <Text style={[styles.tabLabel, activeTab === 'achievement' && styles.activeTabLabel, { color: activeTab === 'achievement' ? activeTextColor : inactiveColor }]}>Achievements</Text>
+            <Text style={[styles.tabLabel, currentTab === 'achievement' && styles.activeTabLabel, { color: currentTab === 'achievement' ? activeTextColor : inactiveColor }]}>Achievements</Text>
           </Pressable>
 
-          <Pressable onPress={goSettings} style={[styles.tabButton, activeTab === 'settings' && styles.activeTabButton, activeTab === 'settings' && { backgroundColor: activeColor }]}>
+          <Pressable onPress={goSettings} style={[styles.tabButton, currentTab === 'settings' && styles.activeTabButton, currentTab === 'settings' && { backgroundColor: activeColor }]}>
             <Ionicons
-              name={activeTab === 'settings' ? 'settings' : 'settings-outline'}
+              name={currentTab === 'settings' ? 'settings' : 'settings-outline'}
               size={22}
-              color={activeTab === 'settings' ? activeTextColor : inactiveColor}
+              color={currentTab === 'settings' ? activeTextColor : inactiveColor}
             />
-            <Text style={[styles.tabLabel, activeTab === 'settings' && styles.activeTabLabel, { color: activeTab === 'settings' ? activeTextColor : inactiveColor }]}>Settings</Text>
+            <Text style={[styles.tabLabel, currentTab === 'settings' && styles.activeTabLabel, { color: currentTab === 'settings' ? activeTextColor : inactiveColor }]}>Settings</Text>
           </Pressable>
         </View>
       </ScrollView>
