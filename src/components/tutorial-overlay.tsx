@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "@/hooks/use-theme";
+import { AnimatedModal, StaggeredFadeInView } from "@/components/animated-modal";
 
 type TutorialOverlayProps = {
   visible: boolean;
@@ -127,19 +128,18 @@ export function TutorialOverlay({
   }, [step, handleBack, handleSkip]);
 
   return (
-    <Modal
-      transparent
-      animationType="fade"
+    <AnimatedModal
       visible={visible}
       onRequestClose={handleSkip}
+      overlayStyle={styles.overlay}
     >
-      <View style={styles.overlay}>
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: isDark ? "#1e1e23" : "#ffffff" },
-          ]}
-        >
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: isDark ? "#1e1e23" : "#ffffff" },
+        ]}
+      >
+        <StaggeredFadeInView delay={50}>
           <View style={styles.progressContainer}>
             {[1, 2, 3].map((s) => (
               <View
@@ -214,9 +214,9 @@ export function TutorialOverlay({
               </Text>
             </Pressable>
           </View>
-        </View>
+        </StaggeredFadeInView>
       </View>
-    </Modal>
+    </AnimatedModal>
   );
 }
 
