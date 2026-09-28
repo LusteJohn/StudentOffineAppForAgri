@@ -32,7 +32,7 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
         <ScrollView contentContainerStyle={[styles.scrollContent, isCompact ? styles.scrollContentCompact : styles.scrollContentWide]} keyboardShouldPersistTaps="handled">
           <View style={styles.heroBlock}>
             <View style={styles.logoFrame}>
-              <Image source={require('../../assets/images/app_logo.png')} style={styles.logo} resizeMode="contain" />
+              <Image source={require('../../assets/images/app.png')} style={styles.logo} resizeMode="contain" />
             </View>
             <View style={styles.appNameWrap}>
               <ThemedText type="subtitle" style={styles.appNameText}>

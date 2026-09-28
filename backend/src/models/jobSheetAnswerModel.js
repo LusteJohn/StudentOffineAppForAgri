@@ -42,6 +42,7 @@ function buildJobSheetAnswer(payload, answerId, existingRecord) {
     ...existingRecord,
     answer_id: answerId,
     created_at: existingRecord?.created_at || now,
+    score: Number(payload.score) || 0,
     updated_at: now,
   };
 }
@@ -63,10 +64,14 @@ async function validatePayload(payload) {
     throw new Error('answer_text is required');
   }
 
+  const score = Number(payload?.score);
+  const normalizedScore = Number.isInteger(score) && score >= 0 ? score : 0;
+
   return {
     answer_text: answerText,
     user_id: userId,
     job_id: jobId,
+    score: normalizedScore,
   };
 }
 
@@ -89,6 +94,7 @@ async function createJobSheetAnswer(payload) {
     job_id: answerInput.job_id,
     user_id: answerInput.user_id,
     answer_text: answerInput.answer_text,
+    score: answerInput.score,
     created_at: now,
     updated_at: now,
   };

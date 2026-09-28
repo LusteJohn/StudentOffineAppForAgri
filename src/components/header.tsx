@@ -80,21 +80,21 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
               <Text style={[styles.backButtonText, { color: textColor }]}>←</Text>
             </Pressable>
           ) : null}
-          <Image source={require('../../assets/images/app_logo.png')} style={styles.logo} resizeMode="contain" />
+          <View style={styles.logoFrame}>
+            <Image source={require('../../assets/images/app.png')} style={styles.logo} resizeMode="contain" />
+          </View>
+          <View style={styles.centerArea}>
+            <Text style={[styles.metaTitle, { color: textColor }]}>{title}</Text>
+            <Text style={[styles.userName, { color: textColor }]} numberOfLines={1}>{displayName}</Text>
+            <Text style={[styles.userEmail, { color: secondaryTextColor }]} numberOfLines={1}>{email}</Text>
+          </View>
         </View>
-        <View style={styles.meta}>
-          <Text style={[styles.metaTitle, { color: textColor }]}>{title}</Text>
-          <View style={styles.userRow}>
-            <View style={styles.userInfo}>
-              <Text style={[styles.userName, { color: textColor }]} numberOfLines={1}>{displayName}</Text>
-              <Text style={[styles.userEmail, { color: secondaryTextColor }]} numberOfLines={1}>{email}</Text>
-            </View>
-            <View style={[styles.roleBadge, { backgroundColor: isDark ? '#2E3135' : '#e4f8d6' }]}>
-              <Text style={[styles.roleText, { color: textColor }]}>{displayRole}</Text>
-            </View>
-            <Pressable onPress={() => router.replace({ pathname: '/settings', params: { userId: String(userId) } })} style={styles.profileButton}>
-              <Ionicons name="person-circle-outline" size={24} color={isDark ? '#ffffff' : '#000000'} />
-            </Pressable>
+        <View style={styles.rightArea}>
+          <Pressable onPress={() => router.replace({ pathname: '/settings', params: { userId: String(userId) } })} style={styles.profileButton}>
+            <Ionicons name="person" size={24} color={isDark ? '#ffffff' : '#000000'} />
+          </Pressable>
+          <View style={[styles.roleBadge, { backgroundColor: '#a8e6a2' }]}>
+            <Text style={[styles.roleText, { color: '#2d5016' }]}>{displayRole}</Text>
           </View>
         </View>
       </View>
@@ -135,47 +135,52 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
   },
+  logoFrame: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
   logo: {
     width: 32,
     height: 32,
   },
-  meta: {
+  centerArea: {
     flexDirection: 'column',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
+    flex: 1,
     gap: 2,
   },
   metaTitle: {
     fontSize: 18,
     fontWeight: '700',
-    textAlign: 'right',
-  },
-  userRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  userInfo: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    maxWidth: 160,
+    textAlign: 'left',
   },
   userName: {
     fontSize: 13,
     fontWeight: '600',
-    textAlign: 'right',
+    textAlign: 'left',
   },
   userEmail: {
     fontSize: 11,
     fontWeight: '500',
-    textAlign: 'right',
+    textAlign: 'left',
+  },
+  rightArea: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 6,
   },
   roleBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   roleText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.4,

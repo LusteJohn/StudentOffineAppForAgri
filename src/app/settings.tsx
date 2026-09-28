@@ -454,7 +454,7 @@ export default function SettingsScreen() {
 
   const updateDay = (delta: number) => {
     const maxDay = getDaysInMonth(selectedYear, selectedMonth);
-    const nextDay = clamp(selectedDay, 1, maxDay);
+    const nextDay = clamp(selectedDay + delta, 1, maxDay);
     setSelectedDay(nextDay);
   };
 
