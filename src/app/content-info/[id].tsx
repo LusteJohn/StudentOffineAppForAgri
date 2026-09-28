@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,6 +18,7 @@ import { useTheme } from "@/hooks/use-theme";
 
 import { BottomNavbar } from "@/components/bottom-navbar";
 import { Header } from "@/components/header";
+import { AnimatedModal, StaggeredFadeInView } from "@/components/animated-modal";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import {
@@ -1442,20 +1442,19 @@ export default function ContentInfoScreen() {
         </View>
       )}
 
-      <Modal
-        animationType="slide"
-        transparent
+      <AnimatedModal
         visible={jobModalVisible}
         onRequestClose={closeAnswerModal}
+        overlayStyle={dynamicStyles.modalOverlay}
       >
-        <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
-          <View style={[styles.modalCard, dynamicStyles.modalCard]}>
-            <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>
-              Job Sheet Answer
-            </Text>
-            <Text style={[styles.modalSubtitle, dynamicStyles.modalSubtitle]}>
-              {selectedSheet?.job_title}
-            </Text>
+        <View style={[styles.modalCard, dynamicStyles.modalCard]}>
+          <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>
+            Job Sheet Answer
+          </Text>
+          <Text style={[styles.modalSubtitle, dynamicStyles.modalSubtitle]}>
+            {selectedSheet?.job_title}
+          </Text>
+          <StaggeredFadeInView delay={50}>
             <ScrollView
               contentContainerStyle={styles.modalScrollContent}
               keyboardShouldPersistTaps="handled"
@@ -1509,36 +1508,36 @@ export default function ContentInfoScreen() {
                 </View>
               ) : null}
             </ScrollView>
-            <View style={styles.modalActions}>
-              <Pressable
-                disabled={jobSubmitting}
-                onPress={closeAnswerModal}
-                style={[styles.cancelButton, dynamicStyles.cancelButton]}
+          </StaggeredFadeInView>
+          <View style={styles.modalActions}>
+            <Pressable
+              disabled={jobSubmitting}
+              onPress={closeAnswerModal}
+              style={[styles.cancelButton, dynamicStyles.cancelButton]}
+            >
+              <Text
+                style={[
+                  styles.cancelButtonText,
+                  dynamicStyles.cancelButtonText,
+                ]}
               >
-                <Text
-                  style={[
-                    styles.cancelButtonText,
-                    dynamicStyles.cancelButtonText,
-                  ]}
-                >
-                  Cancel
-                </Text>
-              </Pressable>
-              <Pressable
-                disabled={jobSubmitting}
-                onPress={handleJobSubmitAnswer}
-                style={[styles.saveButton, dynamicStyles.saveButton]}
+                Cancel
+              </Text>
+            </Pressable>
+            <Pressable
+              disabled={jobSubmitting}
+              onPress={handleJobSubmitAnswer}
+              style={[styles.saveButton, dynamicStyles.saveButton]}
+            >
+              <Text
+                style={[styles.saveButtonText, dynamicStyles.saveButtonText]}
               >
-                <Text
-                  style={[styles.saveButtonText, dynamicStyles.saveButtonText]}
-                >
-                  {jobSubmitting ? "Submitting..." : "Submit"}
-                </Text>
-              </Pressable>
-            </View>
+                {jobSubmitting ? "Submitting..." : "Submit"}
+              </Text>
+            </Pressable>
           </View>
         </View>
-      </Modal>
+      </AnimatedModal>
     </View>
   );
 
@@ -2183,14 +2182,13 @@ export default function ContentInfoScreen() {
 
       <BottomNavbar activeTab="content-info" userId={activeUserId} />
 
-      <Modal
-        transparent
-        animationType="fade"
+      <AnimatedModal
         visible={congratsModalVisible}
         onRequestClose={() => setCongratsModalVisible(false)}
+        overlayStyle={styles.congratsOverlay}
       >
-        <View style={styles.congratsOverlay}>
-          <View style={[styles.congratsCard, { backgroundColor: isDark ? theme.backgroundElement : "#ffffff" }]}>
+        <View style={[styles.congratsCard, { backgroundColor: isDark ? theme.backgroundElement : "#ffffff" }]}>
+          <StaggeredFadeInView delay={50}>
             {congratsBadgeImage ? (
               <Image
                 source={resolveAchievementAsset(congratsBadgeImage) ?? require("@/assets/lesson_badges/badge_m1_l1.png")}
@@ -2211,33 +2209,33 @@ export default function ContentInfoScreen() {
             <Text style={styles.congratsMessage}>
               For achieving {congratsAchievementName}
             </Text>
-            <View style={styles.congratsButtonRow}>
-              <Pressable
-                onPress={() => setCongratsModalVisible(false)}
-                style={[styles.congratsOkButton, { backgroundColor: isDark ? theme.backgroundSelected : "#f1f5f9" }]}
-              >
-                <Text style={[styles.congratsOkButtonText, { color: isDark ? theme.text : "#475569" }]}>
-                  OK
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setCongratsModalVisible(false);
-                  router.replace({
-                    pathname: "/achievement",
-                    params: { userId: String(activeUserId) },
-                  });
-                }}
-                style={styles.congratsViewButton}
-              >
-                <Text style={styles.congratsViewButtonText}>
-                  View
-                </Text>
-              </Pressable>
-            </View>
+          </StaggeredFadeInView>
+          <View style={styles.congratsButtonRow}>
+            <Pressable
+              onPress={() => setCongratsModalVisible(false)}
+              style={[styles.congratsOkButton, { backgroundColor: isDark ? theme.backgroundSelected : "#f1f5f9" }]}
+            >
+              <Text style={[styles.congratsOkButtonText, { color: isDark ? theme.text : "#475569" }]}>
+                OK
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setCongratsModalVisible(false);
+                router.replace({
+                  pathname: "/achievement",
+                  params: { userId: String(activeUserId) },
+                });
+              }}
+              style={styles.congratsViewButton}
+            >
+              <Text style={styles.congratsViewButtonText}>
+                View
+              </Text>
+            </Pressable>
           </View>
         </View>
-      </Modal>
+      </AnimatedModal>
     </ThemedView>
   );
 }

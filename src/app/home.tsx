@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { BottomNavbar } from "@/components/bottom-navbar";
 import { Header } from "@/components/header";
+import { AnimatedModal, StaggeredFadeInView } from "@/components/animated-modal";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { TutorialOverlay } from "@/components/tutorial-overlay";
@@ -1007,37 +1007,36 @@ export default function HomeScreen() {
 
       <BottomNavbar activeTab="home" userId={userId} />
 
-      <Modal
-        transparent
-        animationType="fade"
+      <AnimatedModal
         visible={progressModalVisible}
         onRequestClose={closeModuleProgress}
+        overlayStyle={dynamicStyles.modalOverlay}
       >
         {selectedModule ? (
-          <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
-            <View style={[styles.modalCard, dynamicStyles.modalCard]}>
-              <View style={styles.modalHeaderRow}>
-                <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>
-                  {selectedModule.module_name}
-                </Text>
-                <Pressable
-                  onPress={closeModuleProgress}
+          <View style={[styles.modalCard, dynamicStyles.modalCard]}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>
+                {selectedModule.module_name}
+              </Text>
+              <Pressable
+                onPress={closeModuleProgress}
+                style={[
+                  styles.modalCloseButton,
+                  dynamicStyles.modalCloseButton,
+                ]}
+              >
+                <Text
                   style={[
-                    styles.modalCloseButton,
-                    dynamicStyles.modalCloseButton,
+                    styles.modalCloseText,
+                    dynamicStyles.modalCloseText,
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.modalCloseText,
-                      dynamicStyles.modalCloseText,
-                    ]}
-                  >
-                    ✕
-                  </Text>
-                </Pressable>
-              </View>
+                  ✕
+                </Text>
+              </Pressable>
+            </View>
 
+            <StaggeredFadeInView delay={50}>
               <View style={styles.modalSummaryRow}>
                 <View style={styles.modalSummaryItem}>
                   <Text style={styles.modalSummaryValue}>
@@ -1182,48 +1181,47 @@ export default function HomeScreen() {
                   Close
                 </Text>
               </Pressable>
-            </View>
+            </StaggeredFadeInView>
           </View>
         ) : null}
-      </Modal>
+      </AnimatedModal>
 
-      <Modal
-        transparent
-        animationType="fade"
+      <AnimatedModal
         visible={activityModalVisible}
         onRequestClose={closeDayActivity}
+        overlayStyle={dynamicStyles.modalOverlay}
       >
-        <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
-          <View style={[styles.modalCard, dynamicStyles.modalCard]}>
-            <View style={styles.modalHeaderRow}>
-              <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>
-                {selectedDayDate
-                  ? new Date(selectedDayDate + 'T00:00:00').toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
-                  : 'Daily Activity'}
-              </Text>
-              <Pressable
-                onPress={closeDayActivity}
+        <View style={[styles.modalCard, dynamicStyles.modalCard]}>
+          <View style={styles.modalHeaderRow}>
+            <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>
+              {selectedDayDate
+                ? new Date(selectedDayDate + 'T00:00:00').toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })
+                : 'Daily Activity'}
+            </Text>
+            <Pressable
+              onPress={closeDayActivity}
+              style={[
+                styles.modalCloseButton,
+                dynamicStyles.modalCloseButton,
+              ]}
+            >
+              <Text
                 style={[
-                  styles.modalCloseButton,
-                  dynamicStyles.modalCloseButton,
+                  styles.modalCloseText,
+                  dynamicStyles.modalCloseText,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.modalCloseText,
-                    dynamicStyles.modalCloseText,
-                  ]}
-                >
-                  ✕
-                </Text>
-              </Pressable>
-            </View>
+                ✕
+              </Text>
+            </Pressable>
+          </View>
 
+          <StaggeredFadeInView delay={50}>
             {dailyLoading ? (
               <View style={styles.activityLoadingContainer}>
                 <Text style={styles.summaryText}>
@@ -1339,9 +1337,9 @@ export default function HomeScreen() {
                 Close
               </Text>
             </Pressable>
-          </View>
+          </StaggeredFadeInView>
         </View>
-      </Modal>
+      </AnimatedModal>
 
       <TutorialOverlay
         visible={tutorialVisible}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Image, Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView, Platform, Image, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useFocusEffect, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -7,8 +7,10 @@ import { useCustomAlert } from '@/lib/custom-alert';
 import { useThemeContext } from '@/contexts/theme-context';
 import { useTheme } from '@/hooks/use-theme';
 
+import * as FileSystemLegacy from 'expo-file-system/legacy';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
+import { AnimatedModal, StaggeredFadeInView } from '@/components/animated-modal';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { createStudentProfile, getStudentProfileByUserId, resetAndSeedLocalData, StudentProfile, updateStudentProfile, listLessonContentBookmarkByUser, getLessonContentById, getLessonById, getModuleById, LessonContentBookmarkRecord, LessonContentRecord, LessonRecord, ModuleRecord, getStudentReportData, StudentReportData } from '@/lib/auth-api';
@@ -559,14 +561,6 @@ export default function SettingsScreen() {
   };
 
   const generateAndShareReport = async (data: StudentReportData) => {
-    if (!Print || !Sharing) {
-      showAlert(
-        'Export unavailable',
-        'PDF export requires expo-print and expo-sharing modules. Please rebuild the app after installing new dependencies: npx expo prebuild && npx expo run:android (or ios)',
-      );
-      return;
-    }
-
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
     const studentName = data.studentInfo
@@ -797,17 +791,44 @@ export default function SettingsScreen() {
     `;
 
     try {
-      const { uri } = await Print.printToFileAsync({ html });
-      await Sharing.shareAsync(uri, {
-        mimeType: 'application/pdf',
-        dialogTitle: `Student Report - ${studentName}`,
-        UTI: 'com.adobe.pdf',
-      });
-    } catch (printError) {
-      showAlert(
-        'Export failed',
-        'Unable to generate PDF. Please rebuild the app after installing new dependencies: npx expo prebuild && npx expo run:android (or ios)',
-      );
+      if (Print && Sharing) {
+        try {
+          const { uri } = await Print.printToFileAsync({ html });
+          await Sharing.shareAsync(uri, {
+            mimeType: 'application/pdf',
+            dialogTitle: `Student Report - ${studentName}`,
+            UTI: 'com.adobe.pdf',
+          });
+          return;
+        } catch {
+          try {
+            await Print.printAsync({ html });
+            return;
+          } catch {}
+        }
+      }
+    } catch {}
+
+    try {
+      const dir = FileSystemLegacy.documentDirectory || FileSystemLegacy.cacheDirectory;
+      if (!dir) {
+        showAlert('Export failed', 'Unable to access file system.');
+        return;
+      }
+      const fileUri = `${dir}student-report-${dateStr}.html`;
+      await FileSystemLegacy.writeAsStringAsync(fileUri, html, { encoding: FileSystemLegacy.EncodingType.UTF8 });
+
+      if (Sharing) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'text/html',
+          dialogTitle: `Student Report - ${studentName}`,
+        });
+      } else {
+        showAlert('Report saved', `Report saved to: ${fileUri}`);
+      }
+    } catch (fallbackError) {
+      console.error('Report generation failed:', fallbackError);
+      showAlert('Export failed', 'Unable to generate report.');
     }
   };
 
@@ -1134,8 +1155,11 @@ export default function SettingsScreen() {
         </View>
       </ScrollView>
 
-      <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={closeModal}>
-        <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+      <AnimatedModal
+        visible={modalVisible}
+        onRequestClose={closeModal}
+        overlayStyle={{ backgroundColor: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(2, 6, 23, 0.45)' }}
+      >
           <View style={[styles.modalCard, dynamicStyles.modalCard]}>
             <View style={styles.modalHeaderRow}>
               <View style={styles.modalHeaderContent}>
@@ -1150,114 +1174,116 @@ export default function SettingsScreen() {
                 <Ionicons name="close" size={18} color={colors.text} />
               </Pressable>
             </View>
-             <KeyboardAvoidingView
-               style={styles.keyboardAvoidingView}
-               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-             >
+            <KeyboardAvoidingView
+              style={styles.keyboardAvoidingView}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
               <ScrollView contentContainerStyle={styles.modalScrollContent} keyboardShouldPersistTaps="handled">
                <View style={styles.imageUploadBlock}>
-                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Student Photo</ThemedText>
-                 <Pressable onPress={pickImage} style={[styles.imageUploadButton, dynamicStyles.imageUploadButton]}>
-                   {studentImage ? (
-                     <Image source={{ uri: studentImage }} style={styles.imagePreview} />
-                   ) : (
-                     <>
-                       <Ionicons name="camera-outline" size={24} color={colors.textSecondary} />
-                       <ThemedText style={[styles.imageUploadText, dynamicStyles.imageUploadText]}>Tap to upload</ThemedText>
-                     </>
-                   )}
-                 </Pressable>
+                  <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Student Photo</ThemedText>
+                  <Pressable onPress={pickImage} style={[styles.imageUploadButton, dynamicStyles.imageUploadButton]}>
+                    {studentImage ? (
+                      <Image source={{ uri: studentImage }} style={styles.imagePreview} />
+                    ) : (
+                      <>
+                        <Ionicons name="camera-outline" size={24} color={colors.textSecondary} />
+                        <ThemedText style={[styles.imageUploadText, dynamicStyles.imageUploadText]}>Tap to upload</ThemedText>
+                      </>
+                    )}
+                  </Pressable>
+                </View>
+                <View style={styles.fieldBlock}>
+                  <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>First Name</ThemedText>
+                  <TextInput
+                    style={[styles.input, dynamicStyles.input]}
+                    placeholder="First Name"
+                    placeholderTextColor={colors.textSecondary}
+                    value={firstName}
+                    onChangeText={setFirstName}
+                  />
+                </View>
+                <View style={styles.fieldBlock}>
+                  <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Middle Name</ThemedText>
+                  <TextInput
+                    style={[styles.input, dynamicStyles.input]}
+                    placeholder="Middle Name (optional)"
+                    placeholderTextColor={colors.textSecondary}
+                    value={middleName}
+                    onChangeText={setMiddleName}
+                  />
+                </View>
+                <View style={styles.fieldBlock}>
+                  <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Last Name</ThemedText>
+                  <TextInput
+                    style={[styles.input, dynamicStyles.input]}
+                    placeholder="Last Name"
+                    placeholderTextColor={colors.textSecondary}
+                    value={lastName}
+                    onChangeText={setLastName}
+                  />
                </View>
-               <View style={styles.fieldBlock}>
-                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>First Name</ThemedText>
-                 <TextInput
-                   style={[styles.input, dynamicStyles.input]}
-                   placeholder="First Name"
-                   placeholderTextColor={colors.textSecondary}
-                   value={firstName}
-                   onChangeText={setFirstName}
-                 />
-               </View>
-               <View style={styles.fieldBlock}>
-                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Middle Name</ThemedText>
-                 <TextInput
-                   style={[styles.input, dynamicStyles.input]}
-                   placeholder="Middle Name (optional)"
-                   placeholderTextColor={colors.textSecondary}
-                   value={middleName}
-                   onChangeText={setMiddleName}
-                 />
-               </View>
-               <View style={styles.fieldBlock}>
-                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Last Name</ThemedText>
-                 <TextInput
-                   style={[styles.input, dynamicStyles.input]}
-                   placeholder="Last Name"
-                   placeholderTextColor={colors.textSecondary}
-                   value={lastName}
-                   onChangeText={setLastName}
-                 />
-              </View>
-               <View style={styles.fieldBlock}>
-                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Birthdate</ThemedText>
-                 <Pressable onPress={openDatePicker} style={[styles.dateTrigger, dynamicStyles.dateTrigger]}>
-                   <ThemedText style={[styles.dateTriggerText, dynamicStyles.dateTriggerText]}>{birthdate || 'Select birthdate'}</ThemedText>
-                   <Ionicons name="calendar-outline" size={18} color={colors.text} />
-                 </Pressable>
-               </View>
-               <View style={styles.fieldBlock}>
-                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Home Address</ThemedText>
-                 <TextInput
-                   style={[styles.input, styles.multilineInput, dynamicStyles.input]}
-                   multiline
-                   placeholder="Home Address"
-                   placeholderTextColor={colors.textSecondary}
-                   value={homeAddress}
-                   onChangeText={setHomeAddress}
-                 />
-               </View>
-               <View style={styles.fieldBlock}>
-                 <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Grade Level</ThemedText>
-                 <TextInput
-                   style={[styles.input, dynamicStyles.input]}
-                   placeholder="Grade Level (e.g., Grade 9)"
-                   placeholderTextColor={colors.textSecondary}
-                   value={gradeLevel}
-                   onChangeText={setGradeLevel}
-                 />
-               </View>
+                <View style={styles.fieldBlock}>
+                  <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Birthdate</ThemedText>
+                  <Pressable onPress={openDatePicker} style={[styles.dateTrigger, dynamicStyles.dateTrigger]}>
+                    <ThemedText style={[styles.dateTriggerText, dynamicStyles.dateTriggerText]}>{birthdate || 'Select birthdate'}</ThemedText>
+                    <Ionicons name="calendar-outline" size={18} color={colors.text} />
+                  </Pressable>
+                </View>
+                <View style={styles.fieldBlock}>
+                  <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Home Address</ThemedText>
+                  <TextInput
+                    style={[styles.input, styles.multilineInput, dynamicStyles.input]}
+                    multiline
+                    placeholder="Home Address"
+                    placeholderTextColor={colors.textSecondary}
+                    value={homeAddress}
+                    onChangeText={setHomeAddress}
+                  />
+                </View>
+                <View style={styles.fieldBlock}>
+                  <ThemedText style={[styles.fieldLabel, dynamicStyles.fieldLabel]}>Grade Level</ThemedText>
+                  <TextInput
+                    style={[styles.input, dynamicStyles.input]}
+                    placeholder="Grade Level (e.g., Grade 9)"
+                    placeholderTextColor={colors.textSecondary}
+                    value={gradeLevel}
+                    onChangeText={setGradeLevel}
+                  />
+                </View>
+                <View style={styles.modalActions}>
+                  <Pressable disabled={saving} onPress={closeModal} style={[styles.cancelButton, dynamicStyles.cancelButton]}>
+                    <ThemedText style={[styles.cancelButtonText, dynamicStyles.cancelButtonText]}>Cancel</ThemedText>
+                  </Pressable>
+                  <Pressable disabled={saving} onPress={handleSaveProfile} style={[styles.saveButton, dynamicStyles.saveButton]}>
+                    <ThemedText style={[styles.saveButtonText, dynamicStyles.saveButtonText]}>{saving ? 'Saving...' : 'Save'}</ThemedText>
+                  </Pressable>
+                </View>
               </ScrollView>
-             </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+          </View>
+      </AnimatedModal>
 
-              <View style={styles.modalActions}>
-               <Pressable disabled={saving} onPress={closeModal} style={[styles.cancelButton, dynamicStyles.cancelButton]}>
-                 <ThemedText style={[styles.cancelButtonText, dynamicStyles.cancelButtonText]}>Cancel</ThemedText>
-               </Pressable>
-               <Pressable disabled={saving} onPress={handleSaveProfile} style={[styles.saveButton, dynamicStyles.saveButton]}>
-                 <ThemedText style={[styles.saveButtonText, dynamicStyles.saveButtonText]}>{saving ? 'Saving...' : 'Save'}</ThemedText>
-               </Pressable>
-             </View>
-           </View>
-         </View>
-       </Modal>
+      <AnimatedModal
+        visible={datePickerVisible}
+        onRequestClose={() => setDatePickerVisible(false)}
+        overlayStyle={{ backgroundColor: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(2, 6, 23, 0.45)' }}
+      >
+          <View style={[styles.dateModalCard, dynamicStyles.dateModalCard]}>
+            <View style={styles.modalHeaderRow}>
+              <View style={styles.modalHeaderContent}>
+                <ThemedText type="code" style={[styles.modalEyebrow, dynamicStyles.modalEyebrow]}>
+                  Calendar
+                </ThemedText>
+                <ThemedText type="subtitle" style={[styles.modalTitle, dynamicStyles.modalTitle]}>
+                  Select birthdate
+                </ThemedText>
+              </View>
+              <Pressable onPress={() => setDatePickerVisible(false)} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
+                <Ionicons name="close" size={18} color={colors.text} />
+              </Pressable>
+            </View>
 
-       <Modal animationType="fade" transparent visible={datePickerVisible} onRequestClose={() => setDatePickerVisible(false)}>
-         <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
-           <View style={[styles.dateModalCard, dynamicStyles.dateModalCard]}>
-             <View style={styles.modalHeaderRow}>
-               <View style={styles.modalHeaderContent}>
-                 <ThemedText type="code" style={[styles.modalEyebrow, dynamicStyles.modalEyebrow]}>
-                   Calendar
-                 </ThemedText>
-                 <ThemedText type="subtitle" style={[styles.modalTitle, dynamicStyles.modalTitle]}>
-                   Select birthdate
-                 </ThemedText>
-               </View>
-               <Pressable onPress={() => setDatePickerVisible(false)} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
-                 <Ionicons name="close" size={18} color={colors.text} />
-               </Pressable>
-             </View>
-
+            <StaggeredFadeInView delay={50}>
             <View style={styles.dateRow}>
               <DateAdjuster label="Year" value={String(selectedYear)} onMinus={() => updateYear(-1)} onPlus={() => updateYear(1)} />
               <DateAdjuster
@@ -1282,9 +1308,9 @@ export default function SettingsScreen() {
                 <ThemedText style={[styles.saveButtonText, dynamicStyles.saveButtonText]}>Use Date</ThemedText>
               </Pressable>
             </View>
+            </StaggeredFadeInView>
           </View>
-        </View>
-      </Modal>
+      </AnimatedModal>
 
       <BottomNavbar activeTab="settings" userId={activeUserId} />
     </ThemedView>
