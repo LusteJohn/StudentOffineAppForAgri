@@ -1,10 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
-import { AnimatedModal, StaggeredFadeInView } from '@/components/animated-modal';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { LessonContentRecord, LessonInfoRecord, LessonLinkRecord, LessonRecord, ModuleRecord, listLessons, listLessonContentByLessonId, listModules, listLessonInfoByLessonId, listLessonLinkByLessonId, listLessonContentProgressByUser } from '@/lib/auth-api';
@@ -397,122 +396,112 @@ export default function LessonScreen() {
 
       <BottomNavbar activeTab="lesson" userId={activeUserId} />
 
-      <AnimatedModal
-        visible={detailVisible}
-        onRequestClose={closeLessonDetail}
-        overlayStyle={styles.modalOverlay}
-      >
+      <Modal transparent animationType="fade" visible={detailVisible} onRequestClose={closeLessonDetail}>
         {selectedLesson ? (
-          <View style={[styles.modalCard, dynamicStyles.modalCard]}>
-            <View style={styles.modalHeaderRow}>
-              <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>Lesson</Text>
-              <Pressable onPress={closeLessonDetail} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
-                <Text style={[styles.modalCloseText, dynamicStyles.modalCloseText]}>✕</Text>
-              </Pressable>
-            </View>
+          <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
+            <View style={[styles.modalCard, dynamicStyles.modalCard]}>
+              <View style={styles.modalHeaderRow}>
+                <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>Lesson</Text>
+                <Pressable onPress={closeLessonDetail} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
+                  <Text style={[styles.modalCloseText, dynamicStyles.modalCloseText]}>✕</Text>
+                </Pressable>
+              </View>
 
-            <StaggeredFadeInView delay={50}>
               <ScrollView contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
-                <View style={styles.infoCard}>
-                  <View style={styles.infoRow}>
-                    <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Lesson ID</Text>
-                    <Text style={[styles.infoValue, dynamicStyles.infoValue]}>#{selectedLesson?.lesson_id}</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Module ID</Text>
-                    <Text style={[styles.infoValue, dynamicStyles.infoValue]}>#{selectedLesson?.module_id}</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Lesson Name</Text>
-                    <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedLesson?.lesson_name}</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Order</Text>
-                    <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedLesson?.order_number}</Text>
-                  </View>
+              <View style={styles.infoCard}>
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Lesson ID</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>#{selectedLesson?.lesson_id}</Text>
                 </View>
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Module ID</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>#{selectedLesson?.module_id}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Lesson Name</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedLesson?.lesson_name}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Order</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedLesson?.order_number}</Text>
+                </View>
+              </View>
 
-                {lessonInfos.length > 0 ? (
-                  <StaggeredFadeInView delay={100}>
-                    <View style={styles.infoCard}>
-                      <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Info</Text>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalListContent}>
-                        {lessonInfos.map((info) => (
-                          <View key={info.lesson_info_id} style={[styles.horizontalCard, dynamicStyles.horizontalCard]}>
-                            <Text style={[styles.horizontalLabel, dynamicStyles.horizontalLabel]}>{info.label}</Text>
-                            <Text style={[styles.horizontalContent, dynamicStyles.horizontalContent]}>{info.content}</Text>
-                          </View>
-                        ))}
-                      </ScrollView>
-                    </View>
-                  </StaggeredFadeInView>
-                ) : null}
-
-                {lessonLinks.length > 0 ? (
-                  <StaggeredFadeInView delay={100}>
-                    <View style={styles.infoCard}>
-                      <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Links</Text>
-                      {lessonLinks.map((link) => (
-                        <View key={link.lesson_link_id} style={styles.infoRow}>
-                          <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Link</Text>
-                          <Text style={[styles.infoValue, dynamicStyles.infoValue, styles.linkText]}>{link.link}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </StaggeredFadeInView>
-                ) : null}
-
-                <StaggeredFadeInView delay={150}>
-                  <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Contents</Text>
-                  <ScrollView style={styles.contentList} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
-                    {lessonContents.length > 0 ? (
-                      lessonContents.map((content, index) => {
-                        const isFirst = index === 0;
-                        const prevContent = lessonContents[index - 1];
-                        const isContentUnlocked = isFirst || (prevContent ? !!progressMap[prevContent.lesson_content_id] : false);
-                        return (
-                          <View key={content.lesson_content_id} style={[styles.contentCard, dynamicStyles.contentCard]}>
-                            <View style={styles.contentHeader}>
-                              <Text style={[styles.contentName, dynamicStyles.contentName]}>• {content.content_name}</Text>
-                              {progressMap[content.lesson_content_id] ? (
-                                <View style={[styles.readBadge, dynamicStyles.readBadge]}>
-                                  <Text style={[styles.readBadgeText, dynamicStyles.readBadgeText]}>✓ Read</Text>
-                                </View>
-                              ) : null}
-                              {!isContentUnlocked ? (
-                                <Ionicons name="lock-closed" size={14} color={theme.textSecondary} style={styles.lockClosed} />
-                              ) : null}
-                            </View>
-                    <View style={styles.contentBody}>
-                              <Text style={[styles.contentLabel, dynamicStyles.contentLabel]}>Objectives</Text>
-                              <Text style={[styles.contentValue, dynamicStyles.contentValue]}>{content.objectives}</Text>
-                            </View>
-                            <Pressable
-                              onPress={() => isContentUnlocked && openContentInfo(content.lesson_content_id)}
-                              disabled={!isContentUnlocked}
-                              style={[styles.viewContentButton, !isContentUnlocked && styles.viewContentButtonDisabled, dynamicStyles.viewContentButton]}
-                            >
-                              <Text style={[styles.viewContentButtonText, dynamicStyles.viewContentButtonText]}>View Content</Text>
-                            </Pressable>
-                          </View>
-                        );
-                      })
-                    ) : (
-                      <View style={[styles.emptyContentCard, dynamicStyles.emptyContentCard]}>
-                        <Text style={[styles.emptyContentText, dynamicStyles.emptyContentText]}>No lesson content available for this lesson.</Text>
+              {lessonInfos.length > 0 ? (
+                <View style={styles.infoCard}>
+                  <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Info</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalListContent}>
+                    {lessonInfos.map((info) => (
+                      <View key={info.lesson_info_id} style={[styles.horizontalCard, dynamicStyles.horizontalCard]}>
+                        <Text style={[styles.horizontalLabel, dynamicStyles.horizontalLabel]}>{info.label}</Text>
+                        <Text style={[styles.horizontalContent, dynamicStyles.horizontalContent]}>{info.content}</Text>
                       </View>
-                    )}
+                    ))}
                   </ScrollView>
+                </View>
+              ) : null}
 
-                   <Pressable onPress={closeLessonDetail} style={[styles.closeButton, dynamicStyles.closeButton]}>
-                     <Text style={[styles.closeButtonText, dynamicStyles.closeButtonText]}>Close</Text>
-                   </Pressable>
-                  </StaggeredFadeInView>
-                </ScrollView>
-              </StaggeredFadeInView>
-            </View>
-          ) : null}
-        </AnimatedModal>
+              {lessonLinks.length > 0 ? (
+                <View style={styles.infoCard}>
+                  <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Links</Text>
+                  {lessonLinks.map((link) => (
+                    <View key={link.lesson_link_id} style={styles.infoRow}>
+                      <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Link</Text>
+                      <Text style={[styles.infoValue, dynamicStyles.infoValue, styles.linkText]}>{link.link}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
+               <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Contents</Text>
+               <ScrollView style={styles.contentList} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+                 {lessonContents.length > 0 ? (
+                   lessonContents.map((content, index) => {
+                     const isFirst = index === 0;
+                     const prevContent = lessonContents[index - 1];
+                     const isContentUnlocked = isFirst || (prevContent ? !!progressMap[prevContent.lesson_content_id] : false);
+                     return (
+                       <View key={content.lesson_content_id} style={[styles.contentCard, dynamicStyles.contentCard]}>
+                         <View style={styles.contentHeader}>
+                           <Text style={[styles.contentName, dynamicStyles.contentName]}>• {content.content_name}</Text>
+                           {progressMap[content.lesson_content_id] ? (
+                             <View style={[styles.readBadge, dynamicStyles.readBadge]}>
+                               <Text style={[styles.readBadgeText, dynamicStyles.readBadgeText]}>✓ Read</Text>
+                             </View>
+                           ) : null}
+                           {!isContentUnlocked ? (
+                             <Ionicons name="lock-closed" size={14} color={theme.textSecondary} style={styles.lockClosed} />
+                           ) : null}
+                         </View>
+                         <View style={styles.contentBody}>
+                           <Text style={[styles.contentLabel, dynamicStyles.contentLabel]}>Objectives</Text>
+                           <Text style={[styles.contentValue, dynamicStyles.contentValue]}>{content.objectives}</Text>
+                         </View>
+                         <Pressable
+                           onPress={() => isContentUnlocked && openContentInfo(content.lesson_content_id)}
+                           disabled={!isContentUnlocked}
+                           style={[styles.viewContentButton, !isContentUnlocked && styles.viewContentButtonDisabled, dynamicStyles.viewContentButton]}
+                         >
+                           <Text style={[styles.viewContentButtonText, dynamicStyles.viewContentButtonText]}>View Content</Text>
+                         </Pressable>
+                       </View>
+                     );
+                   })
+                 ) : (
+                  <View style={[styles.emptyContentCard, dynamicStyles.emptyContentCard]}>
+                    <Text style={[styles.emptyContentText, dynamicStyles.emptyContentText]}>No lesson content available for this lesson.</Text>
+                  </View>
+                )}
+ </ScrollView>
+
+               <Pressable onPress={closeLessonDetail} style={[styles.closeButton, dynamicStyles.closeButton]}>
+                 <Text style={[styles.closeButtonText, dynamicStyles.closeButtonText]}>Close</Text>
+              </Pressable>
+            </ScrollView>
+          </View>
+        </View>
+        ) : null}
+      </Modal>
 
     </ThemedView>
   );
