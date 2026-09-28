@@ -218,7 +218,7 @@ export type StudentReportData = {
   user: StudentUser | null;
   studentInfo: StudentProfile | null;
   questionAnswers: (QuestionAnswerRecord & { question_text: string | null })[];
-  jobSheetAnswers: (JobSheetAnswerRecord & { job_title: string | null })[];
+  jobSheetAnswers: (JobSheetAnswerRecord & { job_title: string | null; module_id: number | null; module_name: string | null })[];
   performanceAnswers: (PerformanceAnswerRecord & { performance_question: string | null })[];
   lessonContentProgress: (LessonContentProgressRecord & { content_name: string | null; lesson_name: string | null })[];
   lessonContentBookmarks: (LessonContentBookmarkRecord & { content_name: string | null; lesson_name: string | null })[];
@@ -1617,7 +1617,10 @@ function toStudentUser(user: StoredStudentUser): StudentUser {
   };
 }
 
+let databaseInitialized = false;
+
 async function ensureDatabase() {
+  if (databaseInitialized) return;
   const db = await databasePromise;
   await db.execAsync("PRAGMA journal_mode = WAL");
 
@@ -2115,6 +2118,8 @@ async function ensureDatabase() {
   } catch (error) {
     console.error("Module achievement seeding failed:", error);
   }
+
+  databaseInitialized = true;
 }
 
 export async function getSetting(key: string): Promise<string | null> {
@@ -3126,10 +3131,13 @@ export async function getStudentReportData(userId: number) {
        WHERE qa.user_id = ? ORDER BY qa.answer_id ASC`,
       [userId],
     ),
-    db.getAllAsync<JobSheetAnswerRecord & { job_title: string | null }>(
-      `SELECT ja.*, js.job_title
+    db.getAllAsync<JobSheetAnswerRecord & { job_title: string | null; module_id: number | null; module_name: string | null }>(
+      `SELECT ja.*, js.job_title, m.module_id, m.module_name
        FROM job_sheet_answers ja
        LEFT JOIN job_sheet js ON js.job_id = ja.job_id
+       LEFT JOIN lesson_content lc ON lc.lesson_content_id = js.lesson_content_id
+       LEFT JOIN lessons l ON l.lesson_id = lc.lesson_id
+       LEFT JOIN modules m ON m.module_id = l.module_id
        WHERE ja.user_id = ? ORDER BY ja.answer_id ASC`,
       [userId],
     ),

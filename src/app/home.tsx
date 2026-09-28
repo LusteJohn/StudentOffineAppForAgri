@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -626,12 +626,9 @@ export default function HomeScreen() {
           setContinueLoading(false);
         }
       })();
+      loadDashboardData();
     }, [userId]),
   );
-
-  useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
 
   const handleStep1Complete = useCallback(async () => {
     const existing = await getStudentTutorialByUserId(userId);

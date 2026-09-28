@@ -161,7 +161,6 @@ export default function ContentInfoScreen() {
   );
   const [contentInfos, setContentInfos] = useState<ContentInfoRecord[]>([]);
   const [imageUris, setImageUris] = useState<Record<number, string>>({});
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isRead, setIsRead] = useState(false);
   const [markingRead, setMarkingRead] = useState(false);
@@ -184,6 +183,7 @@ export default function ContentInfoScreen() {
   const [exerciseHasExistingAnswers, setExerciseHasExistingAnswers] =
     useState(false);
   const [exerciseLoaded, setExerciseLoaded] = useState(false);
+  const [contentInfoLoaded, setContentInfoLoaded] = useState(false);
   const [jobSheets, setJobSheets] = useState<JobSheetRecord[]>([]);
   const [jobAnswers, setJobAnswers] = useState<JobSheetAnswerRecord[]>([]);
   const [jobModalVisible, setJobModalVisible] = useState(false);
@@ -704,26 +704,27 @@ export default function ContentInfoScreen() {
   );
 
   const loadContentInfo = useCallback(async () => {
+    if (contentInfoLoaded) return;
+    setContentInfoLoaded(true);
     setError("");
-    setLoading(true);
     setImageUris({});
     try {
       const lessonContent = await getLessonContentById(lessonContentId);
       if (!lessonContent) {
         showAlert("Unable to load content", "Lesson content not found.");
         setError("Lesson content not found.");
-        setLoading(false);
         return;
       }
       setContentItem(lessonContent);
 
-      const lesson = await getLessonById(lessonContent.lesson_id);
-      const moduleRecord = lesson
-        ? await getModuleById(lesson.module_id)
-        : null;
-      const infos = await listContentInfoByLessonContentId(
-        lessonContent.lesson_content_id,
-      );
+      const [lesson, infos, existingProgress, existingBookmark] = await Promise.all([
+        lessonContent.lesson_id ? getLessonById(lessonContent.lesson_id) : Promise.resolve(null),
+        listContentInfoByLessonContentId(lessonContent.lesson_content_id),
+        listLessonContentProgressByUserAndLessonContent(activeUserId, lessonContentId),
+        listLessonContentBookmarkByUserAndLessonContent(activeUserId, lessonContentId),
+      ]);
+
+      const moduleRecord = lesson ? await getModuleById(lesson.module_id) : null;
 
       setLessonItem(lesson ?? null);
       setModuleItem(moduleRecord ?? null);
@@ -740,33 +741,23 @@ export default function ContentInfoScreen() {
       }
       setImageUris(uris);
 
-      const existingProgress =
-        await listLessonContentProgressByUserAndLessonContent(
-          activeUserId,
-          lessonContentId,
-        );
       setIsRead(
         existingProgress.length > 0 && Boolean(existingProgress[0].is_read),
       );
 
-      const existingBookmark =
-        await listLessonContentBookmarkByUserAndLessonContent(
-          activeUserId,
-          lessonContentId,
-        );
       setIsBookmarked(
         existingBookmark.length > 0 && Boolean(existingBookmark[0].is_bookmark),
       );
 
       if (lessonContent?.lesson_id) {
         setCurrentLessonId(lessonContent.lesson_id);
-        await checkLessonAchieved(lessonContent.lesson_id);
-      }
-      if (lessonContent?.lesson_id) {
-        const lesson = await getLessonById(lessonContent.lesson_id);
+        const achPromises: Promise<any>[] = [
+          checkLessonAchieved(lessonContent.lesson_id),
+        ];
         if (lesson?.module_id) {
-          await checkModuleAchieved(lesson.module_id);
+          achPromises.push(checkModuleAchieved(lesson.module_id));
         }
+        await Promise.all(achPromises);
       }
     } catch (loadError) {
       setError(
@@ -774,10 +765,8 @@ export default function ContentInfoScreen() {
           ? loadError.message
           : "Unable to load content info.",
       );
-    } finally {
-      setLoading(false);
     }
-  }, [lessonContentId, checkLessonAchieved, checkModuleAchieved]);
+  }, [lessonContentId, activeUserId, contentInfoLoaded, checkLessonAchieved, checkModuleAchieved]);
 
   useEffect(() => {
     if (Number.isInteger(lessonContentId) && lessonContentId > 0) {
@@ -785,7 +774,6 @@ export default function ContentInfoScreen() {
     } else {
       showAlert("Unable to load content", "Invalid content ID.");
       setError("Invalid content ID.");
-      setLoading(false);
     }
   }, [lessonContentId, loadContentInfo]);
 
@@ -1578,13 +1566,7 @@ export default function ContentInfoScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {loading ? (
-          <View style={styles.emptyState}>
-            <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>
-              Loading content info...
-            </Text>
-          </View>
-        ) : error ? (
+        {error ? (
           <View style={[styles.errorBox, dynamicStyles.errorBox]}>
             <Text style={[styles.errorTitle, dynamicStyles.errorTitle]}>
               Unable to load content info

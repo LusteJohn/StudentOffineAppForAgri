@@ -607,6 +607,8 @@ export default function SettingsScreen() {
           .module-progress-label { display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 12px; font-weight: 600; }
           .module-progress-bar-container { width: 100%; height: 14px; background: #f3f4f6; border-radius: 7px; overflow: hidden; }
           .module-progress-bar { height: 100%; background: #2563eb; border-radius: 7px; }
+          .module-group { margin-bottom: 16px; border-left: 3px solid #2563eb; padding-left: 12px; }
+          .module-group-title { font-size: 13px; font-weight: 700; color: #1e40af; margin-bottom: 6px; }
         </style>
       </head>
       <body>
@@ -674,16 +676,61 @@ export default function SettingsScreen() {
           `).join('')}
         ` : '<p class="empty">No question answers recorded.</p>'}
 
-        <h2>Job Sheet Answers (${data.jobSheetAnswers.length})</h2>
-        ${data.jobSheetAnswers.length > 0 ? `
-          ${data.jobSheetAnswers.map(a => `
-            <div class="record">
-              <div class="record-title">${a.job_title || `Job Sheet #${a.job_id}`}</div>
-              <div class="record-sub">${a.answer_text}</div>
-              <div class="record-meta"><span>Answer ID: ${a.answer_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
-            </div>
-          `).join('')}
-        ` : '<p class="empty">No job sheet answers recorded.</p>'}
+         <h2>Job Sheet Answers (${data.jobSheetAnswers.length})</h2>
+         ${(() => {
+           const grouped = data.jobSheetAnswers.reduce((acc: Record<string, any[]>, a) => {
+             const key = a.module_id ? String(a.module_id) : 'unassigned';
+             if (!acc[key]) acc[key] = [];
+             acc[key].push(a);
+             return acc;
+           }, {} as Record<string, any[]>);
+           return Object.keys(grouped).length > 0 ? `
+             ${Object.keys(grouped).map(moduleKey => {
+               const answers = grouped[moduleKey];
+               const moduleTitle = moduleKey === 'unassigned'
+                 ? 'Unassigned'
+                 : (answers[0]?.module_name || `Module #${moduleKey}`);
+               return `
+                 <div class="module-group">
+                   <div class="module-group-title">${moduleTitle}</div>
+                   ${answers.map(a => `
+                     <div class="record">
+                       <div class="record-title">${a.job_title || `Job Sheet #${a.job_id}`}</div>
+                       <div class="record-sub">${a.answer_text}</div>
+                       <div class="record-meta"><span>Answer ID: ${a.answer_id} | Score: ${a.score ?? 0}/100</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+                     </div>
+                   `).join('')}
+                 </div>
+               `;
+             }).join('')}
+           ` : '<p class="empty">No job sheet answers recorded.</p>';
+         })()}
+
+         <h2>Module Scores</h2>
+         ${(() => {
+           const grouped = data.jobSheetAnswers.reduce((acc: Record<string, any[]>, a) => {
+             const key = a.module_id ? String(a.module_id) : 'unassigned';
+             if (!acc[key]) acc[key] = [];
+             acc[key].push(a);
+             return acc;
+           }, {} as Record<string, any[]>);
+           return Object.keys(grouped).length > 0 ? `
+             <table>
+               <thead><tr><th>Module</th><th>Average Score (/100)</th><th>Count</th></tr></thead>
+               <tbody>
+                 ${Object.keys(grouped).map(moduleKey => {
+                   const answers = grouped[moduleKey];
+                   const moduleTitle = moduleKey === 'unassigned'
+                     ? 'Unassigned'
+                     : (answers[0]?.module_name || `Module #${moduleKey}`);
+                   const totalScore = answers.reduce((sum, a) => sum + (a.score ?? 0), 0);
+                   const avgScore = answers.length > 0 ? Math.round(totalScore / answers.length) : 0;
+                   return `<tr><td>${moduleTitle}</td><td>${avgScore}/100</td><td>${answers.length}</td></tr>`;
+                 }).join('')}
+               </tbody>
+             </table>
+           ` : '<p class="empty">No job sheet answers recorded.</p>';
+         })()}
 
         <h2>Performance Answers (${data.performanceAnswers.length})</h2>
         ${data.performanceAnswers.length > 0 ? `
