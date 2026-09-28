@@ -150,6 +150,7 @@ export type JobSheetAnswerRecord = {
   job_id: number;
   user_id: number;
   answer_text: string;
+  score: number;
   created_at: string;
   updated_at: string;
 };
@@ -1767,6 +1768,7 @@ async function ensureDatabase() {
         job_id INTEGER NOT NULL,
         user_id INTEGER NOT NULL,
         answer_text TEXT NOT NULL,
+        score INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (job_id) REFERENCES job_sheet(job_id),
@@ -4164,6 +4166,7 @@ export async function createJobSheetAnswer(payload: {
   job_id: number;
   user_id: number;
   answer_text: string;
+  score?: number;
 }) {
   await ensureDatabase();
   const db = await databasePromise;
@@ -4175,9 +4178,10 @@ export async function createJobSheetAnswer(payload: {
 
   if ((existing?.count ?? 0) > 0) {
     const updatedAt = new Date().toISOString();
+    const score = payload.score ?? 0;
     await db.runAsync(
-      `UPDATE job_sheet_answers SET answer_text = ?, updated_at = ? WHERE job_id = ? AND user_id = ?`,
-      [payload.answer_text, updatedAt, payload.job_id, payload.user_id],
+      `UPDATE job_sheet_answers SET answer_text = ?, score = ?, updated_at = ? WHERE job_id = ? AND user_id = ?`,
+      [payload.answer_text, score, updatedAt, payload.job_id, payload.user_id],
     );
     const updated = await db.getFirstAsync<JobSheetAnswerRecord>(
       "SELECT * FROM job_sheet_answers WHERE job_id = ? AND user_id = ?",
@@ -4191,10 +4195,11 @@ export async function createJobSheetAnswer(payload: {
   );
   const answerId = row?.answer_id ?? 1;
   const now = new Date().toISOString();
+  const score = payload.score ?? 0;
 
   await db.runAsync(
-    `INSERT INTO job_sheet_answers (answer_id, job_id, user_id, answer_text, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
-    [answerId, payload.job_id, payload.user_id, payload.answer_text, now, now],
+    `INSERT INTO job_sheet_answers (answer_id, job_id, user_id, answer_text, score, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [answerId, payload.job_id, payload.user_id, payload.answer_text, score, now, now],
   );
 
   return {
@@ -4202,6 +4207,7 @@ export async function createJobSheetAnswer(payload: {
     job_id: payload.job_id,
     user_id: payload.user_id,
     answer_text: payload.answer_text,
+    score,
     created_at: now,
     updated_at: now,
   } satisfies JobSheetAnswerRecord;

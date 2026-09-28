@@ -1277,6 +1277,7 @@ export default function ContentInfoScreen() {
                 job_id: selectedSheet.job_id,
                 user_id: activeUserId,
                 answer_text: answerTextToSave,
+                score: 100,
               });
               if (newAnswer) {
                 setJobAnswers((prev) => [...prev, newAnswer]);

@@ -625,18 +625,20 @@ async function createJobSheetAnswer(payload: {
   job_id: number;
   user_id: number;
   answer_text: string;
+  score?: number;
 }): Promise<JobSheetAnswerRecord>
 ```
 
 **Validation:**
 - `job_id` > 0, `user_id` > 0
 - `answer_text` non-empty after trim
+- `score` must be a non-negative integer (defaults to 0)
 - `(job_id, user_id)` must be unique
 
 **Query:**
 ```sql
-INSERT INTO job_sheet_answers (answer_id, job_id, user_id, answer_text, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?)
+INSERT INTO job_sheet_answers (answer_id, job_id, user_id, answer_text, score, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?)
 ```
 
 **Errors:**

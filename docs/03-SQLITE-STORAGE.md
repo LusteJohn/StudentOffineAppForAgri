@@ -651,6 +651,7 @@ CREATE TABLE IF NOT EXISTS job_sheet_answers (
   job_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
   answer_text TEXT NOT NULL,
+  score INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (job_id) REFERENCES job_sheet(job_id),
@@ -664,6 +665,7 @@ CREATE TABLE IF NOT EXISTS job_sheet_answers (
 | job_id | INTEGER | NOT NULL, FK | Reference to job_sheet |
 | user_id | INTEGER | NOT NULL, FK | Reference to users |
 | answer_text | TEXT | NOT NULL | Student's answer (may include image URIs) |
+| score | INTEGER | NOT NULL, DEFAULT 0 | Score (out of 100) for the submitted answer |
 | created_at | TEXT | NOT NULL | Creation timestamp |
 | updated_at | TEXT | NOT NULL | Last update timestamp |
 
