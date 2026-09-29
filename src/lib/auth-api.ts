@@ -235,6 +235,12 @@ export type StudentTutorialRecord = {
   step1_done: number;
   step2_done: number;
   step3_done: number;
+  step4_done: number;
+  step5_done: number;
+  step6_done: number;
+  step7_done: number;
+  step8_done: number;
+  step9_done: number;
   created_at: string;
   updated_at: string;
 };
@@ -1861,17 +1867,23 @@ async function ensureDatabase() {
          setting_value TEXT NOT NULL
        )`,
     `CREATE TABLE IF NOT EXISTS student_tutorials (
-         tutorial_id INTEGER PRIMARY KEY NOT NULL,
-         user_id INTEGER NOT NULL,
-         completed INTEGER NOT NULL DEFAULT 0,
-         step1_done INTEGER NOT NULL DEFAULT 0,
-         step2_done INTEGER NOT NULL DEFAULT 0,
-         step3_done INTEGER NOT NULL DEFAULT 0,
-         created_at TEXT NOT NULL,
-         updated_at TEXT NOT NULL,
-         FOREIGN KEY (user_id) REFERENCES users(user_id),
-         UNIQUE(user_id)
-       )`,
+          tutorial_id INTEGER PRIMARY KEY NOT NULL,
+          user_id INTEGER NOT NULL,
+          completed INTEGER NOT NULL DEFAULT 0,
+          step1_done INTEGER NOT NULL DEFAULT 0,
+          step2_done INTEGER NOT NULL DEFAULT 0,
+          step3_done INTEGER NOT NULL DEFAULT 0,
+          step4_done INTEGER NOT NULL DEFAULT 0,
+          step5_done INTEGER NOT NULL DEFAULT 0,
+          step6_done INTEGER NOT NULL DEFAULT 0,
+          step7_done INTEGER NOT NULL DEFAULT 0,
+          step8_done INTEGER NOT NULL DEFAULT 0,
+          step9_done INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(user_id),
+          UNIQUE(user_id)
+        )`,
   ];
 
   try {
@@ -1909,6 +1921,16 @@ async function ensureDatabase() {
     );
   } catch {
     // Column already exists or table not yet created; ignore.
+  }
+
+  for (const stepCol of ['step4_done', 'step5_done', 'step6_done', 'step7_done', 'step8_done', 'step9_done']) {
+    try {
+      await db.execAsync(
+        `ALTER TABLE student_tutorials ADD COLUMN ${stepCol} INTEGER NOT NULL DEFAULT 0`,
+      );
+    } catch {
+      // Column already exists; ignore.
+    }
   }
 
   try {
@@ -2601,11 +2623,23 @@ export async function createStudentTutorial(
     | "step1_done"
     | "step2_done"
     | "step3_done"
+    | "step4_done"
+    | "step5_done"
+    | "step6_done"
+    | "step7_done"
+    | "step8_done"
+    | "step9_done"
   > & {
     completed?: boolean;
     step1_done?: boolean;
     step2_done?: boolean;
     step3_done?: boolean;
+    step4_done?: boolean;
+    step5_done?: boolean;
+    step6_done?: boolean;
+    step7_done?: boolean;
+    step8_done?: boolean;
+    step9_done?: boolean;
   },
 ) {
   await ensureDatabase();
@@ -2613,14 +2647,20 @@ export async function createStudentTutorial(
   const now = new Date().toISOString();
   const result = await db.runAsync(
     `INSERT INTO student_tutorials
-      (user_id, completed, step1_done, step2_done, step3_done, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      (user_id, completed, step1_done, step2_done, step3_done, step4_done, step5_done, step6_done, step7_done, step8_done, step9_done, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       payload.user_id,
       payload.completed ? 1 : 0,
       payload.step1_done ? 1 : 0,
       payload.step2_done ? 1 : 0,
       payload.step3_done ? 1 : 0,
+      payload.step4_done ? 1 : 0,
+      payload.step5_done ? 1 : 0,
+      payload.step6_done ? 1 : 0,
+      payload.step7_done ? 1 : 0,
+      payload.step8_done ? 1 : 0,
+      payload.step9_done ? 1 : 0,
       now,
       now,
     ],
@@ -2633,6 +2673,12 @@ export async function createStudentTutorial(
     step1_done: payload.step1_done ? 1 : 0,
     step2_done: payload.step2_done ? 1 : 0,
     step3_done: payload.step3_done ? 1 : 0,
+    step4_done: payload.step4_done ? 1 : 0,
+    step5_done: payload.step5_done ? 1 : 0,
+    step6_done: payload.step6_done ? 1 : 0,
+    step7_done: payload.step7_done ? 1 : 0,
+    step8_done: payload.step8_done ? 1 : 0,
+    step9_done: payload.step9_done ? 1 : 0,
     created_at: now,
     updated_at: now,
   };
@@ -2687,6 +2733,30 @@ export async function updateStudentTutorial(
   if (payload.step3_done !== undefined) {
     sets.push("step3_done = ?");
     vals.push(payload.step3_done);
+  }
+  if (payload.step4_done !== undefined) {
+    sets.push("step4_done = ?");
+    vals.push(payload.step4_done);
+  }
+  if (payload.step5_done !== undefined) {
+    sets.push("step5_done = ?");
+    vals.push(payload.step5_done);
+  }
+  if (payload.step6_done !== undefined) {
+    sets.push("step6_done = ?");
+    vals.push(payload.step6_done);
+  }
+  if (payload.step7_done !== undefined) {
+    sets.push("step7_done = ?");
+    vals.push(payload.step7_done);
+  }
+  if (payload.step8_done !== undefined) {
+    sets.push("step8_done = ?");
+    vals.push(payload.step8_done);
+  }
+  if (payload.step9_done !== undefined) {
+    sets.push("step9_done = ?");
+    vals.push(payload.step9_done);
   }
   if (sets.length === 0) return;
   vals.push(now, tutorialId);
