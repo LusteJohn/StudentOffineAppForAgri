@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
-import { CompetencyRecord, ModuleRecord, listCompetencies, listModules } from '@/lib/auth-api';
+import { CompetencyRecord, ModuleRecord, listCompetencies, listModules, LessonRecord, LessonContentRecord, listLessons, listLessonContent, listLessonContentProgressByUser, LessonContentProgressRecord } from '@/lib/auth-api';
 
 const moduleImages: Record<number, any> = {
   1: require('@/assets/learning_materials/modules/1/raise.png'),
@@ -31,6 +31,9 @@ export default function ModuleScreen() {
 
   const [competencies, setCompetencies] = useState<CompetencyRecord[]>([]);
   const [modules, setModules] = useState<ModuleRecord[]>([]);
+  const [lessons, setLessons] = useState<LessonRecord[]>([]);
+  const [lessonContents, setLessonContents] = useState<LessonContentRecord[]>([]);
+  const [lessonContentProgress, setLessonContentProgress] = useState<LessonContentProgressRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -77,32 +80,10 @@ export default function ModuleScreen() {
     card: {
       backgroundColor: theme.backgroundElement,
       shadowColor: isDark ? '#000000' : '#000000',
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
-    },
-    cardTitle: {
-      color: theme.text,
-    },
-    cardStatus: {
-      color: theme.textSecondary,
-    },
-    cardThumbnail: {
-      backgroundColor: isDark ? theme.backgroundSelected : '#e2e8f0',
-    },
-    downloadButton: {
-      backgroundColor: isDark ? theme.backgroundSelected : '#eef2f1',
-    },
-    downloadIcon: {
-      color: theme.text,
-    },
-    downloadButtonText: {
-      color: theme.text,
+      borderWidth: 0,
     },
     startButton: {
       borderColor: PRIMARY,
-      backgroundColor: theme.backgroundElement,
-    },
-    startButtonText: {
-      color: theme.text,
     },
     emptyState: {
       backgroundColor: theme.backgroundElement,
@@ -187,19 +168,28 @@ export default function ModuleScreen() {
     });
   };
 
-  const loadData = useCallback(async () => {
+   const loadData = useCallback(async () => {
     setError('');
     try {
-      const [competencyRecords, moduleRecords] = await Promise.all([listCompetencies(), listModules()]);
+      const [competencyRecords, moduleRecords, lessonRecords, contentRecords, progressRecords] = await Promise.all([
+        listCompetencies(),
+        listModules(),
+        listLessons(),
+        listLessonContent(),
+        listLessonContentProgressByUser(activeUserId),
+      ]);
       setCompetencies(competencyRecords);
       setModules(moduleRecords);
+      setLessons(lessonRecords);
+      setLessonContents(contentRecords);
+      setLessonContentProgress(progressRecords);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load competencies.');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [activeUserId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -239,16 +229,22 @@ export default function ModuleScreen() {
     setSelectedModules([]);
   };
 
-  const handleDownload = (competencyModule: ModuleRecord | null) => {
-    if (competencyModule?.module_pdf) {
-      Linking.openURL(competencyModule.module_pdf).catch(() => {
-        // no-op
-      });
-    }
-  };
-
-  const getProgressLabel = (competency: CompetencyRecord) => {
-    return competency.status.toLowerCase() === 'active' ? 'Not started' : 'Unavailable';
+  const getModuleProgress = (moduleId: number) => {
+    const readContentIds = new Set(
+      lessonContentProgress
+        .filter((p) => p.is_read)
+        .map((p) => p.lesson_content_id),
+    );
+    const modLessons = lessons.filter((l) => l.module_id === moduleId);
+    const modContents = lessonContents.filter((c) =>
+      modLessons.some((ml) => ml.lesson_id === c.lesson_id),
+    );
+    const completed = modContents.filter((c) => readContentIds.has(c.lesson_content_id)).length;
+    return {
+      completed,
+      total: modContents.length,
+      percent: modContents.length > 0 ? Math.round((completed / modContents.length) * 100) : 0,
+    };
   };
 
   return (
@@ -269,50 +265,47 @@ export default function ModuleScreen() {
         </ScrollView>
 
         <View style={[styles.section, isCompact && styles.sectionCompact]}>
-          {competencies.map((competency) => {
-            const competencyModule = modules.find((m) => m.competency_id === competency.competency_id) ?? null;
+            {competencies.map((competency) => {
+              const competencyModule = modules.find((m) => m.competency_id === competency.competency_id) ?? null;
+              const moduleProgress = getModuleProgress(competencyModule?.module_id ?? 0);
+              const progressText = `${moduleProgress.completed}/${moduleProgress.total} (${moduleProgress.percent}%)`;
 
-            return (
-              <View key={competency.competency_id} style={[styles.card, styles.surfaceCard, isCompact && styles.cardCompact]}>
-                <View style={styles.cardTopRow}>
-                  <View style={styles.cardTextGroup}>
-                    <Text style={[styles.cardTitle, dynamicStyles.cardTitle]} numberOfLines={2}>
-                      {competency.competency_name}
-                    </Text>
-                    <Text style={[styles.cardStatus, dynamicStyles.cardStatus]}>{getProgressLabel(competency)}</Text>
-                  </View>
-
+              return (
+                <View key={competency.competency_id} style={[styles.card, styles.surfaceCard, isCompact && styles.cardCompact, styles.cardNoBorder]}>
                   {(() => {
-                    const moduleImage = getModuleImage(competencyModule?.module_id ?? 0);
-                    if (moduleImage) {
-                      return <Image source={moduleImage} style={styles.cardThumbnail} resizeMode="cover" />;
+                    const bgImage = getModuleImage(competencyModule?.module_id ?? 0) ?? (competencyModule?.thumbnail ? { uri: competencyModule.thumbnail } : null);
+                    if (bgImage) {
+                      const source = typeof bgImage === 'number' ? bgImage : bgImage;
+                      return (
+                        <Image
+                          source={source}
+                          style={styles.cardBackgroundImage}
+                        />
+                      );
                     }
-                    if (competencyModule?.thumbnail) {
-                      return <Image source={{ uri: competencyModule.thumbnail }} style={styles.cardThumbnail} resizeMode="cover" />;
-                    }
-                    return <View style={[styles.cardThumbnail, styles.cardThumbnailPlaceholder]} />;
+                    return <View style={styles.cardBackgroundPlaceholder} />;
                   })()}
+                  <View style={styles.cardContentOverlay}>
+                    <View style={styles.cardTextGroup}>
+                      <Text style={[styles.cardTitle, styles.cardTitleOnImage]} numberOfLines={2}>
+                        {competency.competency_name}
+                      </Text>
+                      <Text style={[styles.cardStatus, styles.cardStatusOnImage]}>
+                        {progressText}
+                      </Text>
+                    </View>
+                    <View style={styles.cardButtonRow}>
+                      <Pressable
+                        onPress={() => openCompetencyDetail(competency)}
+                        style={[styles.startButton, styles.startButtonGreen, isCompact && styles.startButtonCompact]}
+                      >
+                        <Text style={styles.startButtonTextGreen}>Start</Text>
+                      </Pressable>
+                    </View>
+                  </View>
                 </View>
-
-                <View style={styles.cardButtonRow}>
-                  <Pressable
-                    onPress={() => handleDownload(competencyModule)}
-                    style={[styles.downloadButton, isCompact && styles.downloadButtonCompact]}
-                  >
-                    <Text style={styles.downloadIcon}>⬇</Text>
-                    <Text style={[styles.downloadButtonText, dynamicStyles.downloadButtonText]}>Download</Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => openCompetencyDetail(competency)}
-                    style={[styles.startButton, isCompact && styles.startButtonCompact]}
-                  >
-                    <Text style={[styles.startButtonText, dynamicStyles.startButtonText]}>Start Module</Text>
-                  </Pressable>
-                </View>
-              </View>
-            );
-          })}
+              );
+            })}
 
           {!competencies.length && !error ? (
             <View style={[styles.emptyState, dynamicStyles.emptyState]}>
@@ -486,40 +479,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 1,
-    borderWidth: 1,
+    borderWidth: 0,
+    overflow: 'hidden',
+    height: 136,
   },
-  cardTopRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  cardTextGroup: {
-    flex: 1,
-    gap: 4,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    lineHeight: 22,
-  },
-  cardStatus: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  cardThumbnail: {
-    width: 68,
-    height: 68,
-    borderRadius: 14,
-  },
-  cardThumbnailPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardButtonRow: {
-    flexDirection: 'row',
-    gap: 10,
-    flexWrap: 'wrap',
+  cardNoBorder: {
+    borderWidth: 0,
   },
   surfaceCard: {
     shadowColor: '#0f172a',
@@ -531,25 +496,50 @@ const styles = StyleSheet.create({
   cardCompact: {
     padding: 14,
   },
-  downloadButton: {
+  cardBackgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 36,
+    resizeMode: 'cover',
+  },
+  cardBackgroundPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 36,
+    backgroundColor: '#e2e8f0',
+  },
+  cardContentOverlay: {
     flex: 1,
+    justifyContent: 'space-between',
+  },
+  cardTextGroup: {
+    flex: 1,
+    gap: 4,
+    justifyContent: 'flex-start',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 22,
+    color: '#ffffff',
+  },
+  cardTitleOnImage: {
+    color: '#ffffff',
+  },
+  cardStatus: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  cardStatusOnImage: {
+    color: '#ffffff',
+  },
+  cardButtonRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 13,
-    borderRadius: 14,
-  },
-  downloadIcon: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  downloadButtonCompact: {
-    minHeight: 44,
-  },
-  downloadButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
+    gap: 10,
   },
   startButton: {
     flex: 1,
@@ -559,12 +549,17 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1.5,
   },
+  startButtonGreen: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+  },
+  startButtonTextGreen: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
   startButtonCompact: {
     minHeight: 44,
-  },
-  startButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
   },
   emptyState: {
     paddingVertical: 32,
