@@ -11,7 +11,7 @@ import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { createStudentProfile, getStudentProfileByUserId, resetAndSeedLocalData, StudentProfile, updateStudentProfile, listLessonContentBookmarkByUser, getLessonContentById, getLessonById, getModuleById, LessonContentBookmarkRecord, LessonContentRecord, LessonRecord, ModuleRecord, getStudentReportData, StudentReportData } from '@/lib/auth-api';
+import { createStudentProfile, getStudentProfileByUserId, resetAndSeedLocalData, StudentProfile, updateStudentProfile, listLessonContentBookmarkByUser, getLessonContentById, getLessonById, getModuleById, LessonContentBookmarkRecord, LessonContentRecord, LessonRecord, ModuleRecord, getStudentReportData, StudentReportData, getSetting, setSetting, getStudentTutorialByUserId, updateStudentTutorial, createStudentTutorial } from '@/lib/auth-api';
 
 let Print: any;
 let Sharing: any;
@@ -92,6 +92,7 @@ export default function SettingsScreen() {
   const [gradeLevel, setGradeLevel] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
   const [studentImage, setStudentImage] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
   const { showAlert } = useCustomAlert();
@@ -329,6 +330,10 @@ export default function SettingsScreen() {
         if (isMounted) {
           setProfile(profileByUser ?? null);
         }
+        const onboardingSetting = await getSetting('show_home_tutorial');
+        if (isMounted) {
+          setShowOnboarding(onboardingSetting === 'true');
+        }
       } catch {
         if (isMounted) {
           setProfile(null);
@@ -542,6 +547,23 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleOnboardingToggle = async (value: boolean) => {
+    setShowOnboarding(value);
+    await setSetting('show_home_tutorial', value ? 'true' : 'false');
+    if (value) {
+      try {
+        const existing = await getStudentTutorialByUserId(activeUserId);
+        if (existing) {
+          await updateStudentTutorial(existing.tutorial_id, { completed: 0 });
+        } else {
+          await createStudentTutorial({ user_id: activeUserId, completed: false });
+        }
+      } catch {
+        // ignore
+      }
+    }
+  };
+
   const handleExportReport = async () => {
     setExporting(true);
     try {
@@ -617,187 +639,360 @@ export default function SettingsScreen() {
 
         <h2>Student Information</h2>
         ${data.studentInfo ? `
-          <div class="meta">
-            <div class="meta-item"><span class="meta-label">Name:</span> ${data.studentInfo.first_name} ${data.studentInfo.middle_name || ''} ${data.studentInfo.last_name}</div>
-            <div class="meta-item"><span class="meta-label">Birthdate:</span> ${data.studentInfo.birthdate}</div>
-            <div class="meta-item"><span class="meta-label">Address:</span> ${data.studentInfo.home_address}</div>
-            <div class="meta-item"><span class="meta-label">Grade Level:</span> ${data.studentInfo.grade_level}</div>
-            <div class="meta-item"><span class="meta-label">Created:</span> ${new Date(data.studentInfo.created_at).toLocaleString()}</div>
-            <div class="meta-item"><span class="meta-label">Updated:</span> ${new Date(data.studentInfo.updated_at).toLocaleString()}</div>
+          <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px;">
+            ${data.studentInfo.student_image ? `
+              <img src="${data.studentInfo.student_image}" alt="Profile" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;" />
+            ` : `
+              <div style="width: 80px; height: 80px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; border: 2px solid #e5e7eb;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#9ca3af" stroke="#6b7280" stroke-width="2"/>
+                  <path d="M20.59 20C20.59 20 16.73 23 12 23C7.27 23 3.41 20 3.41 20C3.41 17.95 4.99 16.11 7.76 15.33C6.68 14.49 6 13.32 6 12C6 10.9 6.31 9.88 6.87 9.05C5.12 8.36 4 6.82 4 5.11C4 3.48 5.34 2 7 2H21C22.66 2 24 3.48 24 5.11C24 6.82 22.88 8.36 22.13 9.05C22.69 9.88 23 10.9 23 12C23 13.32 22.32 14.49 21.24 15.33C24 16.11 24 17.95 20.59 20Z" fill="#9ca3af" stroke="#6b7280" stroke-width="2"/>
+                </svg>
+              </div>
+            `}
+            <div class="meta">
+              <div class="meta-item"><span class="meta-label">Name:</span> ${data.studentInfo.first_name} ${data.studentInfo.middle_name || ''} ${data.studentInfo.last_name}</div>
+              <div class="meta-item"><span class="meta-label">Grade Level:</span> ${data.studentInfo.grade_level}</div>
+              <div class="meta-item"><span class="meta-label">Address:</span> ${data.studentInfo.home_address}</div>
+              <div class="meta-item"><span class="meta-label">Email:</span> ${data.user?.email || '-'}</div>
+              <div class="meta-item"><span class="meta-label">Birthdate:</span> ${data.studentInfo.birthdate}</div>
+              <div class="meta-item"><span class="meta-label">Created:</span> ${new Date(data.studentInfo.created_at).toLocaleString()}</div>
+              <div class="meta-item"><span class="meta-label">Updated:</span> ${new Date(data.studentInfo.updated_at).toLocaleString()}</div>
+            </div>
           </div>
         ` : '<p class="empty">No student profile found.</p>'}
 
-        <h2>Weekly Activity</h2>
-        ${data.weeklyActivity.length === 7 && data.weeklyActivity.every((v) => v === 0) ? `
-          <p class="empty">No activity recorded this week.</p>
-        ` : `
-          <div class="chart-box">
-            <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">Activity count</div>
-            <div class="chart-bar-row">
-              ${data.weeklyActivity.map((count, i) => {
-                const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+       <h2>Weekly Activity</h2>
+      ${data.weeklyActivity.length === 7 && data.weeklyActivity.every((v) => v === 0) ? `
+        <p class="empty">No activity recorded this week.</p>
+      ` : `
+        <div class="chart-box">
+          <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Weekly Activity (Questions, Job Sheets, Performance Tasks, Progress & Achievements)</div>
+          <svg width="100%" height="160" viewBox="0 0 500 160" preserveAspectRatio="xMidYMid meet">
+            <polyline fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"
+              points="${data.weeklyActivity.map((count, i) => {
+                const x = 30 + (i * (440 / 6));
                 const maxCount = Math.max(...data.weeklyActivity, 1);
-                const height = (count / maxCount) * 100;
+                const y = 130 - (count / maxCount) * 100;
+                return `${x},${y}`;
+              }).join(' ')}">
+              <animate attributeName="stroke-dasharray" values="0 1000;1000 0" dur="1s" fill="freeze" />
+            </polyline>
+            ${data.weeklyActivity.map((count, i) => {
+              const x = 30 + (i * (440 / 6));
+              const maxCount = Math.max(...data.weeklyActivity, 1);
+              const y = 130 - (count / maxCount) * 100;
+              return `
+                <circle cx="${x}" cy="${y}" r="3.5" fill="#2563eb" />
+                <text x="${x}" y="145" text-anchor="middle" font-size="10" fill="#6b7280">
+                  ${["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}
+                </text>
+                ${count > 0 ? `<text x="${x}" y="${y - 10}" text-anchor="middle" font-size="9" fill="#374151" font-weight="600">${count}</text>` : ''}
+              `;
+            }).join('')}
+            <line x1="30" y1="130" x2="470" y2="130" stroke="#d1d5db" stroke-width="1" />
+          </svg>
+        </div>
+      `}
+
+      <h2>Module Completion Overview</h2>
+      ${data.moduleProgress.length > 0 ? `
+        <div class="chart-box">
+          <div style="font-size: 12px; color: #6b7280; margin-bottom: 12px;">Overall module progress</div>
+          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <svg width="140" height="140" viewBox="0 0 140 140" preserveAspectRatio="xMidYMid meet">
+              ${(() => {
+                const totalItems = data.moduleProgress.length;
+                const radius = 55;
+                const centerX = 70;
+                const centerY = 70;
+                let offset = 0;
+                let totalPct = 0;
+
+                const slices = data.moduleProgress.map((m, i) => {
+                  const pct = m.total > 0 ? (m.completed / m.total) : 0;
+                  totalPct += pct;
+                  if (pct === 0) {
+                    return '';
+                  }
+                  const startAngle = (offset / totalItems) * 2 * Math.PI;
+                  const endAngle = ((offset + pct) / totalItems) * 2 * Math.PI;
+                  const x1 = centerX + radius * Math.sin(startAngle);
+                  const y1 = centerY - radius * Math.cos(startAngle);
+                  const x2 = centerX + radius * Math.sin(endAngle);
+                  const y2 = centerY - radius * Math.cos(endAngle);
+                  const largeArc = pct > 0.5 ? 1 : 0;
+                  offset += pct;
+                  const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a3', '#f97316'];
+                  const color = colors[i % colors.length];
+                  return `<path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z" fill="${color}" stroke="#ffffff" stroke-width="0.5"/>`;
+                }).join('');
+                return slices;
+              })()}
+              <circle cx="70" cy="70" r="30" fill="#f9fafb" />
+              <text x="70" y="70" text-anchor="middle" font-size="14" font-weight="700" fill="#111827" dy="0.3">
+                ${Math.round(data.moduleProgress.reduce((s, m) => s + (m.total > 0 ? (m.completed / m.total) * 100 : 0), 0) / data.moduleProgress.length)}%
+              </text>
+            </svg>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${data.moduleProgress.map((m, i) => {
+                const pct = m.total > 0 ? Math.round((m.completed / m.total) * 100) : 0;
+                const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a3', '#f97316'];
+                const color = colors[i % colors.length];
                 return `
-                  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 120px; justify-content: flex-end;">
-                    <div class="chart-bar" style="height: ${height}%; min-height: 2px; max-height: 100%;"></div>
-                    <div class="chart-day-label">${days[i]}</div>
-                    ${count > 0 ? `<div class="chart-bar-value">${count}</div>` : ''}
+                  <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: ${color};"></span>
+                    <span style="font-weight: 600; min-width: 120px;">${m.module_name}</span>
+                    <span style="color: #6b7280;">${pct}% (${m.completed}/${m.total})</span>
                   </div>
                 `;
               }).join('')}
             </div>
           </div>
-        `}
+        </div>
+      ` : '<p class="empty">No module data available.</p>'}
 
-        <h2>Module Completion</h2>
-        ${data.moduleProgress.length > 0 ? `
-          ${data.moduleProgress.map((m) => {
-            const pct = m.total > 0 ? Math.round((m.completed / m.total) * 100) : 0;
-            return `
-              <div class="module-progress-item">
-                <div class="module-progress-label">${m.module_name} (${m.completed}/${m.total})</div>
-                <div class="module-progress-bar-container">
-                  <div class="module-progress-bar" style="width: ${pct}%;"></div>
-                </div>
+      ${(() => {
+        const allModuleIds = data.allModules.map((m) => m.module_id);
+        const lessonContentMap = new Map(data.allLessonContents.map((c) => [c.lesson_content_id, c]));
+        const lessonMap = new Map(data.allLessons.map((l) => [l.lesson_id, l]));
+
+        const getContentModuleId = (lessonContentId: number) => {
+          const lc = lessonContentMap.get(lessonContentId);
+          if (!lc) return null;
+          const lesson = lessonMap.get(lc.lesson_id);
+          return lesson ? lesson.module_id : null;
+        };
+
+        const getModuleInfo = (moduleId: number | null) => {
+          if (moduleId == null) return { module_id: null, module_name: 'Unassigned' };
+          const mod = data.allModules.find((m) => m.module_id === moduleId);
+          return mod ? { module_id: moduleId, module_name: mod.module_name } : { module_id: moduleId, module_name: `Module #${moduleId}` };
+        };
+
+        const moduleIds = ['__unassigned__', ...allModuleIds];
+
+        return moduleIds.map((rawModuleId) => {
+          const moduleKey = String(rawModuleId);
+          const isUnassigned = rawModuleId === '__unassigned__';
+
+          const qaAnswers = data.questionAnswers.filter((a) => {
+            if (isUnassigned) return a.module_id == null;
+            return a.module_id === rawModuleId;
+          });
+          const jsAnswers = data.jobSheetAnswers.filter((a) => {
+            if (isUnassigned) return a.module_id == null;
+            return a.module_id === rawModuleId;
+          });
+          const perfAnswers = data.performanceAnswers.filter((a) => {
+            if (isUnassigned) return a.module_id == null;
+            return a.module_id === rawModuleId;
+          });
+          const lcpRecords = data.lessonContentProgress.filter((p) => {
+            const modId = getContentModuleId(p.lesson_content_id);
+            if (isUnassigned) return modId == null;
+            return modId === rawModuleId;
+          });
+          const lcbRecords = data.lessonContentBookmarks.filter((b) => {
+            const modId = getContentModuleId(b.lesson_content_id);
+            if (isUnassigned) return modId == null;
+            return modId === rawModuleId;
+          });
+          const lessonAchievements = data.studentLessonAchievements.filter((a) => {
+            if (isUnassigned) return a.module_id == null;
+            return a.module_id === rawModuleId;
+          });
+          const moduleAchievements = data.studentModuleAchievements.filter((a) => {
+            if (isUnassigned) return a.module_id == null;
+            return a.module_id === rawModuleId;
+          });
+
+          const totalRecords = qaAnswers.length + jsAnswers.length + perfAnswers.length + lcpRecords.length + lcbRecords.length + lessonAchievements.length + moduleAchievements.length;
+          if (totalRecords === 0) return '';
+
+          const moduleName = isUnassigned ? 'Unassigned' : getModuleInfo(rawModuleId as number).module_name;
+
+          const progressReport = data.moduleProgress.find((m) => m.module_id === rawModuleId);
+          const exerciseCount = qaAnswers.length;
+          const jobSheetCount = jsAnswers.length;
+          const perfCount = perfAnswers.length;
+          const totalExercises = exerciseCount;
+          const totalJobSheets = jobSheetCount;
+          const totalPerf = perfCount;
+
+          const exerciseRate = totalExercises > 0 ? 100 : 0;
+          const jobSheetRate = totalJobSheets > 0 ? 100 : 0;
+          const perfRate = totalPerf > 0 ? 100 : 0;
+
+          const participationScores = [
+            { label: 'Exercises', value: exerciseRate },
+            { label: 'Job Sheets', value: jobSheetRate },
+            { label: 'Performance Tasks', value: perfRate },
+          ];
+          const avgParticipation = Math.round((exerciseRate + jobSheetRate + perfRate) / 3);
+
+          const getProgressColor = (pct: number) => {
+            if (pct >= 75) return '#10b981';
+            if (pct >= 50) return '#f59e0b';
+            if (pct >= 25) return '#f97316';
+            return '#ef4444';
+          };
+
+          const hasLowParticipation = avgParticipation < 75;
+
+          return `
+            <div style="page-break-before: always;">
+              <h2 style="border-bottom: 2px solid #2563eb; padding-bottom: 6px; margin-bottom: 4px;">${moduleName}</h2>
+
+              <h3 style="font-size: 13px; color: #374151; margin: 14px 0 8px 0;">Module Participation</h3>
+              <div style="margin-bottom: 6px; font-size: 11px; color: #6b7280; font-weight: 600;">
+                Exercises / Questions Completion Rate
               </div>
-            `;
-          }).join('')}
-        ` : '<p class="empty">No module data available.</p>'}
-
-        <h2>Question Answers (${data.questionAnswers.length})</h2>
-        ${data.questionAnswers.length > 0 ? `
-          ${data.questionAnswers.map(a => `
-            <div class="record">
-              <div class="record-title">${a.question_text || `Question #${a.question_id}`}</div>
-              <div class="record-sub">${a.answer_text}</div>
-              <div class="record-meta"><span>Answer ID: ${a.answer_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
-            </div>
-          `).join('')}
-        ` : '<p class="empty">No question answers recorded.</p>'}
-
-         <h2>Job Sheet Answers (${data.jobSheetAnswers.length})</h2>
-         ${(() => {
-           const grouped = data.jobSheetAnswers.reduce((acc: Record<string, any[]>, a) => {
-             const key = a.module_id ? String(a.module_id) : 'unassigned';
-             if (!acc[key]) acc[key] = [];
-             acc[key].push(a);
-             return acc;
-           }, {} as Record<string, any[]>);
-           return Object.keys(grouped).length > 0 ? `
-             ${Object.keys(grouped).map(moduleKey => {
-               const answers = grouped[moduleKey];
-               const moduleTitle = moduleKey === 'unassigned'
-                 ? 'Unassigned'
-                 : (answers[0]?.module_name || `Module #${moduleKey}`);
-               return `
-                 <div class="module-group">
-                   <div class="module-group-title">${moduleTitle}</div>
-                   ${answers.map(a => `
-                     <div class="record">
-                       <div class="record-title">${a.job_title || `Job Sheet #${a.job_id}`}</div>
-                       <div class="record-sub">${a.answer_text}</div>
-                       <div class="record-meta"><span>Answer ID: ${a.answer_id} | Score: ${a.score ?? 0}/100</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
-                     </div>
-                   `).join('')}
-                 </div>
-               `;
-             }).join('')}
-           ` : '<p class="empty">No job sheet answers recorded.</p>';
-         })()}
-
-         <h2>Module Scores</h2>
-         ${(() => {
-           const grouped = data.jobSheetAnswers.reduce((acc: Record<string, any[]>, a) => {
-             const key = a.module_id ? String(a.module_id) : 'unassigned';
-             if (!acc[key]) acc[key] = [];
-             acc[key].push(a);
-             return acc;
-           }, {} as Record<string, any[]>);
-           return Object.keys(grouped).length > 0 ? `
-             <table>
-               <thead><tr><th>Module</th><th>Average Score (/100)</th><th>Count</th></tr></thead>
-               <tbody>
-                 ${Object.keys(grouped).map(moduleKey => {
-                   const answers = grouped[moduleKey];
-                   const moduleTitle = moduleKey === 'unassigned'
-                     ? 'Unassigned'
-                     : (answers[0]?.module_name || `Module #${moduleKey}`);
-                   const totalScore = answers.reduce((sum, a) => sum + (a.score ?? 0), 0);
-                   const avgScore = answers.length > 0 ? Math.round(totalScore / answers.length) : 0;
-                   return `<tr><td>${moduleTitle}</td><td>${avgScore}/100</td><td>${answers.length}</td></tr>`;
-                 }).join('')}
-               </tbody>
-             </table>
-           ` : '<p class="empty">No job sheet answers recorded.</p>';
-         })()}
-
-        <h2>Performance Answers (${data.performanceAnswers.length})</h2>
-        ${data.performanceAnswers.length > 0 ? `
-          ${data.performanceAnswers.map(a => `
-            <div class="record">
-              <div class="record-title">${a.performance_question || `Performance #${a.performance_id}`}</div>
-              <div class="record-sub">${a.performance_answer_text}</div>
-              <div class="record-meta"><span>Answer ID: ${a.performance_answer_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
-            </div>
-          `).join('')}
-        ` : '<p class="empty">No performance answers recorded.</p>'}
-
-        <h2>Lesson Content Progress (${data.lessonContentProgress.length})</h2>
-        ${data.lessonContentProgress.length > 0 ? `
-          ${data.lessonContentProgress.map(p => {
-            const lessonLabel = (p.lesson_name && p.lesson_name !== 'null') ? p.lesson_name : `Lesson #${p.lesson_content_id}`;
-            const contentLabel = (p.content_name && p.content_name !== 'null') ? p.content_name : `Lesson Content #${p.lesson_content_id}`;
-            return `
-              <div class="record">
-                <div class="record-title">${lessonLabel} — ${contentLabel}</div>
-                <div class="record-sub">${p.is_read ? '✓ Marked as read' : '✗ Not yet read'} ${p.read_at ? `| Read at: ${new Date(p.read_at).toLocaleString()}` : ''}</div>
-                <div class="record-meta"><span>Progress ID: ${p.progress_lesson_id}</span><span>${new Date(p.created_at).toLocaleString()}</span></div>
+              <div class="module-progress-bar-container">
+                <div class="module-progress-bar" style="width: ${exerciseRate}%; background: ${getProgressColor(exerciseRate)};"></div>
               </div>
-            `;
-          }).join('')}
-        ` : '<p class="empty">No lesson content progress recorded.</p>'}
-
-        <h2>Bookmarks (${data.lessonContentBookmarks.length})</h2>
-        ${data.lessonContentBookmarks.length > 0 ? `
-          ${data.lessonContentBookmarks.map(b => {
-            const lessonLabel = (b.lesson_name && b.lesson_name !== 'null') ? b.lesson_name : `Lesson #${b.lesson_content_id}`;
-            const contentLabel = (b.content_name && b.content_name !== 'null') ? b.content_name : `Lesson Content #${b.lesson_content_id}`;
-            return `
-              <div class="record">
-                <div class="record-title">${lessonLabel} — ${contentLabel}</div>
-                <div class="record-sub">${b.is_bookmark ? '✓ Bookmarked' : '✗ Unbookmarked'}</div>
-                <div class="record-meta"><span>Bookmark ID: ${b.lesson_content_bookmark_id}</span><span>${new Date(b.created_at).toLocaleString()}</span></div>
+              <div style="margin-bottom: 10px; font-size: 10px; color: #9ca3af;">
+                ${exerciseCount} answer${exerciseCount !== 1 ? 's' : ''} recorded
               </div>
-            `;
-          }).join('')}
-        ` : '<p class="empty">No bookmarks recorded.</p>'}
 
-        <h2>Lesson Achievements (${data.studentLessonAchievements.length})</h2>
-        ${data.studentLessonAchievements.length > 0 ? `
-          ${data.studentLessonAchievements.map(a => `
-            <div class="record">
-              <div class="record-title">${a.achievement_name || `Lesson Achievement #${a.lesson_achievement_id}`}</div>
-              <div class="record-meta"><span>ID: ${a.stud_lesson_achievement_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
-            </div>
-          `).join('')}
-        ` : '<p class="empty">No lesson achievements recorded.</p>'}
+              <div style="margin-bottom: 6px; font-size: 11px; color: #6b7280; font-weight: 600;">
+                Job Sheets Completion Rate
+              </div>
+              <div class="module-progress-bar-container">
+                <div class="module-progress-bar" style="width: ${jobSheetRate}%; background: ${getProgressColor(jobSheetRate)};"></div>
+              </div>
+              <div style="margin-bottom: 10px; font-size: 10px; color: #9ca3af;">
+                ${jobSheetCount} answer${jobSheetCount !== 1 ? 's' : ''} recorded
+              </div>
 
-        <h2>Module Achievements (${data.studentModuleAchievements.length})</h2>
-        ${data.studentModuleAchievements.length > 0 ? `
-          ${data.studentModuleAchievements.map(a => `
-            <div class="record">
-              <div class="record-title">${a.achievement_name || `Module Achievement #${a.module_achievement_id}`}</div>
-              <div class="record-meta"><span>ID: ${a.stud_module_achievement_id}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+              <div style="margin-bottom: 6px; font-size: 11px; color: #6b7280; font-weight: 600;">
+                Performance Tasks Completion Rate
+              </div>
+              <div class="module-progress-bar-container">
+                <div class="module-progress-bar" style="width: ${perfRate}%; background: ${getProgressColor(perfRate)};"></div>
+              </div>
+              <div style="margin-bottom: 10px; font-size: 10px; color: #9ca3af;">
+                ${perfCount} answer${perfCount !== 1 ? 's' : ''} recorded
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 8px 12px; border-radius: 8px; background: ${hasLowParticipation ? '#fef2f2' : '#f0fdf4'};">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 12H15M9 16H15M9 8H15M21 12C21 17.5228 17.5228 21 12 21C6.47715 21 2 16.5228 2 12C2 7.47715 6.47715 3 12 3C17.5228 3 21 7.47715 21 12ZM12 7V13L16 15L17 14L13 11V7Z" fill="${hasLowParticipation ? '#ef4444' : '#16a34a'}" stroke="${hasLowParticipation ? '#ef4444' : '#16a34a'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span style="font-size: 12px; font-weight: 600; color: ${hasLowParticipation ? '#991b26' : '#16a34a'};">
+                  Module Participation Score: <strong style="color: ${hasLowParticipation ? '#ef4444' : '#16a34a'};">${avgParticipation}%</strong>
+                  ${hasLowParticipation ? '<span style="color: #ef4444; margin-left: 8px;">(Low participation in some categories - review required)</span>' : ''}
+                </span>
+              </div>
             </div>
-          `).join('')}
-        ` : '<p class="empty">No module achievements recorded.</p>'}
-      </body>
-      </html>
+
+            <h3 style="font-size: 13px; color: #374151; margin: 16px 0 8px 0;">Student Records</h3>
+
+            ${qaAnswers.length > 0 ? `
+              <div class="module-group">
+                <div class="module-group-title">Exercises / Questions (${qaAnswers.length})</div>
+                ${qaAnswers.map(a => `
+                  <div class="record">
+                    <div class="record-title">${a.question_text || 'Question'}</div>
+                    <div class="record-sub">${a.answer_text}</div>
+                    <div class="record-meta"><span>Module: ${moduleName}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${jsAnswers.length > 0 ? `
+              <div class="module-group">
+                <div class="module-group-title">Job Sheet Answers (${jsAnswers.length})</div>
+                ${jsAnswers.map(a => `
+                  <div class="record">
+                    <div class="record-title">${a.job_title || 'Job Sheet'}</div>
+                    <div class="record-sub">${a.answer_text}</div>
+                    <div class="record-meta"><span>Score: ${a.score ?? 0}/100</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${perfAnswers.length > 0 ? `
+              <div class="module-group">
+                <div class="module-group-title">Performance Answers (${perfAnswers.length})</div>
+                ${perfAnswers.map(a => `
+                  <div class="record">
+                    <div class="record-title">${a.performance_question || 'Performance Task'}</div>
+                    <div class="record-sub">${a.performance_answer_text}</div>
+                    <div class="record-meta"><span>Module: ${moduleName}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${lcpRecords.length > 0 ? `
+              <div class="module-group">
+                <div class="module-group-title">Lesson Content Progress (${lcpRecords.length})</div>
+                ${lcpRecords.map(p => {
+                  const lessonLabel = (p.lesson_name && p.lesson_name !== 'null') ? p.lesson_name : 'Lesson Content';
+                  const contentLabel = (p.content_name && p.content_name !== 'null') ? p.content_name : 'Content';
+                  return `
+                    <div class="record">
+                      <div class="record-title">${lessonLabel} — ${contentLabel}</div>
+                      <div class="record-sub">${p.is_read ? '✓ Marked as read' : '✗ Not yet read'} ${p.read_at ? `| Read at: ${new Date(p.read_at).toLocaleString()}` : ''}</div>
+                      <div class="record-meta"><span>${new Date(p.created_at).toLocaleString()}</span></div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : ''}
+
+            ${lcbRecords.length > 0 ? `
+              <div class="module-group">
+                <div class="module-group-title">Bookmarks (${lcbRecords.length})</div>
+                ${lcbRecords.map(b => {
+                  const lessonLabel = (b.lesson_name && b.lesson_name !== 'null') ? b.lesson_name : 'Lesson Content';
+                  const contentLabel = (b.content_name && b.content_name !== 'null') ? b.content_name : 'Content';
+                  return `
+                    <div class="record">
+                      <div class="record-title">${lessonLabel} — ${contentLabel}</div>
+                      <div class="record-sub">${b.is_bookmark ? '✓ Bookmarked' : '✗ Unbookmarked'}</div>
+                      <div class="record-meta"><span>${new Date(b.created_at).toLocaleString()}</span></div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : ''}
+
+            ${lessonAchievements.length > 0 ? `
+              <div class="module-group">
+                <div class="module-group-title">Lesson Achievements (${lessonAchievements.length})</div>
+                ${lessonAchievements.map(a => `
+                  <div class="record">
+                    <div class="record-title">${a.achievement_name || 'Lesson Achievement'}</div>
+                    <div class="record-meta"><span>${new Date(a.created_at).toLocaleString()}</span></div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${moduleAchievements.length > 0 ? `
+              <div class="module-group">
+                <div class="module-group-title">Module Achievements (${moduleAchievements.length})</div>
+                ${moduleAchievements.map(a => `
+                  <div class="record">
+                    <div class="record-title">${a.achievement_name || 'Module Achievement'}</div>
+                    <div class="record-meta"><span>${new Date(a.created_at).toLocaleString()}</span></div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          `;
+        }).join('');
+      })()}
+       </body>
+       </html>
     `;
 
     try {
-      const { uri } = await Print.printToFileAsync({ html });
+      const { uri } = await Print.printToFileAsync({ html, base64: false });
       await Sharing.shareAsync(uri, {
         mimeType: 'application/pdf',
         dialogTitle: `Student Report - ${studentName}`,
@@ -1061,8 +1256,36 @@ export default function SettingsScreen() {
             <ProfileRow label="App Name" value="AgriLearn Student" />
             <ProfileRow label="Version" value={appVersion} />
             <ProfileRow label="Description" value="Agricultural production learning platform" />
+</View>
+        </View>
+
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="school-outline" size={18} color={colors.text} />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
+                Onboarding
+              </ThemedText>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
+                Tutorial Guide
+              </ThemedText>
+            </View>
           </View>
-         </View>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Show the tutorial guide on the home page after login to help new students learn the app.</ThemedText>
+
+          <Pressable
+            onPress={() => handleOnboardingToggle(!showOnboarding)}
+            style={[
+              styles.primaryButton,
+              dynamicStyles.primaryButton,
+              showOnboarding && styles.primaryButtonActive,
+            ]}>
+            <Ionicons name={showOnboarding ? 'checkmark-circle-outline' : 'checkmark-circle'} size={18} color="#ffffff" />
+            <ThemedText style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>{showOnboarding ? 'Enabled' : 'Disabled'}</ThemedText>
+          </Pressable>
+        </View>
 
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
@@ -1551,6 +1774,9 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#0f172a',
     fontWeight: '700',
+  },
+  primaryButtonActive: {
+    backgroundColor: '#3db708',
   },
   logoutButton: {
     flexDirection: 'row',

@@ -217,15 +217,18 @@ export type ModuleProgressReport = {
 export type StudentReportData = {
   user: StudentUser | null;
   studentInfo: StudentProfile | null;
-  questionAnswers: (QuestionAnswerRecord & { question_text: string | null })[];
+  questionAnswers: (QuestionAnswerRecord & { question_text: string | null; module_id: number | null; module_name: string | null })[];
   jobSheetAnswers: (JobSheetAnswerRecord & { job_title: string | null; module_id: number | null; module_name: string | null })[];
-  performanceAnswers: (PerformanceAnswerRecord & { performance_question: string | null })[];
+  performanceAnswers: (PerformanceAnswerRecord & { performance_question: string | null; module_id: number | null; module_name: string | null })[];
   lessonContentProgress: (LessonContentProgressRecord & { content_name: string | null; lesson_name: string | null })[];
   lessonContentBookmarks: (LessonContentBookmarkRecord & { content_name: string | null; lesson_name: string | null })[];
-  studentLessonAchievements: (StudentLessonAchievementRecord & { achievement_name: string | null })[];
-  studentModuleAchievements: (StudentModuleAchievementRecord & { achievement_name: string | null })[];
+  studentLessonAchievements: (StudentLessonAchievementRecord & { achievement_name: string | null; module_id: number | null; module_name: string | null })[];
+  studentModuleAchievements: (StudentModuleAchievementRecord & { achievement_name: string | null; module_id: number | null; module_name: string | null })[];
   weeklyActivity: number[];
   moduleProgress: ModuleProgressReport[];
+  allModules: ModuleRecord[];
+  allLessons: LessonRecord[];
+  allLessonContents: LessonContentRecord[];
 };
 
 export type StudentTutorialRecord = {
@@ -3124,10 +3127,13 @@ export async function getStudentReportData(userId: number) {
   const [user, studentInfo, questionAnswers, jobSheetAnswers, performanceAnswers, lessonContentProgress, lessonContentBookmarks, studentLessonAchievements, studentModuleAchievements, allModules, allLessons, allLessonContents] = await Promise.all([
     db.getFirstAsync<StudentUser>("SELECT user_id, username, email, role, created_at FROM users WHERE user_id = ?", [userId]),
     db.getFirstAsync<StudentProfile>("SELECT * FROM student_info WHERE user_id = ?", [userId]),
-    db.getAllAsync<QuestionAnswerRecord & { question_text: string | null }>(
-      `SELECT qa.*, qc.question AS question_text
+db.getAllAsync<QuestionAnswerRecord & { question_text: string | null; module_id: number | null; module_name: string | null }>(
+      `SELECT qa.*, qc.question AS question_text, m.module_id, m.module_name
        FROM question_answers qa
        LEFT JOIN question_content qc ON qc.question_id = qa.question_id
+       LEFT JOIN lesson_content lc ON lc.lesson_content_id = qc.lesson_content_id
+       LEFT JOIN lessons l ON l.lesson_id = lc.lesson_id
+       LEFT JOIN modules m ON m.module_id = l.module_id
        WHERE qa.user_id = ? ORDER BY qa.answer_id ASC`,
       [userId],
     ),
@@ -3141,10 +3147,13 @@ export async function getStudentReportData(userId: number) {
        WHERE ja.user_id = ? ORDER BY ja.answer_id ASC`,
       [userId],
     ),
-    db.getAllAsync<PerformanceAnswerRecord & { performance_question: string | null }>(
-      `SELECT pa.*, pc.performance_question
+    db.getAllAsync<PerformanceAnswerRecord & { performance_question: string | null; module_id: number | null; module_name: string | null }>(
+      `SELECT pa.*, pc.performance_question, m.module_id, m.module_name
        FROM performance_answer pa
        LEFT JOIN performance_checklist pc ON pc.performance_id = pa.performance_id
+       LEFT JOIN lesson_content lc ON lc.lesson_content_id = pc.lesson_content_id
+       LEFT JOIN lessons l ON l.lesson_id = lc.lesson_id
+       LEFT JOIN modules m ON m.module_id = l.module_id
        WHERE pa.user_id = ? ORDER BY pa.performance_answer_id ASC`,
       [userId],
     ),
@@ -3164,17 +3173,20 @@ export async function getStudentReportData(userId: number) {
        WHERE lcb.user_id = ? ORDER BY lcb.lesson_content_bookmark_id ASC`,
       [userId],
     ),
-    db.getAllAsync<StudentLessonAchievementRecord & { achievement_name: string | null }>(
-      `SELECT sla.*, la.name AS achievement_name
+    db.getAllAsync<StudentLessonAchievementRecord & { achievement_name: string | null; module_id: number | null; module_name: string | null }>(
+      `SELECT sla.*, la.name AS achievement_name, m.module_id, m.module_name
        FROM student_lesson_achievement sla
        LEFT JOIN lesson_achievement la ON la.lesson_achievement_id = sla.lesson_achievement_id
+       LEFT JOIN lessons l ON l.lesson_id = la.lesson_id
+       LEFT JOIN modules m ON m.module_id = l.module_id
        WHERE sla.user_id = ? ORDER BY sla.stud_lesson_achievement_id ASC`,
       [userId],
     ),
-    db.getAllAsync<StudentModuleAchievementRecord & { achievement_name: string | null }>(
-      `SELECT sma.*, ma.name AS achievement_name
+    db.getAllAsync<StudentModuleAchievementRecord & { achievement_name: string | null; module_id: number | null; module_name: string | null }>(
+      `SELECT sma.*, ma.name AS achievement_name, m.module_id, m.module_name
        FROM student_module_achievement sma
        LEFT JOIN module_achievement ma ON ma.module_achievement_id = sma.module_achievement_id
+       LEFT JOIN modules m ON m.module_id = ma.module_id
        WHERE sma.user_id = ? ORDER BY sma.stud_module_achievement_id ASC`,
       [userId],
     ),
@@ -3219,6 +3231,9 @@ export async function getStudentReportData(userId: number) {
     studentModuleAchievements: studentModuleAchievements ?? [],
     weeklyActivity,
     moduleProgress,
+    allModules: allModules ?? [],
+    allLessons: allLessons ?? [],
+    allLessonContents: allLessonContents ?? [],
   };
 }
 

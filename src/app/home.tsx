@@ -34,6 +34,7 @@ import {
   getWeeklyActivity,
   getDailyActivity,
   DailyActivityRecord,
+  getSetting,
 } from "@/lib/auth-api";
 
 function WeekCalendar({ data, color, onDayPress }: { data: number[]; color: string; onDayPress?: (index: number) => void }) {
@@ -594,6 +595,10 @@ export default function HomeScreen() {
     useCallback(() => {
       (async () => {
         try {
+          const showTutorial = await getSetting('show_home_tutorial');
+          if (showTutorial !== 'true') {
+            return;
+          }
           const existing = await getStudentTutorialByUserId(userId);
           if (existing) {
             if (existing.completed !== 1) {
