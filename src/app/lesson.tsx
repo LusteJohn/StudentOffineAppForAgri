@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from '@/components/bottom-navbar';
@@ -44,6 +44,7 @@ export default function LessonScreen() {
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
+  const [animationValues, setAnimationValues] = useState<Record<number, Animated.Value>>({});
   const [selectedLesson, setSelectedLesson] = useState<LessonRecord | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
   const { width } = useWindowDimensions();
@@ -270,7 +271,24 @@ export default function LessonScreen() {
   };
 
   const toggleModule = (moduleId: number) => {
-    setExpandedModuleId((current) => (current === moduleId ? null : moduleId));
+    const wasExpanded = expandedModuleId === moduleId;
+    setExpandedModuleId(wasExpanded ? null : moduleId);
+    if (!wasExpanded) {
+      setAnimationValues((prev) => {
+        const updated = { ...prev };
+        if (!updated[moduleId]) {
+          updated[moduleId] = new Animated.Value(0);
+        } else {
+          updated[moduleId].setValue(0);
+        }
+        Animated.timing(updated[moduleId], {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start();
+        return updated;
+      });
+    }
   };
 
   const openLessonDetail = async (lesson: LessonRecord) => {
@@ -351,20 +369,53 @@ export default function LessonScreen() {
                   <View>
                     <View style={[styles.lessonList, dynamicStyles.lessonList]}>
                       {group.lessons.length > 0 ? (
-                        group.lessons.map((lesson) => (
-                          <View key={lesson.lesson_id} style={styles.lessonItemContainer}>
-                            <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonRow, isCompact && styles.lessonRowCompact]}>
-                              <View style={styles.lessonIndicator} />
-                              <View style={styles.lessonTextGroup}>
-                                <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{lesson.lesson_name}</Text>
-                                <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Order: {lesson.order_number}</Text>
+                        group.lessons.map((lesson, lessonIndex) => {
+                          const progress = animationValues[group.module_id];
+                          const delay = lessonIndex * 50;
+                          if (!progress) {
+                            return (
+                              <View key={lesson.lesson_id} style={styles.lessonItemContainer}>
+                                <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonRow, isCompact && styles.lessonRowCompact]}>
+                                  <View style={styles.lessonIndicator} />
+                                  <View style={styles.lessonTextGroup}>
+                                    <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{lesson.lesson_name}</Text>
+                                    <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Order: {lesson.order_number}</Text>
+                                  </View>
+                                  <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonViewButton, isCompact && styles.lessonViewButtonCompact]}>
+                                    <Text style={[styles.lessonViewButtonText, dynamicStyles.lessonViewButtonText]}>View</Text>
+                                  </Pressable>
+                                </Pressable>
                               </View>
-                              <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonViewButton, isCompact && styles.lessonViewButtonCompact]}>
-                                <Text style={[styles.lessonViewButtonText, dynamicStyles.lessonViewButtonText]}>View</Text>
+                            );
+                          }
+                          const opacity = progress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0, 1],
+                          });
+                          const translateY = progress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [10, 0],
+                          });
+                          const animatedStyle = {
+                            opacity,
+                            transform: [{ translateY }],
+                            transitionDelay: delay,
+                          };
+                          return (
+                            <Animated.View key={lesson.lesson_id} style={[styles.lessonItemContainer, animatedStyle]}>
+                              <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonRow, isCompact && styles.lessonRowCompact]}>
+                                <View style={styles.lessonIndicator} />
+                                <View style={styles.lessonTextGroup}>
+                                  <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{lesson.lesson_name}</Text>
+                                  <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Order: {lesson.order_number}</Text>
+                                </View>
+                                <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonViewButton, isCompact && styles.lessonViewButtonCompact]}>
+                                  <Text style={[styles.lessonViewButtonText, dynamicStyles.lessonViewButtonText]}>View</Text>
+                                </Pressable>
                               </Pressable>
-                            </Pressable>
-                          </View>
-                        ))
+                            </Animated.View>
+                          );
+                        })
                       ) : (
                         <View style={[styles.emptyLessonRow, dynamicStyles.emptyLessonRow]}>
                           <Text style={[styles.emptyLessonText, dynamicStyles.emptyLessonText]}>No lessons available for this module.</Text>
@@ -453,46 +504,46 @@ export default function LessonScreen() {
                 </View>
               ) : null}
 
-               <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Contents</Text>
-               <ScrollView style={styles.contentList} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
-                 {lessonContents.length > 0 ? (
-                   lessonContents.map((content, index) => {
-                     const isFirst = index === 0;
-                     const prevContent = lessonContents[index - 1];
-                     const isContentUnlocked = isFirst || (prevContent ? !!progressMap[prevContent.lesson_content_id] : false);
-                     return (
-                       <View key={content.lesson_content_id} style={[styles.contentCard, dynamicStyles.contentCard]}>
-                         <View style={styles.contentHeader}>
-                           <Text style={[styles.contentName, dynamicStyles.contentName]}>• {content.content_name}</Text>
-                           {progressMap[content.lesson_content_id] ? (
-                             <View style={[styles.readBadge, dynamicStyles.readBadge]}>
-                               <Text style={[styles.readBadgeText, dynamicStyles.readBadgeText]}>✓ Read</Text>
-                             </View>
-                           ) : null}
-                           {!isContentUnlocked ? (
-                             <Ionicons name="lock-closed" size={14} color={theme.textSecondary} style={styles.lockClosed} />
-                           ) : null}
-                         </View>
-                         <View style={styles.contentBody}>
-                           <Text style={[styles.contentLabel, dynamicStyles.contentLabel]}>Objectives</Text>
-                           <Text style={[styles.contentValue, dynamicStyles.contentValue]}>{content.objectives}</Text>
-                         </View>
-                         <Pressable
-                           onPress={() => isContentUnlocked && openContentInfo(content.lesson_content_id)}
-                           disabled={!isContentUnlocked}
-                           style={[styles.viewContentButton, !isContentUnlocked && styles.viewContentButtonDisabled, dynamicStyles.viewContentButton]}
-                         >
-                           <Text style={[styles.viewContentButtonText, dynamicStyles.viewContentButtonText]}>View Content</Text>
-                         </Pressable>
-                       </View>
-                     );
-                   })
-                 ) : (
-                  <View style={[styles.emptyContentCard, dynamicStyles.emptyContentCard]}>
-                    <Text style={[styles.emptyContentText, dynamicStyles.emptyContentText]}>No lesson content available for this lesson.</Text>
-                  </View>
-                )}
- </ScrollView>
+                <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Lesson Contents</Text>
+                <ScrollView style={styles.contentList} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+                  {lessonContents.length > 0 ? (
+                    lessonContents.map((content, index) => {
+                      const isFirst = index === 0;
+                      const prevContent = lessonContents[index - 1];
+                      const isContentUnlocked = isFirst || (prevContent ? !!progressMap[prevContent.lesson_content_id] : false);
+                      return (
+                        <View key={content.lesson_content_id} style={[styles.contentCard, dynamicStyles.contentCard]}>
+                          <View style={styles.contentHeader}>
+                            <Text style={[styles.contentName, dynamicStyles.contentName]}>• {content.content_name}</Text>
+                            {progressMap[content.lesson_content_id] ? (
+                              <View style={[styles.readBadge, dynamicStyles.readBadge]}>
+                                <Text style={[styles.readBadgeText, dynamicStyles.readBadgeText]}>✓ Read</Text>
+                              </View>
+                            ) : null}
+                            {!isContentUnlocked ? (
+                              <Ionicons name="lock-closed" size={14} color={theme.textSecondary} style={styles.lockClosed} />
+                            ) : null}
+                          </View>
+                          <View style={styles.contentBody}>
+                            <Text style={[styles.contentLabel, dynamicStyles.contentLabel]}>Objectives</Text>
+                            <Text style={[styles.contentValue, dynamicStyles.contentValue]}>{content.objectives}</Text>
+                          </View>
+                          <Pressable
+                            onPress={() => isContentUnlocked && openContentInfo(content.lesson_content_id)}
+                            disabled={!isContentUnlocked}
+                            style={[styles.viewContentButton, !isContentUnlocked && styles.viewContentButtonDisabled, dynamicStyles.viewContentButton]}
+                          >
+                            <Text style={[styles.viewContentButtonText, dynamicStyles.viewContentButtonText]}>View Content</Text>
+                          </Pressable>
+                        </View>
+                      );
+                    })
+                  ) : (
+                    <View style={[styles.emptyContentCard, dynamicStyles.emptyContentCard]}>
+                      <Text style={[styles.emptyContentText, dynamicStyles.emptyContentText]}>No lesson content available for this lesson.</Text>
+                    </View>
+                  )}
+                </ScrollView>
 
                <Pressable onPress={closeLessonDetail} style={[styles.closeButton, dynamicStyles.closeButton]}>
                  <Text style={[styles.closeButtonText, dynamicStyles.closeButtonText]}>Close</Text>
