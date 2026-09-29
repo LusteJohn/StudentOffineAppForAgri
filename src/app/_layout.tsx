@@ -4,6 +4,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { ThemeProvider as AppThemeProvider, useThemeContext } from '@/contexts/theme-context';
+import { OnboardingProvider } from '@/contexts/onboarding-context';
+import { GlobalTutorialOverlay } from '@/components/global-tutorial-overlay';
 import { CustomAlertProvider } from '@/lib/custom-alert';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -58,7 +60,12 @@ function RootLayoutInner() {
   return (
     <ExpoRouterThemeProvider value={resolvedColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <CustomAlertProvider>
-        <Stack screenOptions={{ headerShown: false }} />
+        <OnboardingProvider userId={1}>
+          <>
+            <Stack screenOptions={{ headerShown: false }} />
+            <GlobalTutorialOverlay />
+          </>
+        </OnboardingProvider>
       </CustomAlertProvider>
     </ExpoRouterThemeProvider>
   );

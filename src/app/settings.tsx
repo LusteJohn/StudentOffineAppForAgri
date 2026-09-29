@@ -11,7 +11,7 @@ import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { createStudentProfile, getStudentProfileByUserId, resetAndSeedLocalData, StudentProfile, updateStudentProfile, listLessonContentBookmarkByUser, getLessonContentById, getLessonById, getModuleById, LessonContentBookmarkRecord, LessonContentRecord, LessonRecord, ModuleRecord, getStudentReportData, StudentReportData } from '@/lib/auth-api';
+import { createStudentProfile, getStudentProfileByUserId, resetAndSeedLocalData, StudentProfile, updateStudentProfile, listLessonContentBookmarkByUser, getLessonContentById, getLessonById, getModuleById, LessonContentBookmarkRecord, LessonContentRecord, LessonRecord, ModuleRecord, getStudentReportData, StudentReportData, getSetting, setSetting, getStudentTutorialByUserId, updateStudentTutorial } from '@/lib/auth-api';
 
 let Print: any;
 let Sharing: any;
@@ -92,6 +92,7 @@ export default function SettingsScreen() {
   const [gradeLevel, setGradeLevel] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
   const [studentImage, setStudentImage] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
   const { showAlert } = useCustomAlert();
@@ -378,9 +379,43 @@ export default function SettingsScreen() {
      [activeUserId]
   );
 
+  const handleOnboardingToggle = useCallback(async (value: boolean) => {
+    setShowOnboarding(value);
+    await setSetting('show_onboarding_tutorial', value ? '1' : '0');
+    if (value) {
+      try {
+        const existing = await getStudentTutorialByUserId(activeUserId);
+        if (existing) {
+          await updateStudentTutorial(existing.tutorial_id, {
+            completed: 0,
+            step1_done: 0,
+            step2_done: 0,
+            step3_done: 0,
+            step4_done: 0,
+            step5_done: 0,
+            step6_done: 0,
+            step7_done: 0,
+            step8_done: 0,
+            step9_done: 0,
+          });
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [activeUserId]);
+
   useFocusEffect(
     useCallback(() => {
       loadBookmarks();
+      (async () => {
+        try {
+          const setting = await getSetting('show_onboarding_tutorial');
+          setShowOnboarding(setting !== '0');
+        } catch {
+          setShowOnboarding(true);
+        }
+      })();
     }, [loadBookmarks])
   );
 
@@ -1105,6 +1140,45 @@ export default function SettingsScreen() {
               onPress={() => themeCtx.setThemeMode('system')}
               isDark={isDark}
             />
+           </View>
+         </View>
+
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="play-circle-outline" size={18} color={colors.text} />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
+                Onboarding
+              </ThemedText>
+              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
+                Tutorial Guide
+              </ThemedText>
+            </View>
+          </View>
+          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Show the step-by-step onboarding tour guide when you open the app.</ThemedText>
+          <View style={[styles.toggleRow, !isDark && { backgroundColor: '#ffffff' }]}>
+            <View style={styles.toggleLabelContainer}>
+              <ThemedText style={[styles.toggleLabel, { color: colors.text }]}>Show onboarding tour</ThemedText>
+              <ThemedText style={[styles.toggleDescription, dynamicStyles.sectionBody]}>
+                {showOnboarding ? 'Enabled' : 'Disabled'}
+              </ThemedText>
+            </View>
+            <Pressable
+              onPress={() => handleOnboardingToggle(!showOnboarding)}
+              style={[
+                styles.toggleSwitch,
+                showOnboarding && styles.toggleSwitchActive,
+              ]}
+            >
+              <View
+                style={[
+                  styles.toggleKnob,
+                  showOnboarding && styles.toggleKnobActive,
+                ]}
+              />
+            </Pressable>
           </View>
         </View>
 
@@ -1875,6 +1949,49 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#ffffff',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
+  },
+  toggleLabelContainer: {
+    flex: 1,
+    gap: 2,
+  },
+  toggleLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  toggleDescription: {
+    fontSize: 12,
+    opacity: 0.6,
+  },
+  toggleSwitch: {
+    width: 50,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#cbd5e1',
+    padding: 2,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  toggleSwitchActive: {
+    backgroundColor: '#5bec13',
+    alignItems: 'flex-end',
+  },
+  toggleKnob: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+  },
+  toggleKnobActive: {
     backgroundColor: '#ffffff',
   },
 });
