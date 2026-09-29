@@ -70,8 +70,8 @@ export default function LessonScreen() {
       color: theme.text,
     },
     moduleCard: {
-      backgroundColor: theme.backgroundElement,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+      backgroundColor: isDark ? 'rgba(34, 197, 94, 0.08)' : 'rgba(34, 197, 94, 0.05)',
+      borderColor: 'transparent',
     },
     moduleName: {
       color: theme.text,
@@ -601,11 +601,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 4,
   },
-  moduleCard: {
-    borderRadius: 22,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
+    moduleCard: {
+      borderRadius: 22,
+      borderWidth: 0,
+      overflow: 'hidden',
+      borderLeftWidth: 4,
+      borderLeftColor: PRIMARY,
+    },
   moduleHeader: {
     flexDirection: 'row',
     alignItems: 'center',

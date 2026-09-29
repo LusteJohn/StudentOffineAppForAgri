@@ -31,9 +31,7 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
         keyboardVerticalOffset={Platform.select({ ios: 24, android: 0 })}>
         <ScrollView contentContainerStyle={[styles.scrollContent, isCompact ? styles.scrollContentCompact : styles.scrollContentWide]} keyboardShouldPersistTaps="handled">
           <View style={styles.heroBlock}>
-            <View style={styles.logoFrame}>
-              <Image source={require('../../assets/images/app.png')} style={styles.logo} resizeMode="contain" />
-            </View>
+            <Image source={require('../../assets/images/app.png')} style={styles.logo} resizeMode="contain" />
             <View style={styles.appNameWrap}>
               <ThemedText type="subtitle" style={styles.appNameText}>
                 Organic Agriculture Production Learning App
@@ -84,10 +82,10 @@ export function AuthNotification({ type, text }: { type: 'success' | 'error'; te
 const styles = StyleSheet.create({
   backgroundImage: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: 4,
+    left: 4,
+    right: 4,
+    bottom: 4,
     width: '100%',
     height: '100%',
   },

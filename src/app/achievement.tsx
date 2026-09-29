@@ -43,6 +43,8 @@ const getLessonBadgeImage = (achievementId: number) => {
   return lessonAchievementBadgeImages[achievementId] ?? null;
 };
 
+const badgeImages = Object.values(moduleAchievementBadgeImages).concat(Object.values(lessonAchievementBadgeImages));
+
 type AchievementTab = 'module' | 'lesson';
 
 export default function AchievementScreen() {
@@ -91,13 +93,12 @@ export default function AchievementScreen() {
       color: theme.textSecondary,
     },
     achievementCardContainer: {
-      backgroundColor: theme.backgroundElement,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+      backgroundColor: isDark ? 'rgba(34, 197, 94, 0.08)' : 'rgba(34, 197, 94, 0.05)',
+      borderColor: 'transparent',
       shadowColor: isDark ? '#000000' : '#0f172a',
     },
     achievementCardComplete: {
-      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f0fdf4',
-      borderColor: isDark ? 'rgba(91, 236, 19, 0.28)' : 'rgba(34, 197, 94, 0.32)',
+      backgroundColor: isDark ? 'rgba(34, 197, 94, 0.12)' : 'rgba(34, 197, 94, 0.08)',
     },
     achievementImageWrap: {
       backgroundColor: isDark ? theme.backgroundSelected : '#f1f8e8',
@@ -269,9 +270,15 @@ export default function AchievementScreen() {
     setExpandedLessonId((current) => (current === achievementId ? null : achievementId));
   };
 
-  return (
+   return (
     <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Achievements" />
+
+      <View style={styles.badgePreloadContainer}>
+        {badgeImages.map((img, idx) => (
+          <Image key={idx} source={img} style={styles.badgePreloadImage} />
+        ))}
+      </View>
 
       <View style={[styles.tabContainer, dynamicStyles.tabContainer]}>
         <Pressable
@@ -506,6 +513,19 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
+  badgePreloadContainer: {
+    position: 'absolute',
+    top: -100,
+    left: -100,
+    width: 1,
+    height: 1,
+    opacity: 0,
+    overflow: 'hidden',
+  },
+  badgePreloadImage: {
+    width: 1,
+    height: 1,
+  },
   tabContainer: {
     flexDirection: 'row',
     gap: 4,
@@ -545,7 +565,7 @@ const styles = StyleSheet.create({
   achievementCardContainer: {
     borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: 0,
     shadowOpacity: 0.06,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
