@@ -80,7 +80,13 @@ export default function ModuleScreen() {
     card: {
       backgroundColor: theme.backgroundElement,
       shadowColor: isDark ? '#000000' : '#000000',
+      shadowOpacity: 0.14,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 14 },
+      elevation: 10,
       borderWidth: 0,
+      borderLeftWidth: 4,
+      borderLeftColor: PRIMARY,
     },
     startButton: {
       borderColor: PRIMARY,
