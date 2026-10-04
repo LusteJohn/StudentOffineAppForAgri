@@ -496,15 +496,15 @@ export default function HomeScreen() {
         tableCellValue: {
           color: theme.text,
         },
-        card: {
-          backgroundColor: isDark
-            ? "rgba(33, 34, 37, 0.9)"
-            : "rgba(255, 255, 255, 0.78)",
-          borderColor: isDark
-            ? "rgba(255,255,255,0.08)"
-            : "rgba(255, 255, 255, 0.8)",
-          shadowColor: isDark ? "#000000" : "#000",
-        },
+card: {
+      backgroundColor: isDark
+        ? 'rgba(33, 34, 37, 0.9)'
+        : 'rgba(255, 255, 255, 0.78)',
+      borderColor: isDark
+        ? 'rgba(255,255,255,0.08)'
+        : 'rgba(255, 255, 255, 0.8)',
+      shadowColor: isDark ? '#000000' : '#000',
+    },
         continueCard: {
           backgroundColor: isDark ? "#212225" : "#ffffff",
           borderColor: isDark
@@ -542,11 +542,11 @@ export default function HomeScreen() {
         },
         secondaryButton: {
           backgroundColor: isDark
-            ? "rgba(33, 34, 37, 0.9)"
-            : "rgba(255, 255, 255, 0.9)",
+            ? 'rgba(33, 34, 37, 0.9)'
+            : 'rgba(255, 255, 255, 0.9)',
           borderColor: isDark
-            ? "rgba(255,255,255,0.08)"
-            : "rgba(92, 107, 97, 0.18)",
+            ? 'rgba(255,255,255,0.08)'
+            : 'rgba(92, 107, 97, 0.18)',
         },
         secondaryButtonText: {
           color: theme.text,
