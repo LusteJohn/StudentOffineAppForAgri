@@ -1,5 +1,5 @@
-import { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import { useRef, useEffect, useState, useCallback } from 'react';
+import { Animated, BackHandler, Easing, View, Text, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, usePathname } from 'expo-router';
@@ -19,7 +19,11 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   const { width } = useWindowDimensions();
   const { showAlert } = useCustomAlert();
   const isCompact = width < 390;
+  const isNarrow = width < 360;
   const theme = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const [barHeight, setBarHeight] = useState(0);
+  const panelAnim = useRef(new Animated.Value(0)).current;
 
   const getActiveTab = (): 'home' | 'library' | 'lesson' | 'achievement' | 'content-info' | 'settings' => {
     if (activeTab) return activeTab;
@@ -33,17 +37,6 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   };
 
   const currentTab = getActiveTab();
-  const scrollRef = useRef<ScrollView>(null);
-  const tabOrder: ('home' | 'library' | 'lesson' | 'content-info' | 'achievement' | 'settings')[] = ['home', 'library', 'lesson', 'content-info', 'achievement', 'settings'];
-  const tabIndex = tabOrder.indexOf(currentTab);
-
-  useEffect(() => {
-    if (scrollRef.current && tabIndex >= 0) {
-      const estimatedTabWidth = isCompact ? 76 : 90;
-      const targetOffset = tabIndex * estimatedTabWidth;
-      scrollRef.current.scrollTo({ x: Math.max(0, targetOffset), animated: true });
-    }
-  }, [currentTab, tabIndex, isCompact]);
 
   const goHome = () => {
     if (currentTab !== 'home') {
@@ -95,73 +88,167 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   const inactiveColor = isDark ? '#B0B4BA' : '#5c6b61';
   const activeTextColor = isDark ? '#ffffff' : '#000000';
 
+  const closePanel = useCallback(() => setExpanded(false), []);
+
+  useEffect(() => {
+    Animated.timing(panelAnim, {
+      toValue: expanded ? 1 : 0,
+      duration: expanded ? 220 : 160,
+      easing: expanded ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [expanded, panelAnim]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      closePanel();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [expanded, closePanel]);
+
+  type TabKey = 'home' | 'library' | 'lesson' | 'content-info' | 'achievement' | 'settings';
+  type IconName = React.ComponentProps<typeof Ionicons>['name'];
+
+  const primaryTabs: { key: TabKey; label: string; icon: IconName; activeIcon: IconName; onPress: () => void }[] = [
+    { key: 'home', label: 'Home', icon: 'home-outline', activeIcon: 'home', onPress: goHome },
+    { key: 'library', label: 'Library', icon: 'book-outline', activeIcon: 'book', onPress: goLibrary },
+    { key: 'lesson', label: 'Lesson', icon: 'document-outline', activeIcon: 'document', onPress: goLesson },
+  ];
+
+  const overflowTabs: { key: TabKey; label: string; icon: IconName; activeIcon: IconName; onPress: () => void }[] = [
+    { key: 'content-info', label: 'Content Info', icon: 'information-circle-outline', activeIcon: 'information-circle', onPress: goContentInfo },
+    { key: 'achievement', label: 'Achievements', icon: 'trophy-outline', activeIcon: 'trophy', onPress: goAchievement },
+    { key: 'settings', label: 'Settings', icon: 'settings-outline', activeIcon: 'settings', onPress: goSettings },
+  ];
+
   return (
     <View style={[styles.wrap, {
-      paddingTop: Math.max(insets.top, 8),
+      paddingTop: 8,
       paddingBottom: Math.max(insets.bottom, 16),
       backgroundColor: 'transparent',
     }]}>
-      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.bar, isCompact ? styles.barCompact : styles.barWide, {
+      <Pressable
+        style={styles.backdrop}
+        onPress={closePanel}
+        pointerEvents={expanded ? 'auto' : 'none'}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      />
+
+      <Animated.View
+        pointerEvents={expanded ? 'auto' : 'none'}
+        style={[
+          styles.panel,
+          {
+            backgroundColor: theme.backgroundElement,
+            borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(92, 107, 97, 0.16)',
+            shadowColor: isDark ? '#000000' : '#0f172a',
+            bottom: barHeight + Math.max(insets.bottom, 16) + 18,
+            opacity: barHeight > 0 ? panelAnim : 0,
+            transform: [
+              { translateY: panelAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+              { scale: panelAnim.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }) },
+            ],
+          },
+        ]}
+      >
+        <Text style={[styles.panelTitle, { color: isDark ? '#ffffff' : '#0f172a' }]}>More</Text>
+        <View style={styles.panelGrid}>
+          {overflowTabs.map((tab) => {
+            const isActive = currentTab === tab.key;
+            return (
+              <Pressable
+                key={tab.key}
+                onPress={() => {
+                  closePanel();
+                  tab.onPress();
+                }}
+                style={({ pressed }) => [
+                  styles.panelItem,
+                  isNarrow && styles.panelItemNarrow,
+                  {
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(148, 163, 184, 0.2)',
+                  },
+                  isActive && { backgroundColor: activeColor, borderColor: activeColor },
+                  pressed && { opacity: 0.8 },
+                ]}
+              >
+                <Ionicons
+                  name={isActive ? tab.activeIcon : tab.icon}
+                  size={isNarrow ? 18 : 20}
+                  color={isActive ? activeTextColor : inactiveColor}
+                />
+                <Text
+                  numberOfLines={1}
+                  style={[styles.panelItemLabel, isNarrow && styles.panelItemLabelNarrow, { color: isActive ? activeTextColor : inactiveColor }]}
+                >
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Animated.View>
+
+      <View
+          onLayout={(event) => setBarHeight(event.nativeEvent.layout.height)}
+          style={[styles.bar, isCompact ? styles.barCompact : styles.barWide, {
           backgroundColor: theme.backgroundElement,
           borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(92, 107, 97, 0.16)',
           shadowColor: isDark ? '#000000' : '#0f172a',
         }]}>
-          <Pressable onPress={goHome} style={[styles.tabButton, currentTab === 'home' && styles.activeTabButton, currentTab === 'home' && { backgroundColor: activeColor }]}>
-            <Ionicons
-              name={currentTab === 'home' ? 'home' : 'home-outline'}
-              size={22}
-              color={currentTab === 'home' ? activeTextColor : inactiveColor}
-            />
-            <Text style={[styles.tabLabel, currentTab === 'home' && styles.activeTabLabel, { color: currentTab === 'home' ? activeTextColor : inactiveColor }]}>Home</Text>
-          </Pressable>
+          {primaryTabs.map((tab) => {
+            const isActive = currentTab === tab.key;
+            return (
+              <Pressable
+                key={tab.key}
+                onPress={tab.onPress}
+                style={[
+                  styles.tabButton,
+                  isCompact && styles.tabButtonCompact,
+                  isActive && styles.activeTabButton,
+                  isActive && { backgroundColor: activeColor },
+                ]}
+              >
+                <Ionicons
+                  name={isActive ? tab.activeIcon : tab.icon}
+                  size={isNarrow ? 20 : 22}
+                  color={isActive ? activeTextColor : inactiveColor}
+                />
+                <Text
+                  numberOfLines={1}
+                  style={[
+                    styles.tabLabel,
+                    isNarrow && styles.tabLabelNarrow,
+                    isActive && styles.activeTabLabel,
+                    { color: isActive ? activeTextColor : inactiveColor },
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
 
-          <Pressable onPress={goLibrary} style={[styles.tabButton, currentTab === 'library' && styles.activeTabButton, currentTab === 'library' && { backgroundColor: activeColor }]}>
-            <Ionicons
-              name={currentTab === 'library' ? 'book' : 'book-outline'}
-              size={22}
-              color={currentTab === 'library' ? activeTextColor : inactiveColor}
-            />
-            <Text style={[styles.tabLabel, currentTab === 'library' && styles.activeTabLabel, { color: currentTab === 'library' ? activeTextColor : inactiveColor }]}>Library</Text>
-          </Pressable>
-
-          <Pressable onPress={goLesson} style={[styles.tabButton, currentTab === 'lesson' && styles.activeTabButton, currentTab === 'lesson' && { backgroundColor: activeColor }]}>
-            <Ionicons
-              name={currentTab === 'lesson' ? 'document' : 'document-outline'}
-              size={22}
-              color={currentTab === 'lesson' ? activeTextColor : inactiveColor}
-            />
-            <Text style={[styles.tabLabel, currentTab === 'lesson' && styles.activeTabLabel, { color: currentTab === 'lesson' ? activeTextColor : inactiveColor }]}>Lesson</Text>
-          </Pressable>
-
-          <Pressable onPress={goContentInfo} style={[styles.tabButton, currentTab === 'content-info' && styles.activeTabButton, currentTab === 'content-info' && { backgroundColor: activeColor }]}>
-            <Ionicons
-              name={currentTab === 'content-info' ? 'information-circle' : 'information-circle-outline'}
-              size={22}
-              color={currentTab === 'content-info' ? activeTextColor : inactiveColor}
-            />
-            <Text style={[styles.tabLabel, currentTab === 'content-info' && styles.activeTabLabel, { color: currentTab === 'content-info' ? activeTextColor : inactiveColor }]}>Content Info</Text>
-          </Pressable>
-
-          <Pressable onPress={goAchievement} style={[styles.tabButton, currentTab === 'achievement' && styles.activeTabButton, currentTab === 'achievement' && { backgroundColor: activeColor }]}>
-            <Ionicons
-              name={currentTab === 'achievement' ? 'trophy' : 'trophy-outline'}
-              size={22}
-              color={currentTab === 'achievement' ? activeTextColor : inactiveColor}
-            />
-            <Text style={[styles.tabLabel, currentTab === 'achievement' && styles.activeTabLabel, { color: currentTab === 'achievement' ? activeTextColor : inactiveColor }]}>Achievements</Text>
-          </Pressable>
-
-          <Pressable onPress={goSettings} style={[styles.tabButton, currentTab === 'settings' && styles.activeTabButton, currentTab === 'settings' && { backgroundColor: activeColor }]}>
-            <Ionicons
-              name={currentTab === 'settings' ? 'settings' : 'settings-outline'}
-              size={22}
-              color={currentTab === 'settings' ? activeTextColor : inactiveColor}
-            />
-            <Text style={[styles.tabLabel, currentTab === 'settings' && styles.activeTabLabel, { color: currentTab === 'settings' ? activeTextColor : inactiveColor }]}>Settings</Text>
+          <Pressable
+            onPress={() => setExpanded((prev) => !prev)}
+            style={[
+              styles.addButton,
+              isNarrow && styles.addButtonNarrow,
+              {
+                backgroundColor: expanded ? 'rgba(85, 225, 10, 0.18)' : 'transparent',
+                borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(92, 107, 97, 0.16)',
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={expanded ? 'Close more menu' : 'Open more menu'}
+          >
+            <Ionicons name={expanded ? 'close' : 'add'} size={isNarrow ? 20 : 22} color={inactiveColor} />
           </Pressable>
         </View>
-      </ScrollView>
     </View>
   );
 }
@@ -171,9 +258,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 16,
-  },
-  scrollContent: {
-    flexGrow: 0,
+    alignItems: 'center',
   },
   bar: {
     flexDirection: 'row',
@@ -181,11 +266,14 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     padding: 6,
-    alignSelf: 'flex-start',
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
     shadowOpacity: 0.08,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
     elevation: 4,
+    zIndex: 20,
   },
   barCompact: {
     paddingHorizontal: 4,
@@ -195,9 +283,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   tabButton: {
-    minWidth: 72,
-    maxWidth: 120,
-    paddingHorizontal: 12,
+    flexBasis: 0,
+    flexGrow: 1,
+    flexShrink: 1,
+    paddingHorizontal: 8,
     borderRadius: 999,
     paddingVertical: 10,
     alignItems: 'center',
@@ -205,15 +294,97 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     gap: 4,
   },
+  tabButtonCompact: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+  },
   activeTabButton: {
-    minWidth: 72,
-    maxWidth: 120,
+    flexBasis: 0,
+    flexGrow: 1,
+    flexShrink: 1,
   },
   tabLabel: {
     fontSize: 12,
     fontWeight: '700',
   },
+  tabLabelNarrow: {
+    fontSize: 11,
+  },
   activeTabLabel: {
     fontWeight: '700',
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  panel: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    maxWidth: 420,
+    alignSelf: 'center',
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    gap: 12,
+    shadowOpacity: 0.16,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+    zIndex: 10,
+  },
+  panelTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  panelGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  panelItem: {
+    flexBasis: '30%',
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 88,
+    minHeight: 84,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  panelItemNarrow: {
+    minWidth: 76,
+    minHeight: 76,
+    paddingVertical: 12,
+  },
+  panelItemLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  panelItemLabelNarrow: {
+    fontSize: 11,
+  },
+  addButton: {
+    minWidth: 48,
+    height: 48,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonNarrow: {
+    minWidth: 42,
+    height: 42,
+    paddingHorizontal: 10,
   },
 });

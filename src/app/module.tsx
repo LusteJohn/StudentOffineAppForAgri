@@ -95,15 +95,6 @@ section: {
     modalCard: {
       backgroundColor: theme.backgroundElement,
     },
-    modalTitle: {
-      color: theme.text,
-    },
-    modalCloseButton: {
-      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
-    },
-    modalCloseText: {
-      color: theme.text,
-    },
     modalSection: {
       color: theme.text,
     },
@@ -115,7 +106,7 @@ section: {
     },
     moduleCard: {
       backgroundColor: theme.backgroundElement,
-      shadowColor: isDark ? '#000000' : '#000000',
+      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(148, 163, 184, 0.2)',
     },
     cardTitle: {
       color: theme.text,
@@ -145,9 +136,6 @@ section: {
     moduleDescription: {
       color: theme.textSecondary,
     },
-    moduleThumbnailPlaceholder: {
-      backgroundColor: isDark ? theme.backgroundSelected : '#e2e8f0',
-    },
     moduleMetaLabel: {
       color: theme.textSecondary,
     },
@@ -161,11 +149,20 @@ section: {
     moduleSecondaryButtonText: {
       color: theme.text,
     },
+    modalHero: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#fef3c7',
+    },
+    modalTitle: {
+      color: isDark ? '#67e8f9' : '#0e7490',
+    },
+    modalCloseText: {
+      color: '#ffffff',
+    },
     modulePrimaryButton: {
-      backgroundColor: PRIMARY,
+      backgroundColor: '#22c55e',
     },
     modulePrimaryButtonText: {
-      color: theme.text,
+      color: '#ffffff',
     },
     noModuleCard: {
       backgroundColor: isDark ? theme.backgroundSelected : '#f8fafc',
@@ -335,7 +332,7 @@ section: {
                       </View>
 
                       <View style={[styles.startButton, styles.startButtonGreen, isCompact && styles.startButtonCompact]}>
-                        <Text style={styles.startButtonTextGreen}>Start</Text>
+                        <Text style={styles.startButtonTextGreen}>View</Text>
                       </View>
                     </View>
                   </View>
@@ -364,81 +361,84 @@ section: {
       <Modal transparent animationType="fade" visible={detailVisible} onRequestClose={closeCompetencyDetail}>
         <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
           <View style={[styles.modalCard, dynamicStyles.modalCard]}>
-            <View style={styles.modalHeaderRow}>
-              <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>{selectedCompetency?.competency_name}</Text>
-              <Pressable onPress={closeCompetencyDetail} style={[styles.modalCloseButton, dynamicStyles.modalCloseButton]}>
+            <View style={[styles.modalHero, dynamicStyles.modalHero]}>
+              {(() => {
+                const heroImage = selectedModules.length > 0 ? getModuleImage(selectedModules[0].module_id) : null;
+                if (heroImage) {
+                  return <Image source={heroImage} style={styles.modalHeroImage} resizeMode="cover" />;
+                }
+                return null;
+              })()}
+              <Pressable onPress={closeCompetencyDetail} style={styles.modalCloseButton}>
                 <Text style={[styles.modalCloseText, dynamicStyles.modalCloseText]}>✕</Text>
               </Pressable>
             </View>
 
-            <View style={styles.infoCard}>
-              <View style={styles.infoRow}>
-                <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Sector</Text>
-                <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedCompetency?.sector}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Qualification</Text>
-                <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedCompetency?.qualification}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Status</Text>
-                <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedCompetency?.status}</Text>
-              </View>
-            </View>
+            <View style={styles.modalBody}>
+              <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>{selectedCompetency?.competency_name}</Text>
 
-            <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Modules</Text>
-            <ScrollView
-              style={styles.moduleList}
-              contentContainerStyle={styles.moduleListContent}
-              showsVerticalScrollIndicator={false}>
-              {selectedModules.length > 0 ? (
-                selectedModules.map((moduleItem) => (
-<View key={moduleItem.module_id} style={[styles.moduleCard, dynamicStyles.moduleCard]}>
-                     <View style={styles.moduleMedia}>
-                       {getModuleImage(moduleItem.module_id) ? (
-                         <Image
-                           source={getModuleImage(moduleItem.module_id)}
-                           style={styles.moduleThumbnail}
-                           resizeMode="cover"
-                         />
-                       ) : (
-                         <View style={[styles.moduleThumbnail, styles.moduleThumbnailPlaceholder, dynamicStyles.moduleThumbnailPlaceholder]} />
-                       )}
-                     </View>
-
-                     <View style={styles.moduleInfo}>
-                       <Text style={[styles.moduleName, dynamicStyles.moduleName]} numberOfLines={2}>
-                         {moduleItem.module_name}
-                       </Text>
-                       <Text style={[styles.moduleDescription, dynamicStyles.moduleDescription]} numberOfLines={3}>
-                         {moduleItem.description}
-                       </Text>
-
-                       <View style={styles.moduleCardBody}>
-                         <View style={styles.moduleMetaRow}>
-                           <View style={styles.moduleMetaItem}>
-                             <Text style={[styles.moduleMetaLabel, dynamicStyles.moduleMetaLabel]}>PDF</Text>
-                             <Text style={[styles.moduleMetaValue, dynamicStyles.moduleMetaValue]} numberOfLines={1}>
-                               {moduleItem.module_pdf}
-                             </Text>
-                           </View>
-                         </View>
-                       </View>
-
-                       <View style={styles.moduleCardActions}>
-                         <Pressable onPress={() => handleModuleStart(moduleItem)} style={[styles.modulePrimaryButton, dynamicStyles.modulePrimaryButton]}>
-                           <Text style={[styles.modulePrimaryButtonText, dynamicStyles.modulePrimaryButtonText]}>Start</Text>
-                         </Pressable>
-                       </View>
-                     </View>
-                   </View>
-                ))
-              ) : (
-                <View style={[styles.noModuleCard, dynamicStyles.noModuleCard]}>
-                  <Text style={[styles.noModuleText, dynamicStyles.noModuleText]}>No modules available for this competency.</Text>
+              <View style={styles.modalFeatureList}>
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Sector</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedCompetency?.sector}</Text>
                 </View>
-              )}
-            </ScrollView>
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Qualification</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedCompetency?.qualification}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, dynamicStyles.infoLabel]}>Status</Text>
+                  <Text style={[styles.infoValue, dynamicStyles.infoValue]}>{selectedCompetency?.status}</Text>
+                </View>
+              </View>
+
+              <Text style={[styles.modalSection, dynamicStyles.modalSection]}>Modules</Text>
+              <ScrollView
+                style={styles.moduleList}
+                contentContainerStyle={styles.moduleListContent}
+                showsVerticalScrollIndicator={false}>
+                {selectedModules.length > 0 ? (
+                  selectedModules.map((moduleItem) => (
+                    <View key={moduleItem.module_id} style={[styles.moduleCard, dynamicStyles.moduleCard]}>
+                      <View style={styles.moduleInfo}>
+                        <Text style={[styles.moduleName, dynamicStyles.moduleName]} numberOfLines={2}>
+                          {moduleItem.module_name}
+                        </Text>
+                        <Text style={[styles.moduleDescription, dynamicStyles.moduleDescription]} numberOfLines={3}>
+                          {moduleItem.description}
+                        </Text>
+
+                        <View style={styles.moduleMetaRow}>
+                          <View style={styles.moduleMetaItem}>
+                            <Text style={[styles.moduleMetaLabel, dynamicStyles.moduleMetaLabel]}>PDF</Text>
+                            <Text style={[styles.moduleMetaValue, dynamicStyles.moduleMetaValue]} numberOfLines={1}>
+                              {moduleItem.module_pdf}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      <View style={styles.moduleCardActions}>
+                        <Pressable
+                          onPress={() => handleModuleStart(moduleItem)}
+                          style={({ pressed }) => [
+                            styles.modulePrimaryButton,
+                            dynamicStyles.modulePrimaryButton,
+                            pressed && styles.modulePrimaryButtonPressed,
+                          ]}
+                        >
+                          <Text style={[styles.modulePrimaryButtonText, dynamicStyles.modulePrimaryButtonText]}>Start</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  ))
+                ) : (
+                  <View style={[styles.noModuleCard, dynamicStyles.noModuleCard]}>
+                    <Text style={[styles.noModuleText, dynamicStyles.noModuleText]}>No modules available for this competency.</Text>
+                  </View>
+                )}
+              </ScrollView>
+            </View>
           </View>
         </View>
       </Modal>
@@ -620,57 +620,68 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 420,
-    maxHeight: '85%',
-    borderRadius: 20,
-    padding: 18,
-    gap: 12,
+    maxHeight: '88%',
+    borderRadius: 24,
+    overflow: 'hidden',
   },
-  modalHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    flex: 1,
-  },
-  modalCloseButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+  modalHero: {
+    height: 150,
     alignItems: 'center',
     justifyContent: 'center',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+  },
+  modalHeroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  modalBody: {
+    padding: 20,
+    gap: 14,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    lineHeight: 26,
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
   },
   modalCloseText: {
-    fontSize: 16,
+    color: '#ffffff',
+    fontSize: 15,
     fontWeight: '700',
   },
   modalSection: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    marginTop: 8,
-    marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  infoCard: {
+  modalFeatureList: {
     gap: 10,
-    paddingVertical: 4,
   },
   infoRow: {
-    gap: 6,
+    gap: 2,
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   infoValue: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 20,
   },
   moduleList: {
     maxHeight: 320,
@@ -679,23 +690,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   moduleCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    borderRadius: 16,
-    borderWidth: 0,
+    gap: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.2)',
     padding: 14,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  moduleMedia: {
-    width: 104,
-    height: 104,
   },
   moduleInfo: {
-    flex: 1,
     gap: 6,
   },
   moduleName: {
@@ -707,22 +708,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '400',
     lineHeight: 18,
-  },
-  moduleThumbnailPlaceholder: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-  },
-  moduleThumbnail: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-    backgroundColor: '#e2e8f0',
-  },
-  moduleCardBody: {
-    gap: 8,
-    marginTop: 2,
   },
   moduleMetaRow: {
     flexDirection: 'row',
@@ -744,28 +729,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   moduleCardActions: {
-    flexDirection: 'row',
+    marginTop: 4,
+  },
+modulePrimaryButton: {
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginTop: 'auto',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderRadius: 24,
+    borderWidth: 0,
   },
-  moduleSecondaryButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  moduleSecondaryButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  modulePrimaryButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 12,
+  modulePrimaryButtonPressed: {
+    opacity: 0.85,
   },
   modulePrimaryButtonText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
   },
   noModuleCard: {
