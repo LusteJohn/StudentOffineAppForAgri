@@ -306,6 +306,9 @@ export default function ContentInfoScreen() {
             ? "rgba(255,255,255,0.08)"
             : "rgba(148, 163, 184, 0.12)",
         },
+        tabStickyWrap: {
+          backgroundColor: theme.background,
+        },
         tabButton: {
           backgroundColor: isDark ? theme.backgroundSelected : "#f1f5f9",
           borderColor: isDark
@@ -1544,57 +1547,13 @@ export default function ContentInfoScreen() {
 
   return (
     <ThemedView style={[styles.screen, dynamicStyles.screen]}>
-      <Header
-        title="Content Info"
-        showBack
-        onBack={() =>
-          router.replace({
-            pathname: "/lesson",
-            params: {
-              userId: String(activeUserId),
-              ...(moduleItem?.module_id
-                ? { moduleId: String(moduleItem.module_id) }
-                : {}),
-              ...(currentLessonId
-                ? { lessonId: String(currentLessonId) }
-                : {}),
-            },
-          })
-        }
-      />
+      <Header title="Content Info" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        stickyHeaderIndices={[0]}
       >
-        {error ? (
-          <View style={[styles.errorBox, dynamicStyles.errorBox]}>
-            <Text style={[styles.errorTitle, dynamicStyles.errorTitle]}>
-              Unable to load content info
-            </Text>
-            <Text
-              style={[styles.errorDescription, dynamicStyles.errorDescription]}
-            >
-              {error}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.contentContainer}>
-            <View
-              style={[
-                styles.breadcrumb,
-                styles.surfaceCard,
-                dynamicStyles.breadcrumb,
-                dynamicStyles.surfaceCard,
-              ]}
-            >
-              <Text
-                style={[styles.breadcrumbText, dynamicStyles.breadcrumbText]}
-              >
-                {moduleItem?.module_name} {" > "} {lessonItem?.lesson_name}{" "}
-                {" > "} {contentItem?.content_name}
-              </Text>
-            </View>
-
+        <View style={[styles.tabStickyWrap, dynamicStyles.tabStickyWrap]}>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -1697,6 +1656,36 @@ export default function ContentInfoScreen() {
                 </Text>
               </Pressable>
             </ScrollView>
+        </View>
+        {error ? (
+          <View style={[styles.errorBox, dynamicStyles.errorBox]}>
+            <Text style={[styles.errorTitle, dynamicStyles.errorTitle]}>
+              Unable to load content info
+            </Text>
+            <Text
+              style={[styles.errorDescription, dynamicStyles.errorDescription]}
+            >
+              {error}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.contentContainer}>
+            <View
+              style={[
+                styles.breadcrumb,
+                styles.surfaceCard,
+                dynamicStyles.breadcrumb,
+                dynamicStyles.surfaceCard,
+              ]}
+            >
+              <Text
+                style={[styles.breadcrumbText, dynamicStyles.breadcrumbText]}
+              >
+                {moduleItem?.module_name} {" > "} {lessonItem?.lesson_name}{" "}
+                {" > "} {contentItem?.content_name}
+              </Text>
+            </View>
+
 
             {activeTab === "content" ? (
               <>
@@ -2406,6 +2395,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "rgba(148, 163, 184, 0.12)",
+  },
+  tabStickyWrap: {
+    zIndex: 10,
+    elevation: 10,
   },
   tabHeaderContent: {
     flexDirection: "row",

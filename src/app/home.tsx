@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Image,
+  ImageSourcePropType,
   Modal,
   Pressable,
   ScrollView,
@@ -283,17 +284,60 @@ function ProgressBar({
 
 const PRIMARY = "#5bec13";
 
-function SummaryCard({ label, value, icon }: { label: string; value: string; icon: string }) {
+function SummaryCard({
+  label,
+  value,
+  image,
+}: {
+  label: string;
+  value: string;
+  image: ImageSourcePropType;
+}) {
   const theme = useTheme();
   const isDark = theme.text === "#ffffff";
 
   return (
-    <View style={[styles.summaryCard, { backgroundColor: isDark ? "#2a2a2e" : "#f8fafc", borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(148, 163, 184, 0.12)" }]}>
-      <View style={[styles.summaryCardIcon, { backgroundColor: isDark ? "rgba(91, 236, 19, 0.15)" : "#e7f8d5" }]}>
-        <Ionicons name={icon as any} size={20} color={isDark ? "#86efac" : "#166534"} />
-      </View>
+    <View
+      style={[
+        styles.summaryCard,
+        {
+          borderColor: isDark
+            ? "rgba(255,255,255,0.1)"
+            : "rgba(148, 163, 184, 0.18)",
+        },
+      ]}
+    >
+      <Image source={image} style={styles.summaryCardImage} resizeMode="contain" />
       <Text style={[styles.summaryCardValue, { color: theme.text }]}>{value}</Text>
       <Text style={[styles.summaryCardLabel, { color: theme.textSecondary }]}>{label}</Text>
+    </View>
+  );
+}
+
+function ContinueHeader({ isDark }: { isDark: boolean }) {
+  return (
+    <View style={styles.continueHeader}>
+      <Image
+        source={require("@/assets/images/continue.jpeg")}
+        style={[
+          styles.continueThumb,
+          {
+            backgroundColor: isDark ? "#2a2a2e" : "#e2e8f0",
+            borderColor: isDark
+              ? "rgba(255,255,255,0.08)"
+              : "rgba(148, 163, 184, 0.18)",
+          },
+        ]}
+        resizeMode="cover"
+      />
+      <View style={styles.continueHeaderText}>
+        <Text style={[styles.continueTitle, { color: isDark ? "#ffffff" : "#0f172a" }]}>
+          Continue Learning
+        </Text>
+        <Text style={[styles.continueSubtitle, { color: isDark ? "#B0B4BA" : "#64748b" }]}>
+          Pick up where you left off on your lesson content.
+        </Text>
+      </View>
     </View>
   );
 }
@@ -322,6 +366,9 @@ export default function HomeScreen() {
     ContinueLearningRecord[]
   >([]);
   const [continueLoading, setContinueLoading] = useState(false);
+  const [continueFilter, setContinueFilter] = useState<
+    "read" | "next" | null
+  >(null);
   const continueLearningLoaded = useRef(false);
   const [weeklyActivity, setWeeklyActivity] = useState<number[]>([
     0, 0, 0, 0, 0, 0, 0,
@@ -457,6 +504,41 @@ export default function HomeScreen() {
             ? "rgba(255,255,255,0.08)"
             : "rgba(255, 255, 255, 0.8)",
           shadowColor: isDark ? "#000000" : "#000",
+        },
+        continueCard: {
+          backgroundColor: isDark ? "#212225" : "#ffffff",
+          borderColor: isDark
+            ? "rgba(255,255,255,0.08)"
+            : "rgba(148, 163, 184, 0.18)",
+          shadowColor: isDark ? "#000000" : "#0f172a",
+        },
+        continueStatRead: {
+          borderColor: isDark
+            ? "rgba(91, 236, 19, 0.24)"
+            : "rgba(4, 120, 87, 0.22)",
+        },
+        continueStatSelected: {
+          backgroundColor: isDark ? "rgba(91, 236, 19, 0.18)" : "#ecfdf5",
+          borderColor: isDark ? "#5bec13" : "#22c55e",
+        },
+        continueStatSelectedText: {
+          color: isDark ? "#86efac" : "#047857",
+        },
+        continueStatNext: {
+          borderColor: isDark
+            ? "rgba(255,255,255,0.1)"
+            : "rgba(148, 163, 184, 0.24)",
+        },
+        continueItem: {
+          borderColor: isDark
+            ? "rgba(255,255,255,0.1)"
+            : "rgba(148, 163, 184, 0.22)",
+        },
+        continueItemIconRead: {
+          backgroundColor: isDark ? "rgba(91, 236, 19, 0.15)" : "#e7f8d5",
+        },
+        continueItemIconNext: {
+          backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#f1f5f9",
         },
         secondaryButton: {
           backgroundColor: isDark
@@ -638,6 +720,16 @@ export default function HomeScreen() {
       loadDashboardData();
     }, [userId]),
   );
+
+  const visibleContinueLearning = useMemo(() => {
+    if (continueFilter === "read") {
+      return continueLearning.filter((record) => record.is_read);
+    }
+    if (continueFilter === "next") {
+      return continueLearning.filter((record) => record.is_next);
+    }
+    return continueLearning;
+  }, [continueLearning, continueFilter]);
 
   const handleStep1Complete = useCallback(async () => {
     const existing = await getStudentTutorialByUserId(userId);
@@ -848,14 +940,12 @@ export default function HomeScreen() {
           <View
             style={[
               styles.card,
-              styles.surfaceCard,
+              styles.continueCard,
               dynamicStyles.card,
-              dynamicStyles.surfaceCard,
+              dynamicStyles.continueCard,
             ]}
           >
-            <ThemedText type="code" themeColor="textSecondary">
-              Continue Learning
-            </ThemedText>
+            <ContinueHeader isDark={isDark} />
             <ThemedText themeColor="textSecondary" style={styles.summaryText}>
               Loading your progress...
             </ThemedText>
@@ -864,83 +954,178 @@ export default function HomeScreen() {
           <View
             style={[
               styles.card,
-              styles.surfaceCard,
+              styles.continueCard,
               dynamicStyles.card,
-              dynamicStyles.surfaceCard,
+              dynamicStyles.continueCard,
             ]}
           >
-            <ThemedText type="code" themeColor="textSecondary">
-              Continue Learning
-            </ThemedText>
+            <ContinueHeader isDark={isDark} />
+
             {continueLearning.length === 0 ? (
               <ThemedText themeColor="textSecondary" style={styles.summaryText}>
-                No continue learning data yet. Mark lesson content as read to
-                see it here.
+                No continue learning data yet. Mark lesson content as read to see
+                it here.
               </ThemedText>
             ) : (
               <>
-                <ThemedText
-                  themeColor="textSecondary"
-                  style={styles.summaryText}
-                >
-                  Marked as read:{" "}
-                  {continueLearning.filter((r) => r.is_read).length} | Next to
-                  read: {continueLearning.filter((r) => r.is_next).length}
-                </ThemedText>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.continueScroll}
-                >
-                  {continueLearning.map((record) => (
-                    <Pressable
-                      key={record.lesson_content_id}
+                <View style={styles.continueStats}>
+                  <Pressable
+                    onPress={() =>
+                      setContinueFilter((prev) =>
+                        prev === "read" ? null : "read",
+                      )
+                    }
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: continueFilter === "read" }}
+                    accessibilityLabel="Show lesson content marked as read"
+                    style={({ pressed }) => [
+                      styles.continueStat,
+                      dynamicStyles.continueStatNext,
+                      continueFilter === "read" && dynamicStyles.continueStatSelected,
+                      pressed && styles.continueStatPressed,
+                    ]}
+                  >
+                    <Text
                       style={[
-                        styles.continueItem,
-                        { backgroundColor: isDark ? "#2a2a2e" : "#f8fafc" },
+                        styles.continueStatValue,
+                        continueFilter === "read"
+                          ? dynamicStyles.continueStatSelectedText
+                          : { color: isDark ? "#ffffff" : "#0f172a" },
                       ]}
-                      onPress={() => {
-                        router.push({
-                          pathname: "/content-info/[id]",
-                          params: {
-                            id: String(record.lesson_content_id),
-                            userId: String(userId),
-                          },
-                        });
-                      }}
                     >
-                      <View style={styles.continueItemContent}>
-                        {record.is_read ? (
+                      {continueLearning.filter((r) => r.is_read).length}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.continueStatLabel,
+                        continueFilter === "read"
+                          ? dynamicStyles.continueStatSelectedText
+                          : { color: isDark ? "#B0B4BA" : "#64748b" },
+                      ]}
+                    >
+                      Marked as read
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() =>
+                      setContinueFilter((prev) =>
+                        prev === "next" ? null : "next",
+                      )
+                    }
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: continueFilter === "next" }}
+                    accessibilityLabel="Show next lesson content to read"
+                    style={({ pressed }) => [
+                      styles.continueStat,
+                      dynamicStyles.continueStatNext,
+                      continueFilter === "next" && dynamicStyles.continueStatSelected,
+                      pressed && styles.continueStatPressed,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.continueStatValue,
+                        continueFilter === "next"
+                          ? dynamicStyles.continueStatSelectedText
+                          : { color: isDark ? "#ffffff" : "#0f172a" },
+                      ]}
+                    >
+                      {continueLearning.filter((r) => r.is_next).length}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.continueStatLabel,
+                        continueFilter === "next"
+                          ? dynamicStyles.continueStatSelectedText
+                          : { color: isDark ? "#B0B4BA" : "#64748b" },
+                      ]}
+                    >
+                      Next to read
+                    </Text>
+                  </Pressable>
+                </View>
+
+                {visibleContinueLearning.length === 0 ? (
+                  <Text
+                    style={[
+                      styles.continueEmptyText,
+                      { color: isDark ? "#B0B4BA" : "#64748b" },
+                    ]}
+                  >
+                    {continueFilter === "read"
+                      ? "No lesson content marked as read yet."
+                      : "No lesson content queued as next to read."}
+                  </Text>
+                ) : (
+                  <View style={styles.continueList}>
+                    {visibleContinueLearning.map((record) => (
+                      <Pressable
+                        key={record.lesson_content_id}
+                        style={({ pressed }) => [
+                          styles.continueItem,
+                          dynamicStyles.continueItem,
+                          pressed && { opacity: 0.8 },
+                        ]}
+                        onPress={() => {
+                          router.push({
+                            pathname: "/content-info/[id]",
+                            params: {
+                              id: String(record.lesson_content_id),
+                              userId: String(userId),
+                            },
+                          });
+                        }}
+                      >
+                        <View
+                          style={[
+                            styles.continueItemIcon,
+                            record.is_read
+                              ? dynamicStyles.continueItemIconRead
+                              : dynamicStyles.continueItemIconNext,
+                          ]}
+                        >
                           <Ionicons
-                            name="checkmark-circle"
-                            size={16}
-                            color="#5bec13"
+                            name={
+                              record.is_read
+                                ? "checkmark-circle"
+                                : "arrow-forward-circle"
+                            }
+                            size={18}
+                            color={record.is_read ? "#5bec13" : PRIMARY}
                           />
-                        ) : (
-                          <Ionicons
-                            name="arrow-forward-circle"
-                            size={16}
-                            color={PRIMARY}
-                          />
-                        )}
+                        </View>
+
                         <View style={styles.continueItemText}>
-                          <ThemedText
-                            type="default"
-                            style={styles.continueItemTitle}
+                          <Text
+                            numberOfLines={2}
+                            style={[
+                              styles.continueItemTitle,
+                              { color: isDark ? "#ffffff" : "#0f172a" },
+                            ]}
                           >
                             {record.content_name}
-                          </ThemedText>
-                          <ThemedText
-                            themeColor="textSecondary"
-                            style={styles.continueItemLesson}
+                          </Text>
+                          <Text
+                            numberOfLines={1}
+                            style={[
+                              styles.continueItemLesson,
+                              { color: isDark ? "#B0B4BA" : "#64748b" },
+                            ]}
                           >
                             {record.lesson_name}
-                          </ThemedText>
+                          </Text>
                         </View>
-                      </View>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+
+                        <Ionicons
+                          name="chevron-forward"
+                          size={16}
+                          color={isDark ? "#5c6b61" : "#94a3b8"}
+                        />
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
               </>
             )}
           </View>
@@ -953,10 +1138,26 @@ export default function HomeScreen() {
             style={styles.summaryCarousel}
           >
             <View style={styles.summaryCarouselContent}>
-              <SummaryCard label="Competencies" value={String(competencies.length)} icon="school-outline" />
-              <SummaryCard label="Modules" value={String(modules.length)} icon="library-outline" />
-              <SummaryCard label="Lessons" value={String(lessons.length)} icon="book-outline" />
-              <SummaryCard label="Lesson Contents" value={String(lessonContents.length)} icon="document-text-outline" />
+              <SummaryCard
+                label="Competencies"
+                value={String(competencies.length)}
+                image={require("@/assets/images/info.jpeg")}
+              />
+              <SummaryCard
+                label="Modules"
+                value={String(modules.length)}
+                image={require("@/assets/images/library.jpeg")}
+              />
+              <SummaryCard
+                label="Lessons"
+                value={String(lessons.length)}
+                image={require("@/assets/images/lesson.jpeg")}
+              />
+              <SummaryCard
+                label="Lesson Contents"
+                value={String(lessonContents.length)}
+                image={require("@/assets/images/mark_as_read.jpeg")}
+              />
             </View>
           </ScrollView>
         </View>
@@ -1900,21 +2101,87 @@ const styles = StyleSheet.create({
     color: "#64748b",
     fontWeight: "500",
   },
-  continueScroll: {
-    marginTop: 8,
+  continueHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  continueThumb: {
+    width: 72,
+    height: 72,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  continueHeaderText: {
+    flex: 1,
+    gap: 3,
+  },
+  continueTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  continueSubtitle: {
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  continueStats: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 4,
+  },
+  continueCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  continueStat: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 2,
+    backgroundColor: "transparent",
+  },
+  continueStatPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
+  },
+  continueStatValue: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  continueStatLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  continueEmptyText: {
+    fontSize: 13,
+    lineHeight: 19,
+    paddingVertical: 12,
+  },
+  continueList: {
+    gap: 8,
   },
   continueItem: {
-    borderRadius: 12,
-    padding: 12,
-    marginRight: 10,
-    minWidth: 160,
-    borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.12)",
-  },
-  continueItemContent: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
+    alignItems: "center",
+    gap: 10,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    backgroundColor: "transparent",
+  },
+  continueItemIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
   continueItemText: {
     flex: 1,
@@ -1923,6 +2190,7 @@ const styles = StyleSheet.create({
   continueItemTitle: {
     fontSize: 13,
     fontWeight: "600",
+    lineHeight: 18,
   },
   continueItemLesson: {
     fontSize: 11,
@@ -1941,13 +2209,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     minWidth: 120,
+    backgroundColor: "transparent",
   },
-  summaryCardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+  summaryCardImage: {
+    width: 34,
+    height: 34,
   },
   summaryCardValue: {
     fontSize: 22,

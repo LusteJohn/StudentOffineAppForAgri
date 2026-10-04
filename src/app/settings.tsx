@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -56,19 +56,27 @@ export default function SettingsScreen() {
     screen: {
       backgroundColor: colors.background,
     },
-    heroIcon: {
+    pageIntroImage: {
+      backgroundColor: isDark ? colors.backgroundSelected : '#e2e8f0',
+    },
+    pageIntroTitle: {
       color: colors.text,
+    },
+    pageIntroText: {
+      color: colors.textSecondary,
+    },
+    groupLabel: {
+      color: colors.textSecondary,
     },
     sectionCard: {
       backgroundColor: colors.backgroundElement,
-      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(92, 107, 97, 0.12)',
-      shadowColor: isDark ? '#000000' : '#0f172a',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.18)',
     },
     sectionIconWrap: {
-      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f1f8e8',
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#e7f8d5',
     },
-    sectionIcon: {
-      color: colors.text,
+    sectionIconWrapDanger: {
+      backgroundColor: '#b91c1c',
     },
     sectionEyebrow: {
       color: colors.textSecondary,
@@ -80,25 +88,11 @@ export default function SettingsScreen() {
       color: colors.textSecondary,
     },
     profileContainer: {
-      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.05)' : '#f8fff3',
-      borderColor: isDark ? 'rgba(91, 236, 19, 0.12)' : 'rgba(92, 107, 97, 0.14)',
-    },
-    actionCard: {
-      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.05)' : '#f8fff3',
-      borderColor: isDark ? 'rgba(91, 236, 19, 0.12)' : 'rgba(92, 107, 97, 0.12)',
-      shadowColor: isDark ? '#000000' : '#0f172a',
-    },
-    actionTitle: {
-      color: colors.text,
-    },
-    actionDescription: {
-      color: colors.textSecondary,
+      backgroundColor: 'transparent',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.18)',
     },
     primaryButton: {
       backgroundColor: isDark ? '#86efac' : '#55e10a',
-    },
-    primaryButtonIcon: {
-      color: isDark ? '#000000' : '#0f172a',
     },
     primaryButtonText: {
       color: isDark ? '#000000' : '#0f172a',
@@ -117,15 +111,6 @@ export default function SettingsScreen() {
     statusTextError: {
       color: '#b91c1c',
     },
-    modalCloseIcon: {
-      color: colors.text,
-    },
-    inputPlaceholder: {
-      color: colors.textSecondary,
-    },
-    dateTriggerIcon: {
-      color: colors.text,
-    },
      logoutButton: {
       backgroundColor: '#b91c1c',
     },
@@ -133,25 +118,13 @@ export default function SettingsScreen() {
       color: '#ffffff',
     },
     themeOption: {
-      backgroundColor: colors.backgroundElement,
-      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.16)',
+      backgroundColor: 'transparent',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.18)',
     },
     themeOptionSelected: {
       backgroundColor: isDark ? '#86efac' : '#166534',
     },
-    themeOptionIcon: {
-      color: isDark ? (themeCtx.themeMode === 'light' ? '#eab308' : colors.text) : (themeCtx.themeMode === 'light' ? '#eab308' : '#0f172a'),
-    },
-    themeOptionText: {
-      color: colors.text,
-    },
-    themeOptionTextSelected: {
-      color: isDark ? '#000000' : '#ffffff',
-    },
-    themeOptionCheck: {
-      backgroundColor: isDark ? '#000000' : '#ffffff',
-    },
-  }), [colors, isDark, themeCtx.themeMode]);
+  }), [colors, isDark]);
 
   useEffect(() => {
     let isMounted = true;
@@ -737,7 +710,22 @@ export default function SettingsScreen() {
   return (
     <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Settings" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.pageIntro}>
+          <Image
+            source={require('@/assets/images/setting_image.jpeg')}
+            style={[styles.pageIntroImage, dynamicStyles.pageIntroImage]}
+            resizeMode="cover"
+          />
+          <Text style={[styles.pageIntroTitle, dynamicStyles.pageIntroTitle]}>Settings</Text>
+          <Text style={[styles.pageIntroText, dynamicStyles.pageIntroText]}>
+            Everything on this page runs entirely on this device. Use Learning data to import the
+            offline module content or export your progress as a PDF report, Preferences to tune the
+            tutorial and light or dark appearance, and Session to sign out when you are done.
+          </Text>
+        </View>
+
+        <Text style={[styles.groupLabel, dynamicStyles.groupLabel]}>Learning data</Text>
 
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
@@ -745,129 +733,83 @@ export default function SettingsScreen() {
               <Ionicons name="cloud-download-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
-                Device data
-              </ThemedText>
-              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-                Offline resources
-              </ThemedText>
+              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>Offline resources</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Import module content</Text>
             </View>
           </View>
-          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Manage offline resources stored on this device.</ThemedText>
+          <Text style={[styles.sectionBody, dynamicStyles.sectionBody]}>
+            Downloads the default competencies, modules, lessons, exercises, job sheets and
+            performance checklists onto this device for offline study.
+          </Text>
 
-          <View style={[styles.actionCard, dynamicStyles.actionCard]}>
-            <View style={styles.actionHeader}>
-              <View style={styles.actionTextWrap}>
-                <ThemedText type="subtitle" style={[styles.actionTitle, dynamicStyles.actionTitle]}>
-                  Import offline resources
-                </ThemedText>
-                <ThemedText style={[styles.actionDescription, dynamicStyles.actionDescription]}>
-                   Replace the current local competency, module, lesson, lesson-content, content-info, lesson-info, lesson-link, question-instruct, question-content, question-choice, job-sheet, and performance-checklist data with the default offline dataset.
-                </ThemedText>
-              </View>
-            </View>
+          <Pressable
+            onPress={handleImportResources}
+            disabled={importing}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              dynamicStyles.primaryButton,
+              importing && styles.primaryButtonDisabled,
+              pressed && styles.buttonPressed,
+            ]}>
+            <Ionicons name="download-outline" size={18} color={isDark ? '#000000' : '#0f172a'} />
+            <Text style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>
+              {importing ? 'Importing...' : 'Import resources'}
+            </Text>
+          </Pressable>
 
-            <Pressable
-              onPress={handleImportResources}
-              disabled={importing}
-              style={[styles.primaryButton, dynamicStyles.primaryButton, importing && styles.primaryButtonDisabled]}>
-              <Ionicons name="download-outline" size={18} color={isDark ? '#000000' : '#0f172a'} />
-              <ThemedText style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>{importing ? 'Importing...' : 'Import resources'}</ThemedText>
-            </Pressable>
-
-            {message ? (
-              <View
+          {message ? (
+            <View
+              style={[
+                styles.statusBox,
+                message.includes('Failed')
+                  ? dynamicStyles.statusBoxError
+                  : dynamicStyles.statusBoxSuccess,
+              ]}>
+              <Text
                 style={[
-                  styles.statusBox,
+                  styles.statusText,
                   message.includes('Failed')
-                    ? dynamicStyles.statusBoxError
-                    : dynamicStyles.statusBoxSuccess,
+                    ? dynamicStyles.statusTextError
+                    : dynamicStyles.statusTextSuccess,
                 ]}>
-                <ThemedText
-                  style={[
-                    styles.statusText,
-                    message.includes('Failed') ? dynamicStyles.statusTextError : dynamicStyles.statusTextSuccess,
-                  ]}>
-                  {message}
-                </ThemedText>
-              </View>
-            ) : null}
-          </View>
-        </View>
-
-
-         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
-           <View style={styles.sectionHeader}>
-             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
-               <Ionicons name="document-text-outline" size={18} color={colors.text} />
-             </View>
-             <View style={styles.sectionHeaderText}>
-               <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
-                 Reports
-               </ThemedText>
-               <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-                 Export student report
-               </ThemedText>
-             </View>
-           </View>
-           <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
-             Download a PDF report containing your student profile, answers, progress, bookmarks, and achievements.
-           </ThemedText>
-
-           <Pressable
-             onPress={handleExportReport}
-             disabled={exporting}
-             style={[styles.primaryButton, dynamicStyles.primaryButton, exporting && styles.primaryButtonDisabled]}>
-             <Ionicons name="download-outline" size={18} color={isDark ? '#000000' : '#0f172a'} />
-             <ThemedText style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>{exporting ? 'Generating report...' : 'Export student report'}</ThemedText>
-           </Pressable>
-         </View>
-
-        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
-              <Ionicons name="information-circle-outline" size={18} color={colors.text} />
+                {message}
+              </Text>
             </View>
-            <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
-                About
-              </ThemedText>
-              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-                Agricultural Production Learning
-              </ThemedText>
-            </View>
-          </View>
-          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
-            This application provides interactive learning modules for agricultural production, covering competencies, lessons, lesson content, exercises, job sheets, and performance checklists to support student learning and assessment.
-          </ThemedText>
-          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
-            Developed for agricultural education and practical skill development in the field.
-          </ThemedText>
-          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
-            Proposed by the student as a capstone project for the Bachelor of Science in Education, Major in Information and Communications Technology (ICT).
-          </ThemedText>
+          ) : null}
         </View>
 
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
-              <Ionicons name="cube-outline" size={18} color={colors.text} />
+              <Ionicons name="document-text-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
-                App info
-              </ThemedText>
-              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-                Version
-              </ThemedText>
+              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>Reports</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Export student report</Text>
             </View>
           </View>
-          <View style={[styles.profileContainer, dynamicStyles.profileContainer]}>
-            <InfoRow label="App Name" value="AgriLearn Student" />
-            <InfoRow label="Version" value={appVersion} />
-            <InfoRow label="Description" value="Agricultural production learning platform" />
-</View>
+          <Text style={[styles.sectionBody, dynamicStyles.sectionBody]}>
+            Generates a PDF of your profile, answers, progress and achievements, then opens the share
+            sheet so you can save or send it.
+          </Text>
+
+          <Pressable
+            onPress={handleExportReport}
+            disabled={exporting}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              dynamicStyles.primaryButton,
+              exporting && styles.primaryButtonDisabled,
+              pressed && styles.buttonPressed,
+            ]}>
+            <Ionicons name="share-outline" size={18} color={isDark ? '#000000' : '#0f172a'} />
+            <Text style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>
+              {exporting ? 'Generating report...' : 'Export student report'}
+            </Text>
+          </Pressable>
         </View>
+
+        <Text style={[styles.groupLabel, dynamicStyles.groupLabel]}>Preferences</Text>
 
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
@@ -875,43 +817,47 @@ export default function SettingsScreen() {
               <Ionicons name="school-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
-                Onboarding
-              </ThemedText>
-              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-                Tutorial Guide
-              </ThemedText>
+              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>Onboarding</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Tutorial guide</Text>
             </View>
           </View>
-          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Show the tutorial guide on the home page after login to help new students learn the app.</ThemedText>
+          <Text style={[styles.sectionBody, dynamicStyles.sectionBody]}>
+            Show the step-by-step tutorial on the home page. Turning it on also restarts the guide
+            from the beginning.
+          </Text>
 
           <Pressable
             onPress={() => handleOnboardingToggle(!showOnboarding)}
-            style={[
+            style={({ pressed }) => [
               styles.primaryButton,
               dynamicStyles.primaryButton,
               showOnboarding && styles.primaryButtonActive,
+              pressed && styles.buttonPressed,
             ]}>
-            <Ionicons name={showOnboarding ? 'checkmark-circle-outline' : 'checkmark-circle'} size={18} color="#ffffff" />
-            <ThemedText style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>{showOnboarding ? 'Enabled' : 'Disabled'}</ThemedText>
+            <Ionicons
+              name={showOnboarding ? 'checkmark-circle' : 'close-circle-outline'}
+              size={18}
+              color={isDark ? '#000000' : '#0f172a'}
+            />
+            <Text style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>
+              {showOnboarding ? 'Enabled' : 'Disabled'}
+            </Text>
           </Pressable>
         </View>
 
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
-              <Ionicons name="moon-outline" size={18} color={colors.text} />
+              <Ionicons name="contrast-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
-                Appearance
-              </ThemedText>
-              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-                Dark mode
-              </ThemedText>
+              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>Appearance</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Light or dark mode</Text>
             </View>
           </View>
-          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Choose how the app appearance adapts to light or dark mode.</ThemedText>
+          <Text style={[styles.sectionBody, dynamicStyles.sectionBody]}>
+            Follow the device setting, or force light or dark for the whole app.
+          </Text>
 
           <View style={styles.themeOptionGroup}>
             <ThemeOption
@@ -932,7 +878,7 @@ export default function SettingsScreen() {
             />
             <ThemeOption
               label="System"
-               icon="contrast-outline"
+              icon="contrast-outline"
               value="system"
               selected={themeCtx.themeMode === 'system'}
               onPress={() => themeCtx.setThemeMode('system')}
@@ -941,28 +887,74 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        <Text style={[styles.groupLabel, dynamicStyles.groupLabel]}>About</Text>
+
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
-              <Ionicons name="log-out-outline" size={18} color={colors.text} />
+              <Ionicons name="information-circle-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
-              <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
-                Session
-              </ThemedText>
-              <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-                Logout
-              </ThemedText>
+              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>Overview</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
+                Agricultural Production Learning
+              </Text>
             </View>
           </View>
-          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Logout from your current student account on this device.</ThemedText>
+          <Text style={[styles.sectionBody, dynamicStyles.sectionBody]}>
+            Interactive learning modules for agricultural production, covering competencies, lessons,
+            lesson content, exercises, job sheets and performance checklists to support student
+            learning and assessment in the field.
+          </Text>
+        </View>
+
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="cube-outline" size={18} color={colors.text} />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>App info</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Version</Text>
+            </View>
+          </View>
+          <View style={[styles.profileContainer, dynamicStyles.profileContainer]}>
+            <InfoRow label="App Name" value="AgriLearn Student" />
+            <InfoRow label="Version" value={appVersion} />
+            <InfoRow label="Description" value="Agricultural production learning platform" />
+          </View>
+        </View>
+
+        <Text style={[styles.groupLabel, dynamicStyles.groupLabel]}>Session</Text>
+
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconWrap, styles.sectionIconWrapDanger, dynamicStyles.sectionIconWrapDanger]}>
+              <Ionicons name="log-out-outline" size={18} color="#ffffff" />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>Account</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Logout</Text>
+            </View>
+          </View>
+          <Text style={[styles.sectionBody, dynamicStyles.sectionBody]}>
+            Ends your session on this device. Your saved answers and progress stay on the device and
+            will be here when you sign back in.
+          </Text>
 
           <Pressable
             onPress={handleLogout}
             disabled={loggingOut}
-            style={[styles.logoutButton, dynamicStyles.logoutButton, loggingOut && styles.logoutButtonDisabled]}>
+            style={({ pressed }) => [
+              styles.logoutButton,
+              dynamicStyles.logoutButton,
+              loggingOut && styles.logoutButtonDisabled,
+              pressed && styles.buttonPressed,
+            ]}>
             <Ionicons name="exit-outline" size={18} color="#ffffff" />
-            <ThemedText style={[styles.logoutButtonText, dynamicStyles.logoutButtonText]}>{loggingOut ? 'Logging out...' : 'Logout'}</ThemedText>
+            <Text style={[styles.logoutButtonText, dynamicStyles.logoutButtonText]}>
+              {loggingOut ? 'Logging out...' : 'Logout'}
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -1010,16 +1002,45 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 16,
   },
+  pageIntro: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 560,
+    gap: 10,
+  },
+  pageIntroImage: {
+    width: '100%',
+    height: 160,
+    borderRadius: 16,
+  },
+  pageIntroTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  pageIntroText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  groupLabel: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 560,
+    marginTop: 4,
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+  },
   sectionCard: {
     alignSelf: 'center',
     width: '100%',
     maxWidth: 560,
-    padding: 18,
-    borderRadius: 24,
-    gap: 12,
-    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 16,
+    gap: 10,
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: 'rgba(92, 107, 97, 0.12)',
+    borderColor: 'rgba(148, 163, 184, 0.18)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -1027,12 +1048,18 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sectionIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 34,
+    height: 34,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f1f8e8',
+    backgroundColor: 'transparent',
+  },
+  sectionIconWrapDanger: {
+    backgroundColor: '#b91c1c',
+  },
+  buttonPressed: {
+    opacity: 0.75,
   },
   sectionHeaderText: {
     flex: 1,
@@ -1055,43 +1082,20 @@ const styles = StyleSheet.create({
   },
   profileContainer: {
     marginTop: 2,
-    borderRadius: 18,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(92, 107, 97, 0.14)',
-    backgroundColor: '#f8fff3',
+    borderColor: 'rgba(148, 163, 184, 0.18)',
+    backgroundColor: 'transparent',
     padding: 14,
     gap: 10,
-  },
-  actionCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(92, 107, 97, 0.12)',
-    backgroundColor: '#f8fff3',
-    padding: 14,
-    gap: 12,
-  },
-  actionHeader: {
-    gap: 6,
-  },
-  actionTextWrap: {
-    gap: 4,
-  },
-  actionTitle: {
-    fontSize: 16,
-    color: '#0f172a',
-  },
-  actionDescription: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#475569',
   },
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    borderRadius: 16,
-    paddingVertical: 14,
+    borderRadius: 14,
+    paddingVertical: 13,
     backgroundColor: '#55e10a',
   },
   primaryButtonDisabled: {
@@ -1110,8 +1114,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginTop: 2,
-    borderRadius: 16,
-    paddingVertical: 14,
+    borderRadius: 14,
+    paddingVertical: 13,
     backgroundColor: '#b91c1c',
   },
   logoutButtonDisabled: {
@@ -1159,8 +1163,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.16)',
-    backgroundColor: '#ffffff',
+    borderColor: 'rgba(148, 163, 184, 0.18)',
+    backgroundColor: 'transparent',
   },
   themeOptionSelected: {
     backgroundColor: '#166534',
