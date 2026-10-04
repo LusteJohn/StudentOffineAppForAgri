@@ -217,9 +217,9 @@ export type ModuleProgressReport = {
 export type StudentReportData = {
   user: StudentUser | null;
   studentInfo: StudentProfile | null;
-  questionAnswers: (QuestionAnswerRecord & { question_text: string | null; module_id: number | null; module_name: string | null })[];
-  jobSheetAnswers: (JobSheetAnswerRecord & { job_title: string | null; module_id: number | null; module_name: string | null })[];
-  performanceAnswers: (PerformanceAnswerRecord & { performance_question: string | null; module_id: number | null; module_name: string | null })[];
+  questionAnswers: (QuestionAnswerRecord & { question_text: string | null; module_id: number | null; module_name: string | null; lesson_content_id: number | null; content_name: string | null; lesson_name: string | null })[];
+  jobSheetAnswers: (JobSheetAnswerRecord & { job_title: string | null; module_id: number | null; module_name: string | null; lesson_content_id: number | null; content_name: string | null; lesson_name: string | null })[];
+  performanceAnswers: (PerformanceAnswerRecord & { performance_question: string | null; module_id: number | null; module_name: string | null; lesson_content_id: number | null; content_name: string | null; lesson_name: string | null })[];
   lessonContentProgress: (LessonContentProgressRecord & { content_name: string | null; lesson_name: string | null })[];
   lessonContentBookmarks: (LessonContentBookmarkRecord & { content_name: string | null; lesson_name: string | null })[];
   studentLessonAchievements: (StudentLessonAchievementRecord & { achievement_name: string | null; module_id: number | null; module_name: string | null })[];
@@ -3127,8 +3127,8 @@ export async function getStudentReportData(userId: number) {
   const [user, studentInfo, questionAnswers, jobSheetAnswers, performanceAnswers, lessonContentProgress, lessonContentBookmarks, studentLessonAchievements, studentModuleAchievements, allModules, allLessons, allLessonContents] = await Promise.all([
     db.getFirstAsync<StudentUser>("SELECT user_id, username, email, role, created_at FROM users WHERE user_id = ?", [userId]),
     db.getFirstAsync<StudentProfile>("SELECT * FROM student_info WHERE user_id = ?", [userId]),
-db.getAllAsync<QuestionAnswerRecord & { question_text: string | null; module_id: number | null; module_name: string | null }>(
-      `SELECT qa.*, qc.question AS question_text, m.module_id, m.module_name
+db.getAllAsync<QuestionAnswerRecord & { question_text: string | null; module_id: number | null; module_name: string | null; lesson_content_id: number | null; content_name: string | null; lesson_name: string | null }>(
+      `SELECT qa.*, qc.question AS question_text, m.module_id, m.module_name, lc.lesson_content_id, lc.content_name, l.lesson_name
        FROM question_answers qa
        LEFT JOIN question_content qc ON qc.question_id = qa.question_id
        LEFT JOIN lesson_content lc ON lc.lesson_content_id = qc.lesson_content_id
@@ -3137,8 +3137,8 @@ db.getAllAsync<QuestionAnswerRecord & { question_text: string | null; module_id:
        WHERE qa.user_id = ? ORDER BY qa.answer_id ASC`,
       [userId],
     ),
-    db.getAllAsync<JobSheetAnswerRecord & { job_title: string | null; module_id: number | null; module_name: string | null }>(
-      `SELECT ja.*, js.job_title, m.module_id, m.module_name
+    db.getAllAsync<JobSheetAnswerRecord & { job_title: string | null; module_id: number | null; module_name: string | null; lesson_content_id: number | null; content_name: string | null; lesson_name: string | null }>(
+      `SELECT ja.*, js.job_title, m.module_id, m.module_name, lc.lesson_content_id, lc.content_name, l.lesson_name
        FROM job_sheet_answers ja
        LEFT JOIN job_sheet js ON js.job_id = ja.job_id
        LEFT JOIN lesson_content lc ON lc.lesson_content_id = js.lesson_content_id
@@ -3147,8 +3147,8 @@ db.getAllAsync<QuestionAnswerRecord & { question_text: string | null; module_id:
        WHERE ja.user_id = ? ORDER BY ja.answer_id ASC`,
       [userId],
     ),
-    db.getAllAsync<PerformanceAnswerRecord & { performance_question: string | null; module_id: number | null; module_name: string | null }>(
-      `SELECT pa.*, pc.performance_question, m.module_id, m.module_name
+    db.getAllAsync<PerformanceAnswerRecord & { performance_question: string | null; module_id: number | null; module_name: string | null; lesson_content_id: number | null; content_name: string | null; lesson_name: string | null }>(
+      `SELECT pa.*, pc.performance_question, m.module_id, m.module_name, lc.lesson_content_id, lc.content_name, l.lesson_name
        FROM performance_answer pa
        LEFT JOIN performance_checklist pc ON pc.performance_id = pa.performance_id
        LEFT JOIN lesson_content lc ON lc.lesson_content_id = pc.lesson_content_id

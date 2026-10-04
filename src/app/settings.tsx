@@ -668,30 +668,49 @@ export default function SettingsScreen() {
       ` : `
         <div class="chart-box">
           <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Weekly Activity (Questions, Job Sheets, Performance Tasks, Progress & Achievements)</div>
-          <svg width="100%" height="160" viewBox="0 0 500 160" preserveAspectRatio="xMidYMid meet">
-            <polyline fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"
-              points="${data.weeklyActivity.map((count, i) => {
-                const x = 30 + (i * (440 / 6));
-                const maxCount = Math.max(...data.weeklyActivity, 1);
-                const y = 130 - (count / maxCount) * 100;
-                return `${x},${y}`;
-              }).join(' ')}">
-              <animate attributeName="stroke-dasharray" values="0 1000;1000 0" dur="1s" fill="freeze" />
-            </polyline>
-            ${data.weeklyActivity.map((count, i) => {
-              const x = 30 + (i * (440 / 6));
-              const maxCount = Math.max(...data.weeklyActivity, 1);
-              const y = 130 - (count / maxCount) * 100;
-              return `
-                <circle cx="${x}" cy="${y}" r="3.5" fill="#2563eb" />
-                <text x="${x}" y="145" text-anchor="middle" font-size="10" fill="#6b7280">
-                  ${["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}
-                </text>
-                ${count > 0 ? `<text x="${x}" y="${y - 10}" text-anchor="middle" font-size="9" fill="#374151" font-weight="600">${count}</text>` : ''}
-              `;
-            }).join('')}
-            <line x1="30" y1="130" x2="470" y2="130" stroke="#d1d5db" stroke-width="1" />
-          </svg>
+          ${(() => {
+            const chartLeft = 42;
+            const chartRight = 478;
+            const chartTop = 24;
+            const chartBottom = 124;
+            const steps = Math.max(data.weeklyActivity.length - 1, 1);
+            const maxCount = Math.max(...data.weeklyActivity, 1);
+            const niceMax = Math.max(Math.ceil(maxCount / 5) * 5, 5);
+            const xAt = (i: number) => chartLeft + (i * ((chartRight - chartLeft) / steps));
+            const yAt = (count: number) => chartBottom - ((count / niceMax) * (chartBottom - chartTop));
+            const points = data.weeklyActivity.map((count, i) => `${xAt(i)},${yAt(count)}`);
+            const linePoints = points.join(' ');
+            const areaPath = `M ${chartLeft} ${chartBottom} L ${points.join(' L ')} L ${xAt(data.weeklyActivity.length - 1)} ${chartBottom} Z`;
+            const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
+              value: Math.round(niceMax * (1 - t)),
+              y: chartBottom - t * (chartBottom - chartTop),
+            }));
+            return `
+              <svg width="100%" height="170" viewBox="0 0 500 170" preserveAspectRatio="xMidYMid meet">
+                ${ticks.map((tick) => `
+                  <line x1="${chartLeft}" y1="${tick.y}" x2="${chartRight}" y2="${tick.y}" stroke="#e5e7eb" stroke-width="1" />
+                  <text x="${chartLeft - 8}" y="${tick.y + 3}" text-anchor="end" font-size="9" fill="#6b7280">${tick.value}</text>
+                `).join('')}
+                <path d="${areaPath}" fill="#2563eb" fill-opacity="0.12" stroke="none" />
+                <polyline fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="${linePoints}" />
+                ${data.weeklyActivity.map((count, i) => {
+                  const x = xAt(i);
+                  const y = yAt(count);
+                  return `
+                    <circle cx="${x}" cy="${y}" r="3.5" fill="#2563eb" stroke="#ffffff" stroke-width="1" />
+                    <text x="${x}" y="${chartBottom + 14}" text-anchor="middle" font-size="10" fill="#6b7280">
+                      ${["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i] ?? ''}
+                    </text>
+                    <text x="${x}" y="${y - 8}" text-anchor="middle" font-size="9" fill="#374151" font-weight="600">${count}</text>
+                  `;
+                }).join('')}
+                <line x1="${chartLeft}" y1="${chartTop}" x2="${chartLeft}" y2="${chartBottom}" stroke="#9ca3af" stroke-width="1" />
+                <line x1="${chartLeft}" y1="${chartBottom}" x2="${chartRight}" y2="${chartBottom}" stroke="#9ca3af" stroke-width="1" />
+                <text x="${(chartLeft + chartRight) / 2}" y="164" text-anchor="middle" font-size="9" fill="#6b7280">Day of Week</text>
+                <text x="12" y="${(chartTop + chartBottom) / 2}" text-anchor="middle" font-size="9" fill="#6b7280" transform="rotate(-90 12 ${(chartTop + chartBottom) / 2})">Total Progress</text>
+              </svg>
+            `;
+          })()}
         </div>
       `}
 
@@ -888,44 +907,90 @@ export default function SettingsScreen() {
 
             <h3 style="font-size: 13px; color: #374151; margin: 16px 0 8px 0;">Student Records</h3>
 
-            ${qaAnswers.length > 0 ? `
-              <div class="module-group">
-                <div class="module-group-title">Exercises / Questions (${qaAnswers.length})</div>
-                ${qaAnswers.map(a => `
-                  <div class="record">
-                    <div class="record-title">${a.question_text || 'Question'}</div>
-                    <div class="record-sub">${a.answer_text}</div>
-                    <div class="record-meta"><span>Module: ${moduleName}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
+            ${(() => {
+              type AnswerGroup = {
+                lesson_content_id: number | null;
+                lesson_name: string | null;
+                content_name: string | null;
+                exercises: any[];
+                jobSheets: any[];
+                performance: any[];
+              };
 
-            ${jsAnswers.length > 0 ? `
-              <div class="module-group">
-                <div class="module-group-title">Job Sheet Answers (${jsAnswers.length})</div>
-                ${jsAnswers.map(a => `
-                  <div class="record">
-                    <div class="record-title">${a.job_title || 'Job Sheet'}</div>
-                    <div class="record-sub">${a.answer_text}</div>
-                    <div class="record-meta"><span>Score: ${a.score ?? 0}/100</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
+              const groupMap = new Map<string, AnswerGroup>();
 
-            ${perfAnswers.length > 0 ? `
-              <div class="module-group">
-                <div class="module-group-title">Performance Answers (${perfAnswers.length})</div>
-                ${perfAnswers.map(a => `
-                  <div class="record">
-                    <div class="record-title">${a.performance_question || 'Performance Task'}</div>
-                    <div class="record-sub">${a.performance_answer_text}</div>
-                    <div class="record-meta"><span>Module: ${moduleName}</span><span>${new Date(a.created_at).toLocaleString()}</span></div>
+              const pushAnswer = (bucket: 'exercises' | 'jobSheets' | 'performance') => (a: any) => {
+                const lessonContentId = a.lesson_content_id ?? null;
+                const key = lessonContentId == null ? 'none' : `lc-${lessonContentId}`;
+                let group = groupMap.get(key);
+                if (!group) {
+                  group = {
+                    lesson_content_id: lessonContentId,
+                    lesson_name: a.lesson_name ?? null,
+                    content_name: a.content_name ?? null,
+                    exercises: [],
+                    jobSheets: [],
+                    performance: [],
+                  };
+                  groupMap.set(key, group);
+                }
+                group[bucket].push(a);
+              };
+
+              qaAnswers.forEach(pushAnswer('exercises'));
+              jsAnswers.forEach(pushAnswer('jobSheets'));
+              perfAnswers.forEach(pushAnswer('performance'));
+
+              const groups = Array.from(groupMap.values()).sort((a, b) => (a.lesson_content_id ?? 0) - (b.lesson_content_id ?? 0));
+              if (groups.length === 0) return '';
+
+              return groups.map((group) => {
+                const total = group.exercises.length + group.jobSheets.length + group.performance.length;
+                const lessonLabel = group.lesson_name && group.lesson_name !== 'null' ? group.lesson_name : 'Unlinked Lesson';
+                const contentLabel = group.content_name && group.content_name !== 'null' ? group.content_name : 'Unlinked Lesson Content';
+                return `
+                  <div class="module-group" style="page-break-inside: avoid;">
+                    <div class="module-group-title">${lessonLabel} — ${contentLabel}</div>
+                    <div class="record-sub" style="margin-bottom: 8px;">
+                      Lesson Content ID: ${group.lesson_content_id == null ? 'n/a' : group.lesson_content_id} | Total Answers: ${total}
+                    </div>
+
+                    ${group.exercises.length > 0 ? `
+                      <div style="font-size: 11px; font-weight: 700; color: #374151; margin: 6px 0 4px 0;">Exercise Answers (${group.exercises.length})</div>
+                      ${group.exercises.map((item) => `
+                        <div class="record">
+                          <div class="record-title">${item.question_text || 'Question'}</div>
+                          <div class="record-sub">${item.answer_text}</div>
+                          <div class="record-meta"><span>Exercise</span><span>${new Date(item.created_at).toLocaleString()}</span></div>
+                        </div>
+                      `).join('')}
+                    ` : ''}
+
+                    ${group.jobSheets.length > 0 ? `
+                      <div style="font-size: 11px; font-weight: 700; color: #374151; margin: 8px 0 4px 0;">Job Sheet Answers (${group.jobSheets.length})</div>
+                      ${group.jobSheets.map((item) => `
+                        <div class="record">
+                          <div class="record-title">${item.job_title || 'Job Sheet'}</div>
+                          <div class="record-sub">${item.answer_text}</div>
+                          <div class="record-meta"><span>Job Sheet | Score: ${item.score ?? 0}/100</span><span>${new Date(item.created_at).toLocaleString()}</span></div>
+                        </div>
+                      `).join('')}
+                    ` : ''}
+
+                    ${group.performance.length > 0 ? `
+                      <div style="font-size: 11px; font-weight: 700; color: #374151; margin: 8px 0 4px 0;">Performance Answers (${group.performance.length})</div>
+                      ${group.performance.map((item) => `
+                        <div class="record">
+                          <div class="record-title">${item.performance_question || 'Performance Task'}</div>
+                          <div class="record-sub">${item.performance_answer_text}</div>
+                          <div class="record-meta"><span>Performance Task</span><span>${new Date(item.created_at).toLocaleString()}</span></div>
+                        </div>
+                      `).join('')}
+                    ` : ''}
                   </div>
-                `).join('')}
-              </div>
-            ` : ''}
+                `;
+              }).join('');
+            })()}
 
             ${lcpRecords.length > 0 ? `
               <div class="module-group">

@@ -9,10 +9,10 @@ import { useTheme } from '@/hooks/use-theme';
 import { CompetencyRecord, ModuleRecord, listCompetencies, listModules, LessonRecord, LessonContentRecord, listLessons, listLessonContent, listLessonContentProgressByUser, LessonContentProgressRecord } from '@/lib/auth-api';
 
 const moduleImages: Record<number, any> = {
-  1: require('@/assets/learning_materials/modules/1/raise.png'),
-  2: require('@/assets/learning_materials/modules/2/vegetables.png'),
-  3: require('@/assets/learning_materials/modules/3/fertilizer.jpg'),
-  4: require('@/assets/learning_materials/modules/4/concoction.jpg'),
+  1: require('@/assets/learning_materials/modules/1/raise.jpeg'),
+  2: require('@/assets/learning_materials/modules/2/vegetables.jpeg'),
+  3: require('@/assets/learning_materials/modules/3/fertilizer.jpeg'),
+  4: require('@/assets/learning_materials/modules/4/concoction.jpeg'),
 };
 
 const getModuleImage = (moduleId: number) => {
@@ -59,19 +59,17 @@ export default function ModuleScreen() {
     headerIcon: {
       color: theme.text,
     },
-    categoryTabs: {
-      backgroundColor: theme.backgroundElement,
-      borderBottomColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.12)',
+section: {
+      marginTop: 20,
     },
-    categoryTabText: {
-      color: theme.textSecondary,
+    pageIntroImage: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#e2e8f0',
     },
-    categoryTabTextActive: {
+    pageIntroTitle: {
       color: theme.text,
     },
-    section: {
-      marginTop: 20,
-      gap: 16,
+    pageIntroText: {
+      color: theme.textSecondary,
     },
     sectionCompact: {
       marginTop: 14,
@@ -79,14 +77,8 @@ export default function ModuleScreen() {
     },
     card: {
       backgroundColor: theme.backgroundElement,
-      shadowColor: isDark ? '#000000' : '#000000',
-      shadowOpacity: 0.14,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 14 },
-      elevation: 10,
-      borderWidth: 0,
-      borderLeftWidth: 4,
-      borderLeftColor: PRIMARY,
+      shadowColor: isDark ? '#000000' : '#0f172a',
+      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(148, 163, 184, 0.18)',
     },
     startButton: {
       borderColor: PRIMARY,
@@ -123,8 +115,29 @@ export default function ModuleScreen() {
     },
     moduleCard: {
       backgroundColor: theme.backgroundElement,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
       shadowColor: isDark ? '#000000' : '#000000',
+    },
+    cardTitle: {
+      color: theme.text,
+    },
+    cardStatus: {
+      color: theme.textSecondary,
+    },
+    cardStatusDivider: {
+      color: theme.textSecondary,
+    },
+    cardChip: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.24)',
+    },
+    cardChipText: {
+      color: theme.textSecondary,
+    },
+    cardThumbnail: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#e2e8f0',
+    },
+    cardThumbnailPlaceholder: {
+      backgroundColor: isDark ? theme.backgroundSelected : '#e2e8f0',
     },
     moduleName: {
       color: theme.text,
@@ -258,17 +271,20 @@ export default function ModuleScreen() {
       <Header title="Competency Library" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.categoryTabs, dynamicStyles.categoryTabs]}>
-          <Pressable style={styles.categoryTabActive}>
-            <Text style={[styles.categoryTabTextActive, dynamicStyles.categoryTabTextActive]}>All</Text>
-          </Pressable>
-          <Pressable style={styles.categoryTab}>
-            <Text style={[styles.categoryTabText, dynamicStyles.categoryTabText]}>Agriculture</Text>
-          </Pressable>
-          <Pressable style={styles.categoryTab}>
-            <Text style={[styles.categoryTabText, dynamicStyles.categoryTabText]}>Active</Text>
-          </Pressable>
-        </ScrollView>
+        <View style={[styles.pageIntro, isCompact && styles.pageIntroCompact]}>
+          <Image
+            source={require('@/assets/images/tools.jpeg')}
+            style={[styles.pageIntroImage, dynamicStyles.pageIntroImage]}
+            resizeMode="cover"
+          />
+          <Text style={[styles.pageIntroTitle, dynamicStyles.pageIntroTitle]}>Competency Library</Text>
+          <Text style={[styles.pageIntroText, dynamicStyles.pageIntroText]}>
+            Browse the list of competencies for this qualification. Each competency contains a module
+            with learning materials, information sheets, job sheets and performance tasks you can work
+            on offline. Tap any competency to view its modules, then start a module to begin answering
+            the exercises and completing your job sheets.
+          </Text>
+        </View>
 
         <View style={[styles.section, isCompact && styles.sectionCompact]}>
             {competencies.map((competency) => {
@@ -277,39 +293,53 @@ export default function ModuleScreen() {
               const progressText = `${moduleProgress.completed}/${moduleProgress.total} (${moduleProgress.percent}%)`;
 
               return (
-                <View key={competency.competency_id} style={[styles.card, styles.surfaceCard, isCompact && styles.cardCompact, styles.cardNoBorder]}>
-                  {(() => {
-                    const bgImage = getModuleImage(competencyModule?.module_id ?? 0) ?? (competencyModule?.thumbnail ? { uri: competencyModule.thumbnail } : null);
-                    if (bgImage) {
-                      const source = typeof bgImage === 'number' ? bgImage : bgImage;
-                      return (
-                        <Image
-                          source={source}
-                          style={styles.cardBackgroundImage}
-                        />
-                      );
-                    }
-                    return <View style={styles.cardBackgroundPlaceholder} />;
-                  })()}
+                <Pressable
+                  key={competency.competency_id}
+                  onPress={() => openCompetencyDetail(competency)}
+                  style={({ pressed }) => [
+                    styles.card,
+                    styles.surfaceCard,
+                    dynamicStyles.card,
+                    isCompact && styles.cardCompact,
+                    pressed && styles.cardPressed,
+                  ]}
+                >
+                  <View style={styles.cardMedia}>
+                    {(() => {
+                      const bgImage = getModuleImage(competencyModule?.module_id ?? 0) ?? (competencyModule?.thumbnail ? { uri: competencyModule.thumbnail } : null);
+                      if (bgImage) {
+                        return <Image source={bgImage} style={[styles.cardThumbnail, dynamicStyles.cardThumbnail]} resizeMode="cover" />;
+                      }
+                      return <View style={[styles.cardThumbnail, dynamicStyles.cardThumbnailPlaceholder]} />;
+                    })()}
+                  </View>
+
                   <View style={styles.cardContentOverlay}>
-                    <View style={styles.cardTextGroup}>
-                      <Text style={[styles.cardTitle, styles.cardTitleOnImage]} numberOfLines={2}>
-                        {competency.competency_name}
+                    <Text style={[styles.cardTitle, dynamicStyles.cardTitle]} numberOfLines={1}>
+                      {competency.competency_name}
+                    </Text>
+
+                    <View style={styles.cardMetaLine}>
+                      <Text style={[styles.cardStatus, dynamicStyles.cardStatus]} numberOfLines={1}>
+                        {competency.sector}
                       </Text>
-                      <Text style={[styles.cardStatus, styles.cardStatusOnImage]}>
-                        {progressText}
+                      <Text style={[styles.cardStatusDivider, dynamicStyles.cardStatusDivider]}>•</Text>
+                      <Text style={[styles.cardStatus, dynamicStyles.cardStatus]} numberOfLines={1}>
+                        {competency.qualification}
                       </Text>
                     </View>
-                    <View style={styles.cardButtonRow}>
-                      <Pressable
-                        onPress={() => openCompetencyDetail(competency)}
-                        style={[styles.startButton, styles.startButtonGreen, isCompact && styles.startButtonCompact]}
-                      >
+
+                    <View style={styles.cardFooter}>
+                      <View style={styles.cardChip}>
+                        <Text style={[styles.cardChipText, dynamicStyles.cardChipText]}>{progressText}</Text>
+                      </View>
+
+                      <View style={[styles.startButton, styles.startButtonGreen, isCompact && styles.startButtonCompact]}>
                         <Text style={styles.startButtonTextGreen}>Start</Text>
-                      </Pressable>
+                      </View>
                     </View>
                   </View>
-                </View>
+                </Pressable>
               );
             })}
 
@@ -363,40 +393,44 @@ export default function ModuleScreen() {
               showsVerticalScrollIndicator={false}>
               {selectedModules.length > 0 ? (
                 selectedModules.map((moduleItem) => (
-                   <View key={moduleItem.module_id} style={[styles.moduleCard, dynamicStyles.moduleCard]}>
+<View key={moduleItem.module_id} style={[styles.moduleCard, dynamicStyles.moduleCard]}>
+                     <View style={styles.moduleMedia}>
+                       {getModuleImage(moduleItem.module_id) ? (
+                         <Image
+                           source={getModuleImage(moduleItem.module_id)}
+                           style={styles.moduleThumbnail}
+                           resizeMode="cover"
+                         />
+                       ) : (
+                         <View style={[styles.moduleThumbnail, styles.moduleThumbnailPlaceholder, dynamicStyles.moduleThumbnailPlaceholder]} />
+                       )}
+                     </View>
+
                      <View style={styles.moduleInfo}>
-                       <Text style={[styles.moduleName, dynamicStyles.moduleName]}>{moduleItem.module_name}</Text>
+                       <Text style={[styles.moduleName, dynamicStyles.moduleName]} numberOfLines={2}>
+                         {moduleItem.module_name}
+                       </Text>
                        <Text style={[styles.moduleDescription, dynamicStyles.moduleDescription]} numberOfLines={3}>
                          {moduleItem.description}
                        </Text>
-                     </View>
 
-                     {getModuleImage(moduleItem.module_id) ? (
-                       <Image
-                         source={getModuleImage(moduleItem.module_id)}
-                         style={styles.moduleThumbnail}
-                         resizeMode="cover"
-                       />
-                     ) : (
-                       <View style={[styles.moduleThumbnailPlaceholder, dynamicStyles.moduleThumbnailPlaceholder]} />
-                     )}
-
-                     <View style={styles.moduleCardBody}>
-                       <View style={styles.moduleMetaRow}>
-                         <View style={styles.moduleMetaItem}>
-                           <Text style={[styles.moduleMetaLabel, dynamicStyles.moduleMetaLabel]}>PDF</Text>
-                           <Text style={[styles.moduleMetaValue, dynamicStyles.moduleMetaValue]} numberOfLines={1}>
-                             {moduleItem.module_pdf}
-                           </Text>
+                       <View style={styles.moduleCardBody}>
+                         <View style={styles.moduleMetaRow}>
+                           <View style={styles.moduleMetaItem}>
+                             <Text style={[styles.moduleMetaLabel, dynamicStyles.moduleMetaLabel]}>PDF</Text>
+                             <Text style={[styles.moduleMetaValue, dynamicStyles.moduleMetaValue]} numberOfLines={1}>
+                               {moduleItem.module_pdf}
+                             </Text>
+                           </View>
                          </View>
                        </View>
-                     </View>
 
-                      <View style={styles.moduleCardActions}>
-                        <Pressable onPress={() => handleModuleStart(moduleItem)} style={[styles.modulePrimaryButton, dynamicStyles.modulePrimaryButton]}>
-                          <Text style={[styles.modulePrimaryButtonText, dynamicStyles.modulePrimaryButtonText]}>Start</Text>
-                        </Pressable>
-                      </View>
+                       <View style={styles.moduleCardActions}>
+                         <Pressable onPress={() => handleModuleStart(moduleItem)} style={[styles.modulePrimaryButton, dynamicStyles.modulePrimaryButton]}>
+                           <Text style={[styles.modulePrimaryButtonText, dynamicStyles.modulePrimaryButtonText]}>Start</Text>
+                         </Pressable>
+                       </View>
+                     </View>
                    </View>
                 ))
               ) : (
@@ -446,114 +480,115 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
-  categoryTabs: {
-    borderBottomWidth: 1,
-  },
-  categoryTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
-    marginRight: 4,
-  },
-  categoryTabActive: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 3,
-    borderBottomColor: PRIMARY,
-    marginRight: 4,
-  },
-  categoryTabText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  categoryTabTextActive: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
   section: {
     gap: 16,
+  },
+  pageIntro: {
+    gap: 10,
+  },
+  pageIntroCompact: {
+    gap: 8,
+  },
+  pageIntroImage: {
+    width: '100%',
+    height: 160,
+    borderRadius: 14,
+    backgroundColor: '#e2e8f0',
+  },
+  pageIntroTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 22,
+  },
+  pageIntroText: {
+    fontSize: 13,
+    fontWeight: '400',
+    lineHeight: 19,
   },
   sectionCompact: {
     gap: 12,
   },
   card: {
-    borderRadius: 22,
-    padding: 16,
-    gap: 16,
-    shadowOffset: { width: 0, height: 2 },
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    padding: 10,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.18)',
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowRadius: 4,
     elevation: 1,
-    borderWidth: 0,
-    overflow: 'hidden',
-    height: 136,
-  },
-  cardNoBorder: {
-    borderWidth: 0,
   },
   surfaceCard: {
     shadowColor: '#0f172a',
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
   },
   cardCompact: {
-    padding: 14,
+    padding: 8,
   },
-  cardBackgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 36,
-    resizeMode: 'cover',
+  cardPressed: {
+    opacity: 0.85,
   },
-  cardBackgroundPlaceholder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 36,
+  cardMedia: {
+    width: 76,
+    height: 76,
+  },
+  cardThumbnail: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
     backgroundColor: '#e2e8f0',
   },
   cardContentOverlay: {
     flex: 1,
-    justifyContent: 'space-between',
-  },
-  cardTextGroup: {
-    flex: 1,
     gap: 4,
-    justifyContent: 'flex-start',
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    lineHeight: 22,
-    color: '#ffffff',
+    lineHeight: 20,
   },
-  cardTitleOnImage: {
-    color: '#ffffff',
+  cardMetaLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   cardStatus: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '400',
+    lineHeight: 16,
+    flexShrink: 1,
   },
-  cardStatusOnImage: {
-    color: '#ffffff',
+  cardStatusDivider: {
+    fontSize: 12,
+    fontWeight: '400',
+    lineHeight: 16,
   },
-  cardButtonRow: {
+  cardFooter: {
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginTop: 6,
+  },
+  cardChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  cardChipText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   startButton: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 13,
-    borderRadius: 14,
-    borderWidth: 1.5,
+    paddingVertical: 7,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 0,
   },
   startButtonGreen: {
     backgroundColor: '#22c55e',
@@ -562,10 +597,10 @@ const styles = StyleSheet.create({
   startButtonTextGreen: {
     color: '#ffffff',
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 13,
   },
   startButtonCompact: {
-    minHeight: 44,
+    minHeight: 0,
   },
   emptyState: {
     paddingVertical: 32,
@@ -644,18 +679,24 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   moduleCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 14,
-    gap: 10,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
   },
+  moduleMedia: {
+    width: 104,
+    height: 104,
+  },
   moduleInfo: {
     flex: 1,
-    gap: 4,
+    gap: 6,
   },
   moduleName: {
     fontSize: 15,
@@ -668,18 +709,20 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   moduleThumbnailPlaceholder: {
+    flex: 1,
     width: '100%',
-    height: 180,
+    height: '100%',
     borderRadius: 12,
   },
   moduleThumbnail: {
     width: '100%',
-    height: 180,
+    height: '100%',
     borderRadius: 12,
     backgroundColor: '#e2e8f0',
   },
   moduleCardBody: {
     gap: 8,
+    marginTop: 2,
   },
   moduleMetaRow: {
     flexDirection: 'row',
@@ -704,8 +747,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 10,
-    marginTop: 4,
+    marginTop: 'auto',
   },
   moduleSecondaryButton: {
     paddingHorizontal: 14,
