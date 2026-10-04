@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -356,6 +357,9 @@ export default function HomeScreen() {
             : "rgba(85, 225, 10, 0.22)",
           shadowColor: isDark ? "#000000" : "#0f172a",
         },
+        heroImage: {
+          backgroundColor: isDark ? "#2a2a2e" : "#e2e8f0",
+        },
         heroBadge: {
           backgroundColor: isDark ? "rgba(91, 236, 19, 0.15)" : "#e4f8d6",
         },
@@ -372,7 +376,7 @@ export default function HomeScreen() {
           color: theme.text,
         },
         welcomeText: {
-          color: theme.text,
+          color: isDark ? "#5bec13" : "#16a34a",
         },
         chartContainer: {
           backgroundColor: theme.backgroundElement,
@@ -821,28 +825,11 @@ export default function HomeScreen() {
             dynamicStyles.heroCard,
           ]}
         >
-          <View style={styles.heroTopRow}>
-            <View style={[styles.heroBadge, dynamicStyles.heroBadge]}>
-              <Text style={[styles.heroBadgeText, dynamicStyles.heroBadgeText]}>
-                Learning progress
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.heroBadgeSecondary,
-                dynamicStyles.heroBadgeSecondary,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.heroBadgeSecondaryText,
-                  dynamicStyles.heroBadgeSecondaryText,
-                ]}
-              >
-                Offline ready
-              </Text>
-            </View>
-          </View>
+          <Image
+            source={require("@/assets/images/dashboard.jpeg")}
+            style={[styles.heroImage, dynamicStyles.heroImage]}
+            resizeMode="cover"
+          />
           <ThemedText
             type="subtitle"
             style={[styles.appNameText, dynamicStyles.appNameText]}
@@ -1393,6 +1380,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     flexWrap: "wrap",
+  },
+  heroImage: {
+    width: "100%",
+    height: 150,
+    borderRadius: 14,
+    backgroundColor: "#e2e8f0",
   },
   heroBadge: {
     borderRadius: 999,
