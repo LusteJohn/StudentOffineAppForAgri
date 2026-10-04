@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Animated, BackHandler, Easing, View, Text, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useCustomAlert } from '@/lib/custom-alert';
 
 type BottomNavbarProps = {
-  activeTab?: 'home' | 'library' | 'lesson' | 'achievement' | 'content-info' | 'settings';
+  activeTab?: 'home' | 'library' | 'lesson' | 'achievement' | 'content-info' | 'settings' | 'profile' | 'bookmark';
   userId: number;
 };
 
@@ -23,15 +23,20 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [barHeight, setBarHeight] = useState(0);
-  const panelAnim = useRef(new Animated.Value(0)).current;
+  const panelAnim = useState(() => new Animated.Value(0))[0];
 
-  const getActiveTab = (): 'home' | 'library' | 'lesson' | 'achievement' | 'content-info' | 'settings' => {
+  type TabKey = 'home' | 'library' | 'lesson' | 'content-info' | 'achievement' | 'settings' | 'profile' | 'bookmark';
+  type IconName = React.ComponentProps<typeof Ionicons>['name'];
+
+  const getActiveTab = (): TabKey => {
     if (activeTab) return activeTab;
     if (pathname === '/home') return 'home';
     if (pathname === '/module') return 'library';
     if (pathname === '/lesson') return 'lesson';
     if (pathname === '/achievement') return 'achievement';
     if (pathname === '/settings') return 'settings';
+    if (pathname === '/profile') return 'profile';
+    if (pathname === '/bookmark') return 'bookmark';
     if (pathname.startsWith('/content-info')) return 'content-info';
     return 'home';
   };
@@ -83,6 +88,18 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
     }
   };
 
+  const goProfile = () => {
+    if (pathname !== '/profile') {
+      router.push({ pathname: '/profile', params: { userId: String(userId) } });
+    }
+  };
+
+  const goBookmarks = () => {
+    if (pathname !== '/bookmark') {
+      router.push({ pathname: '/bookmark', params: { userId: String(userId) } });
+    }
+  };
+
   const isDark = theme === Colors.dark;
   const activeColor = '#55e10a';
   const inactiveColor = isDark ? '#B0B4BA' : '#5c6b61';
@@ -108,8 +125,6 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
     return () => subscription.remove();
   }, [expanded, closePanel]);
 
-  type TabKey = 'home' | 'library' | 'lesson' | 'content-info' | 'achievement' | 'settings';
-  type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
   const primaryTabs: { key: TabKey; label: string; icon: IconName; activeIcon: IconName; onPress: () => void }[] = [
     { key: 'home', label: 'Home', icon: 'home-outline', activeIcon: 'home', onPress: goHome },
@@ -118,6 +133,8 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
   ];
 
   const overflowTabs: { key: TabKey; label: string; icon: IconName; activeIcon: IconName; onPress: () => void }[] = [
+    { key: 'profile', label: 'Profile', icon: 'person-outline', activeIcon: 'person', onPress: goProfile },
+    { key: 'bookmark', label: 'Bookmarks', icon: 'bookmark-outline', activeIcon: 'bookmark', onPress: goBookmarks },
     { key: 'content-info', label: 'Content Info', icon: 'information-circle-outline', activeIcon: 'information-circle', onPress: goContentInfo },
     { key: 'achievement', label: 'Achievements', icon: 'trophy-outline', activeIcon: 'trophy', onPress: goAchievement },
     { key: 'settings', label: 'Settings', icon: 'settings-outline', activeIcon: 'settings', onPress: goSettings },
