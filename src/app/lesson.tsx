@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Animated, Image, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from '@/components/bottom-navbar';
@@ -7,6 +7,17 @@ import { Header } from '@/components/header';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { LessonContentRecord, LessonInfoRecord, LessonLinkRecord, LessonRecord, ModuleRecord, listLessons, listLessonContentByLessonId, listModules, listLessonInfoByLessonId, listLessonLinkByLessonId, listLessonContentProgressByUser } from '@/lib/auth-api';
+
+const moduleImages: Record<number, any> = {
+  1: require('@/assets/learning_materials/modules/1/raise.jpeg'),
+  2: require('@/assets/learning_materials/modules/2/vegetables.jpeg'),
+  3: require('@/assets/learning_materials/modules/3/fertilizer.jpeg'),
+  4: require('@/assets/learning_materials/modules/4/concoction.jpeg'),
+};
+
+const getModuleImage = (moduleId: number) => {
+  return moduleImages[moduleId] ?? null;
+};
 
 const PRIMARY = '#5bec13';
 const BACKGROUND_LIGHT = '#f6f8f6';
@@ -70,23 +81,50 @@ export default function LessonScreen() {
       color: theme.text,
     },
     moduleCard: {
-      backgroundColor: isDark ? 'rgba(34, 197, 94, 0.08)' : 'rgba(34, 197, 94, 0.05)',
-      borderColor: 'transparent',
+      backgroundColor: theme.backgroundElement,
+      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(148, 163, 184, 0.18)',
+      shadowColor: isDark ? '#000000' : '#0f172a',
+    },
+    moduleThumbnail: {
+      backgroundColor: 'transparent',
+    },
+    moduleThumbnailPlaceholder: {
+      backgroundColor: 'transparent',
+    },
+    moduleMeta: {
+      color: theme.textSecondary,
+    },
+    moduleChip: {
+      backgroundColor: 'transparent',
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.24)',
+    },
+    moduleChipText: {
+      color: theme.textSecondary,
+    },
+    moduleTogglePill: {
+      backgroundColor: isDark ? '#86efac' : '#55e10a',
+    },
+    moduleTogglePillText: {
+      color: isDark ? '#000000' : '#0f172a',
     },
     moduleName: {
       color: theme.text,
     },
-    moduleCount: {
-      color: theme.textSecondary,
-    },
     moduleChevron: {
-      color: theme.textSecondary,
+      color: isDark ? '#000000' : '#0f172a',
     },
     lessonList: {
-      borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.12)',
+      backgroundColor: 'transparent',
     },
     lessonRow: {
-      borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.08)',
+      backgroundColor: 'transparent',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.18)',
+    },
+    lessonIndicator: {
+      backgroundColor: isDark ? 'rgba(91, 236, 19, 0.15)' : '#e7f8d5',
+    },
+    lessonIndicatorText: {
+      color: isDark ? '#86efac' : '#166534',
     },
     lessonTitle: {
       color: theme.text,
@@ -95,20 +133,19 @@ export default function LessonScreen() {
       color: theme.textSecondary,
     },
     lessonViewButton: {
-      backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
-      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.2)',
+      backgroundColor: isDark ? '#86efac' : '#55e10a',
     },
     lessonViewButtonText: {
-      color: theme.text,
+      color: isDark ? '#000000' : '#0f172a',
     },
     emptyLessonRow: {
-      backgroundColor: theme.backgroundElement,
+      backgroundColor: 'transparent',
     },
     emptyLessonText: {
       color: theme.textSecondary,
     },
     emptyState: {
-      backgroundColor: theme.backgroundElement,
+      backgroundColor: 'transparent',
     },
     emptyStateText: {
       color: theme.textSecondary,
@@ -354,19 +391,59 @@ export default function LessonScreen() {
           <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Module Lessons</Text>
           {lessonGroups.map((group) => {
             const isExpanded = expandedModuleId === group.module_id;
+            const moduleImage = getModuleImage(group.module_id);
+            const firstOrder = group.lessons.length > 0 ? group.lessons[0].order_number : 0;
+            const lastOrder = group.lessons.length > 0 ? group.lessons[group.lessons.length - 1].order_number : 0;
 
             return (
-              <View key={group.module_id} style={[styles.moduleCard, styles.surfaceCard, isCompact && styles.moduleCardCompact]}>
-                <Pressable onPress={() => toggleModule(group.module_id)} style={styles.moduleHeader}>
-                  <View style={styles.moduleHeaderText}>
-                    <Text style={[styles.moduleName, dynamicStyles.moduleName]}>{group.module_name}</Text>
-                    <Text style={[styles.moduleCount, dynamicStyles.moduleCount]}>{group.lessons.length} lessons</Text>
+              <View key={group.module_id} style={[styles.moduleCard, styles.surfaceCard, dynamicStyles.moduleCard, isCompact && styles.moduleCardCompact]}>
+                <Pressable
+                  onPress={() => toggleModule(group.module_id)}
+                  style={({ pressed }) => [styles.moduleRow, pressed && styles.moduleRowPressed]}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: isExpanded }}
+                  accessibilityLabel={`${group.module_name}, ${group.lessons.length} lessons`}
+                >
+                  <View style={styles.moduleMedia}>
+                    {moduleImage ? (
+                      <Image source={moduleImage} style={[styles.moduleThumbnail, dynamicStyles.moduleThumbnail]} resizeMode="cover" />
+                    ) : (
+                      <View style={[styles.moduleThumbnail, dynamicStyles.moduleThumbnailPlaceholder]} />
+                    )}
                   </View>
-                  <Text style={[styles.moduleChevron, dynamicStyles.moduleChevron]}>{isExpanded ? '▲' : '▼'}</Text>
+
+                  <View style={styles.moduleInfo}>
+                    <Text style={[styles.moduleName, dynamicStyles.moduleName]} numberOfLines={1}>
+                      {group.module_name}
+                    </Text>
+
+                    <Text style={[styles.moduleMeta, dynamicStyles.moduleMeta]} numberOfLines={1}>
+                      {group.lessons.length === 1
+                        ? '1 lesson'
+                        : `${group.lessons.length} lessons · order ${firstOrder}-${lastOrder}`}
+                    </Text>
+
+                    <View style={styles.moduleFooter}>
+                      <View style={[styles.moduleChip, dynamicStyles.moduleChip]}>
+                        <Text style={[styles.moduleChipText, dynamicStyles.moduleChipText]}>
+                          {group.lessons.length} {group.lessons.length === 1 ? 'lesson' : 'lessons'}
+                        </Text>
+                      </View>
+
+                      <View style={[styles.moduleTogglePill, dynamicStyles.moduleTogglePill]}>
+                        <Text style={[styles.moduleTogglePillText, dynamicStyles.moduleTogglePillText]}>
+                          {isExpanded ? 'Hide' : 'Show'}
+                        </Text>
+                        <Text style={[styles.moduleToggleChevron, dynamicStyles.moduleChevron]}>
+                          {isExpanded ? '▲' : '▼'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
                 </Pressable>
 
                 {isExpanded ? (
-                  <View>
+                  <View style={styles.lessonListWrap}>
                     <View style={[styles.lessonList, dynamicStyles.lessonList]}>
                       {group.lessons.length > 0 ? (
                         group.lessons.map((lesson, lessonIndex) => {
@@ -374,18 +451,30 @@ export default function LessonScreen() {
                           const delay = lessonIndex * 50;
                           if (!progress) {
                             return (
-                              <View key={lesson.lesson_id} style={styles.lessonItemContainer}>
-                                <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonRow, isCompact && styles.lessonRowCompact]}>
-                                  <View style={styles.lessonIndicator} />
-                                  <View style={styles.lessonTextGroup}>
-                                    <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{lesson.lesson_name}</Text>
-                                    <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Order: {lesson.order_number}</Text>
-                                  </View>
-                                  <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonViewButton, isCompact && styles.lessonViewButtonCompact]}>
-                                    <Text style={[styles.lessonViewButtonText, dynamicStyles.lessonViewButtonText]}>View</Text>
-                                  </Pressable>
-                                </Pressable>
-                              </View>
+                              <Pressable
+                                key={lesson.lesson_id}
+                                onPress={() => openLessonDetail(lesson)}
+                                style={({ pressed }) => [styles.lessonRow, dynamicStyles.lessonRow, pressed && styles.lessonRowPressed]}
+                                accessibilityRole="button"
+                                accessibilityLabel={`View lesson ${lesson.lesson_name}`}
+                              >
+                                <View style={[styles.lessonIndicator, dynamicStyles.lessonIndicator]}>
+                                  <Text style={[styles.lessonIndicatorText, dynamicStyles.lessonIndicatorText]}>
+                                    {lesson.order_number}
+                                  </Text>
+                                </View>
+                                <View style={styles.lessonTextGroup}>
+                                  <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]} numberOfLines={2}>
+                                    {lesson.lesson_name}
+                                  </Text>
+                                  <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]} numberOfLines={1}>
+                                    Order {lesson.order_number}
+                                  </Text>
+                                </View>
+                                <View style={[styles.lessonViewButton, dynamicStyles.lessonViewButton]}>
+                                  <Text style={[styles.lessonViewButtonText, dynamicStyles.lessonViewButtonText]}>View</Text>
+                                </View>
+                              </Pressable>
                             );
                           }
                           const opacity = progress.interpolate({
@@ -403,15 +492,28 @@ export default function LessonScreen() {
                           };
                           return (
                             <Animated.View key={lesson.lesson_id} style={[styles.lessonItemContainer, animatedStyle]}>
-                              <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonRow, isCompact && styles.lessonRowCompact]}>
-                                <View style={styles.lessonIndicator} />
-                                <View style={styles.lessonTextGroup}>
-                                  <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{lesson.lesson_name}</Text>
-                                  <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Order: {lesson.order_number}</Text>
+                              <Pressable
+                                onPress={() => openLessonDetail(lesson)}
+                                style={({ pressed }) => [styles.lessonRow, dynamicStyles.lessonRow, pressed && styles.lessonRowPressed]}
+                                accessibilityRole="button"
+                                accessibilityLabel={`View lesson ${lesson.lesson_name}`}
+                              >
+                                <View style={[styles.lessonIndicator, dynamicStyles.lessonIndicator]}>
+                                  <Text style={[styles.lessonIndicatorText, dynamicStyles.lessonIndicatorText]}>
+                                    {lesson.order_number}
+                                  </Text>
                                 </View>
-                                <Pressable onPress={() => openLessonDetail(lesson)} style={[styles.lessonViewButton, isCompact && styles.lessonViewButtonCompact]}>
+                                <View style={styles.lessonTextGroup}>
+                                  <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]} numberOfLines={2}>
+                                    {lesson.lesson_name}
+                                  </Text>
+                                  <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]} numberOfLines={1}>
+                                    Order {lesson.order_number}
+                                  </Text>
+                                </View>
+                                <View style={[styles.lessonViewButton, dynamicStyles.lessonViewButton]}>
                                   <Text style={[styles.lessonViewButtonText, dynamicStyles.lessonViewButtonText]}>View</Text>
-                                </Pressable>
+                                </View>
                               </Pressable>
                             </Animated.View>
                           );
@@ -601,21 +703,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 4,
   },
-    moduleCard: {
-      borderRadius: 22,
-      borderWidth: 0,
-      overflow: 'hidden',
-      borderLeftWidth: 4,
-      borderLeftColor: PRIMARY,
-    },
-  moduleHeader: {
+  moduleCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.18)',
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
+  },
+  moduleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
     gap: 12,
+    padding: 10,
   },
-  moduleHeaderText: {
+  moduleRowPressed: {
+    opacity: 0.85,
+  },
+  moduleMedia: {
+    width: 76,
+    height: 76,
+  },
+  moduleThumbnail: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    backgroundColor: 'transparent',
+  },
+  moduleInfo: {
     flex: 1,
     gap: 4,
   },
@@ -624,40 +738,83 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 20,
   },
-  moduleCount: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  moduleChevron: {
+  moduleMeta: {
     fontSize: 12,
+    fontWeight: '400',
+    lineHeight: 16,
+  },
+  moduleFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginTop: 6,
+  },
+  moduleChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  moduleChipText: {
+    fontSize: 11,
     fontWeight: '700',
   },
-  lessonList: {
-    borderTopWidth: 1,
+  moduleTogglePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+  },
+  moduleTogglePillText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  moduleToggleChevron: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  lessonListWrap: {
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    gap: 8,
   },
   surfaceCard: {
     shadowColor: '#0f172a',
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   moduleCardCompact: {
-    borderRadius: 18,
+    borderRadius: 12,
   },
   lessonRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 12,
-    borderBottomWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.18)',
+    backgroundColor: 'transparent',
+  },
+  lessonRowPressed: {
+    opacity: 0.8,
   },
   lessonIndicator: {
-    width: 4,
-    height: 24,
-    borderRadius: 4,
-    backgroundColor: PRIMARY,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lessonIndicatorText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   lessonTextGroup: {
     flex: 1,
@@ -670,22 +827,22 @@ const styles = StyleSheet.create({
   },
   lessonMeta: {
     fontSize: 12,
-    fontWeight: '500',
-  },
-  lessonRowCompact: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    fontWeight: '400',
+    lineHeight: 16,
   },
   lessonViewButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  lessonViewButtonCompact: {
-    minWidth: 56,
+    borderRadius: 8,
   },
   lessonViewButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  lessonList: {
+    gap: 8,
+  },
+  moduleChevron: {
     fontSize: 12,
     fontWeight: '700',
   },
@@ -895,3 +1052,4 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
+
