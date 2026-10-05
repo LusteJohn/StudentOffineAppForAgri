@@ -3237,22 +3237,22 @@ db.getAllAsync<QuestionAnswerRecord & { question_text: string | null; module_id:
   };
 }
 
-export async function getWeeklyActivity(userId: number) {
+export async function getWeeklyActivity(userId: number, monday?: Date) {
   await ensureDatabase();
   const db = await databasePromise;
 
-  const today = new Date();
+  const today = monday ? new Date(monday) : new Date();
   const dayOfWeek = today.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + mondayOffset);
-  monday.setHours(0, 0, 0, 0);
+  const weekMonday = new Date(today);
+  weekMonday.setDate(today.getDate() + mondayOffset);
+  weekMonday.setHours(0, 0, 0, 0);
 
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+  const sunday = new Date(weekMonday);
+  sunday.setDate(weekMonday.getDate() + 6);
   sunday.setHours(23, 59, 59, 999);
 
-  const mondayStr = monday.toISOString();
+  const mondayStr = weekMonday.toISOString();
   const sundayStr = sunday.toISOString();
 
   const rows = await db.getAllAsync<{ created_at: string }>(
@@ -3287,8 +3287,8 @@ export async function getWeeklyActivity(userId: number) {
 
   const days = ["M", "T", "W", "T", "F", "S", "S"];
   return days.map((_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+    const d = new Date(weekMonday);
+    d.setDate(weekMonday.getDate() + i);
     const dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     return activityMap.get(dateStr) || 0;
   });

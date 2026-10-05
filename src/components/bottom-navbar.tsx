@@ -100,6 +100,23 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
     }
   };
 
+  const handleLogout = () => {
+    showAlert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: () => {
+            router.replace({ pathname: '/login' });
+          },
+        },
+      ]
+    );
+  };
+
   const isDark = theme === Colors.dark;
   const activeColor = '#55e10a';
   const inactiveColor = isDark ? '#B0B4BA' : '#5c6b61';
@@ -207,6 +224,26 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
               </Pressable>
             );
           })}
+          <Pressable
+            onPress={() => {
+              closePanel();
+              handleLogout();
+            }}
+            style={({ pressed }) => [
+              styles.panelItem,
+              isNarrow && styles.panelItemNarrow,
+              {
+                backgroundColor: '#b91c1c',
+                borderColor: '#b91c1c',
+              },
+              pressed && { opacity: 0.8 },
+            ]}
+          >
+            <Ionicons name="log-out-outline" size={isNarrow ? 18 : 20} color="#ffffff" />
+            <Text numberOfLines={1} style={[styles.panelItemLabel, isNarrow && styles.panelItemLabelNarrow, { color: '#ffffff' }]}>
+              Logout
+            </Text>
+          </Pressable>
         </View>
       </Animated.View>
 
