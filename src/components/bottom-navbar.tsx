@@ -203,7 +203,7 @@ export function BottomNavbar({ activeTab, userId }: BottomNavbarProps) {
                   styles.panelItem,
                   isNarrow && styles.panelItemNarrow,
                   {
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+                    backgroundColor: 'transparent',
                     borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(148, 163, 184, 0.2)',
                   },
                   isActive && { backgroundColor: activeColor, borderColor: activeColor },

@@ -1234,10 +1234,11 @@ card: {
         {selectedModule ? (
           <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
             <View style={[styles.modalCard, dynamicStyles.modalCard]}>
-              <View style={styles.modalHeaderRow}>
-                <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>
-                  {selectedModule.module_name}
-                </Text>
+              <View style={styles.modalHero}>
+                <Image source={require('@/assets/images/module_progress.jpeg')} style={styles.modalHeroImage} resizeMode="cover" />
+                <View style={styles.modalHeroOverlay}>
+                  <Text style={styles.modalHeroTitle}>{selectedModule.module_name}</Text>
+                </View>
                 <Pressable
                   onPress={closeModuleProgress}
                   style={[
@@ -1256,97 +1257,80 @@ card: {
                 </Pressable>
               </View>
 
-              <View style={styles.modalSummaryRow}>
-                <View style={styles.modalSummaryItem}>
-                  <Text style={styles.modalSummaryValue}>
-                    {selectedModule.completed}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.modalSummaryLabel,
-                      dynamicStyles.modalSummaryLabel,
-                    ]}
-                  >
-                    Read
-                  </Text>
-                </View>
-                <View style={styles.modalSummaryItem}>
-                  <Text style={styles.modalSummaryValue}>
-                    {selectedModule.total}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.modalSummaryLabel,
-                      dynamicStyles.modalSummaryLabel,
-                    ]}
-                  >
-                    Total Contents
-                  </Text>
-                </View>
-              </View>
-
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                style={styles.modalContentList}
-              >
-                {selectedModuleContents.length > 0 ? (
-                  selectedModuleContents.map((content: any) => (
-                    <View
-                      key={content.lesson_content_id}
+              <View style={styles.modalBody}>
+                <View style={styles.modalSummaryRow}>
+                  <View style={styles.modalSummaryItem}>
+                    <Text style={styles.modalSummaryValue}>
+                      {selectedModule.completed}
+                    </Text>
+                    <Text
                       style={[
-                        styles.progressContentCard,
-                        dynamicStyles.progressContentCard,
+                        styles.modalSummaryLabel,
+                        dynamicStyles.modalSummaryLabel,
                       ]}
                     >
-                      <View style={styles.progressContentHeader}>
-                        <Text
-                          style={[
-                            styles.progressContentName,
-                            dynamicStyles.progressContentName,
-                          ]}
-                        >
-                          • {content.content_name}
-                        </Text>
-                        {content.is_read ? (
-                          <View
-                            style={[styles.progressBadge, styles.readBadge]}
+                      Read
+                    </Text>
+                  </View>
+                  <View style={styles.modalSummaryItem}>
+                    <Text style={styles.modalSummaryValue}>
+                      {selectedModule.total}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.modalSummaryLabel,
+                        dynamicStyles.modalSummaryLabel,
+                      ]}
+                    >
+                      Total Contents
+                    </Text>
+                  </View>
+                </View>
+
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.modalContentList}
+                  style={styles.modalScrollArea}
+                >
+                  {selectedModuleContents.length > 0 ? (
+                    selectedModuleContents.map((content: any) => (
+                      <View
+                        key={content.lesson_content_id}
+                        style={[
+                          styles.progressContentCard,
+                          dynamicStyles.progressContentCard,
+                        ]}
+                      >
+                        <View style={styles.progressContentHeader}>
+                          <Text
+                            style={[
+                              styles.progressContentName,
+                              dynamicStyles.progressContentName,
+                            ]}
                           >
-                            <Text
-                              style={[
-                                styles.readBadgeText,
-                                dynamicStyles.heroBadgeText,
-                              ]}
+                            • {content.content_name}
+                          </Text>
+                          {content.is_read ? (
+                            <View
+                              style={[styles.progressBadge, styles.readBadge]}
                             >
-                              ✓ Read
-                            </Text>
-                          </View>
-                        ) : (
-                          <View
-                            style={[styles.progressBadge, styles.unreadBadge]}
-                          >
-                            <Text style={styles.unreadBadgeText}>Unread</Text>
-                          </View>
-                        )}
-                      </View>
-                      <View style={styles.progressContentBody}>
-                        <Text
-                          style={[
-                            styles.progressContentLabel,
-                            dynamicStyles.progressContentLabel,
-                          ]}
-                        >
-                          Objectives
-                        </Text>
-                        <Text
-                          style={[
-                            styles.progressContentValue,
-                            dynamicStyles.progressContentValue,
-                          ]}
-                        >
-                          {content.objectives}
-                        </Text>
-                      </View>
-                      {content.is_read && content.read_at ? (
+                              <Text
+                                style={[
+                                  styles.readBadgeText,
+                                  dynamicStyles.heroBadgeText,
+                                ]}
+                              >
+                                ✓ Read
+                              </Text>
+                            </View>
+                          ) : (
+                            <View
+                              style={[styles.progressBadge, styles.unreadBadge]}
+                            >
+                              <Text style={styles.unreadBadgeText}>Unread</Text>
+                            </View>
+                          )}
+                        </View>
                         <View style={styles.progressContentBody}>
                           <Text
                             style={[
@@ -1354,7 +1338,7 @@ card: {
                               dynamicStyles.progressContentLabel,
                             ]}
                           >
-                            Read At
+                            Objectives
                           </Text>
                           <Text
                             style={[
@@ -1362,44 +1346,64 @@ card: {
                               dynamicStyles.progressContentValue,
                             ]}
                           >
-                            {content.read_at}
+                            {content.objectives}
                           </Text>
                         </View>
-                      ) : null}
-                    </View>
-                  ))
-                ) : (
-                  <View
-                    style={[
-                      styles.emptyContentCard,
-                      dynamicStyles.emptyContentCard,
-                    ]}
-                  >
-                    <Text
+                        {content.is_read && content.read_at ? (
+                          <View style={styles.progressContentBody}>
+                            <Text
+                              style={[
+                                styles.progressContentLabel,
+                                dynamicStyles.progressContentLabel,
+                              ]}
+                            >
+                              Read At
+                            </Text>
+                            <Text
+                              style={[
+                                styles.progressContentValue,
+                                dynamicStyles.progressContentValue,
+                              ]}
+                            >
+                              {content.read_at}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    ))
+                  ) : (
+                    <View
                       style={[
-                        styles.emptyContentText,
-                        dynamicStyles.emptyContentText,
+                        styles.emptyContentCard,
+                        dynamicStyles.emptyContentCard,
                       ]}
                     >
-                      No lesson contents available for this module.
-                    </Text>
-                  </View>
-                )}
-              </ScrollView>
+                      <Text
+                        style={[
+                          styles.emptyContentText,
+                          dynamicStyles.emptyContentText,
+                        ]}
+                      >
+                        No lesson contents available for this module.
+                      </Text>
+                    </View>
+                  )}
+                </ScrollView>
 
-              <Pressable
-                onPress={closeModuleProgress}
-                style={[styles.closeButton, dynamicStyles.closeButton]}
-              >
-                <Text
-                  style={[
-                    styles.closeButtonText,
-                    dynamicStyles.closeButtonText,
-                  ]}
+                <Pressable
+                  onPress={closeModuleProgress}
+                  style={[styles.closeButton, dynamicStyles.closeButton]}
                 >
-                  Close
-                </Text>
-              </Pressable>
+                  <Text
+                    style={[
+                      styles.closeButtonText,
+                      dynamicStyles.closeButtonText,
+                    ]}
+                  >
+                    Close
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </View>
         ) : null}

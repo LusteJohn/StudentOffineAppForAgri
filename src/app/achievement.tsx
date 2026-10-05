@@ -93,15 +93,13 @@ export default function AchievementScreen() {
       color: theme.textSecondary,
     },
     achievementCardContainer: {
-      backgroundColor: isDark ? 'rgba(34, 197, 94, 0.08)' : 'rgba(34, 197, 94, 0.05)',
-      borderColor: 'transparent',
-      shadowColor: isDark ? '#000000' : '#0f172a',
+      borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(148, 163, 184, 0.25)',
+      shadowColor: 'transparent',
     },
     achievementCardComplete: {
-      backgroundColor: isDark ? 'rgba(34, 197, 94, 0.12)' : 'rgba(34, 197, 94, 0.08)',
     },
     achievementImageWrap: {
-      backgroundColor: isDark ? theme.backgroundSelected : '#f1f8e8',
+      backgroundColor: 'transparent',
     },
     achievementName: {
       color: theme.text,
@@ -302,12 +300,21 @@ export default function AchievementScreen() {
             <Text style={[styles.errorDescription, dynamicStyles.errorDescription]}>{error}</Text>
           </View>
         ) : loading ? (
-          <Text style={[styles.loadingText, dynamicStyles.loadingText]}>Loading achievements...</Text>
+          <View style={styles.loadingContainer}>
+            <View style={styles.loadingSpinner}>
+              <Ionicons name="trophy-outline" size={48} color={isDark ? '#4b5563' : '#cbd5e1'} />
+            </View>
+            <Text style={[styles.loadingText, dynamicStyles.loadingText]}>Loading achievements...</Text>
+            <Text style={[styles.loadingSubtext, dynamicStyles.loadingText]}>Please wait while we fetch your badges</Text>
+          </View>
         ) : activeTab === 'module' ? (
           moduleAchievements.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="trophy-outline" size={48} color="#94a3b8" />
+              <View style={styles.emptyIconContainer}>
+                <Ionicons name="trophy-outline" size={48} color="#94a3b8" />
+              </View>
               <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>No module achievements available yet.</Text>
+              <Text style={[styles.emptyStateSubtext, dynamicStyles.emptyStateText]}>Complete lessons to earn module badges</Text>
             </View>
           ) : (
             <View style={styles.achievementList}>
@@ -389,23 +396,27 @@ export default function AchievementScreen() {
                        />
                      </Pressable>
 
-                    {isExpanded && moduleLessons.length > 0 ? (
-                      <View style={styles.lessonList}>
-                        {moduleLessons.map((lesson) => (
-                          <View key={lesson.lesson_id} style={styles.lessonItem}>
-                            <View style={styles.lessonIndicator} />
-                            <View style={styles.lessonTextGroup}>
-                              <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{lesson.lesson_name}</Text>
-                              <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Order: {lesson.order_number}</Text>
-                            </View>
-                          </View>
-                        ))}
-                      </View>
-                    ) : isExpanded && moduleRecord && moduleLessons.length === 0 ? (
-                      <View style={styles.emptyLessonRow}>
-                        <Text style={[styles.emptyLessonText, dynamicStyles.emptyLessonText]}>No lessons available for this module.</Text>
-                      </View>
-                    ) : null}
+                     {isExpanded && moduleLessons.length > 0 ? (
+                       <View style={styles.lessonList}>
+                         <View style={styles.lessonListHeader}>
+                           <Text style={styles.lessonListTitle}>Lessons in this module</Text>
+                           <Text style={styles.lessonListCount}>{moduleLessons.length} lessons</Text>
+                         </View>
+                         {moduleLessons.map((lesson) => (
+                           <View key={lesson.lesson_id} style={styles.lessonItem}>
+                             <View style={styles.lessonIndicator} />
+                             <View style={styles.lessonTextGroup}>
+                               <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{lesson.lesson_name}</Text>
+                               <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Order: {lesson.order_number}</Text>
+                             </View>
+                           </View>
+                         ))}
+                       </View>
+                     ) : isExpanded && moduleRecord && moduleLessons.length === 0 ? (
+                       <View style={styles.emptyLessonRow}>
+                         <Text style={[styles.emptyLessonText, dynamicStyles.emptyLessonText]}>No lessons available for this module.</Text>
+                       </View>
+                     ) : null}
                   </View>
                 );
               })}
@@ -414,8 +425,11 @@ export default function AchievementScreen() {
         ) : (
           lessonAchievements.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="trophy-outline" size={48} color={theme.textSecondary} />
+              <View style={styles.emptyIconContainer}>
+                <Ionicons name="trophy-outline" size={48} color={theme.textSecondary} />
+              </View>
               <Text style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>No lesson achievements available yet.</Text>
+              <Text style={[styles.emptyStateSubtext, dynamicStyles.emptyStateText]}>Complete lesson contents to earn badges</Text>
             </View>
           ) : (
             <View style={styles.achievementList}>
@@ -479,23 +493,27 @@ export default function AchievementScreen() {
                       />
                     </Pressable>
 
-                    {isExpanded && contents.length > 0 ? (
-                      <View style={styles.contentList}>
-                        {contents.map((content) => (
-                          <View key={content.lesson_content_id} style={styles.lessonItem}>
-                            <View style={styles.lessonIndicator} />
-                            <View style={styles.lessonTextGroup}>
-                              <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{content.content_name}</Text>
-                              <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Objectives: {content.objectives}</Text>
-                            </View>
-                          </View>
-                        ))}
-                      </View>
-                    ) : isExpanded && contents.length === 0 ? (
-                      <View style={styles.emptyLessonRow}>
-                        <Text style={[styles.emptyLessonText, dynamicStyles.emptyLessonText]}>No content available for this lesson.</Text>
-                      </View>
-                    ) : null}
+                     {isExpanded && contents.length > 0 ? (
+                       <View style={styles.contentList}>
+                         <View style={styles.lessonListHeader}>
+                           <Text style={styles.lessonListTitle}>Lesson contents</Text>
+                           <Text style={styles.lessonListCount}>{contents.length} items</Text>
+                         </View>
+                         {contents.map((content) => (
+                           <View key={content.lesson_content_id} style={styles.lessonItem}>
+                             <View style={styles.lessonIndicator} />
+                             <View style={styles.lessonTextGroup}>
+                               <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]}>{content.content_name}</Text>
+                               <Text style={[styles.lessonMeta, dynamicStyles.lessonMeta]}>Objectives: {content.objectives}</Text>
+                             </View>
+                           </View>
+                         ))}
+                       </View>
+                     ) : isExpanded && contents.length === 0 ? (
+                       <View style={styles.emptyLessonRow}>
+                         <Text style={[styles.emptyLessonText, dynamicStyles.emptyLessonText]}>No content available for this lesson.</Text>
+                       </View>
+                     ) : null}
                   </View>
                 );
               })}
@@ -540,7 +558,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   tabButtonActive: {
-    backgroundColor: '#166534',
+    backgroundColor: '#22c55e',
   },
   tabButtonText: {
     fontSize: 13,
@@ -565,11 +583,9 @@ const styles = StyleSheet.create({
   achievementCardContainer: {
     borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 0,
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
+    borderWidth: 1,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   achievementCard: {
     flexDirection: 'row',
@@ -700,8 +716,61 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
    acquiredLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-});
+     fontSize: 11,
+     fontWeight: '700',
+     marginTop: 2,
+   },
+   loadingContainer: {
+     alignItems: 'center',
+     gap: 16,
+     paddingTop: 48,
+   },
+   loadingSpinner: {
+     width: 80,
+     height: 80,
+     borderRadius: 40,
+     alignItems: 'center',
+     justifyContent: 'center',
+     backgroundColor: '#f1f5f9',
+   },
+   loadingSubtext: {
+     fontSize: 13,
+     fontWeight: '500',
+     textAlign: 'center',
+   },
+   emptyIconContainer: {
+     width: 80,
+     height: 80,
+     borderRadius: 40,
+     alignItems: 'center',
+     justifyContent: 'center',
+     backgroundColor: '#f1f5f9',
+   },
+   emptyStateSubtext: {
+     fontSize: 13,
+     fontWeight: '500',
+     textAlign: 'center',
+   },
+   lessonListHeader: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     justifyContent: 'space-between',
+     paddingVertical: 8,
+     paddingHorizontal: 16,
+     backgroundColor: '#f8fafc',
+     borderBottomWidth: 1,
+     borderBottomColor: 'rgba(148, 163, 184, 0.08)',
+   },
+   lessonListTitle: {
+     fontSize: 12,
+     fontWeight: '700',
+     color: '#64748b',
+     textTransform: 'uppercase',
+     letterSpacing: 0.6,
+   },
+   lessonListCount: {
+     fontSize: 11,
+     fontWeight: '600',
+     color: '#94a3b8',
+   },
+ });

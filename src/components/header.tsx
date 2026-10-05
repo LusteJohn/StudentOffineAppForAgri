@@ -77,7 +77,7 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
         <View style={styles.leftArea}>
           {showBack ? (
             <Pressable onPress={handleBack} style={styles.backButton}>
-              <Text style={[styles.backButtonText, { color: textColor }]}>←</Text>
+              <Text style={[styles.backButtonText, { color: isDark ? '#ffffff' : '#000000' }]}>←</Text>
             </Pressable>
           ) : null}
           <View style={styles.logoFrame}>
