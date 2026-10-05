@@ -92,6 +92,12 @@ export default function AchievementScreen() {
     loadingText: {
       color: theme.textSecondary,
     },
+    heroTitle: {
+      color: '#ffffff',
+    },
+    heroSubtitle: {
+      color: 'rgba(255,255,255,0.8)',
+    },
     achievementCardContainer: {
       borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(148, 163, 184, 0.25)',
       shadowColor: 'transparent',
@@ -294,6 +300,14 @@ export default function AchievementScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroContainer}>
+          <Image source={require('@/assets/images/achieved.jpeg')} style={styles.heroImage} resizeMode="cover" />
+          <View style={styles.heroOverlay}>
+            <Text style={[styles.heroTitle, dynamicStyles.heroTitle]}>Achievements</Text>
+            <Text style={[styles.heroSubtitle, dynamicStyles.heroSubtitle]}>Your earned badges and milestones</Text>
+          </View>
+        </View>
+
         {error ? (
           <View style={[styles.errorBox, dynamicStyles.errorBox]}>
             <Text style={[styles.errorTitle, dynamicStyles.errorTitle]}>Unable to load achievements</Text>
@@ -768,9 +782,42 @@ const styles = StyleSheet.create({
      textTransform: 'uppercase',
      letterSpacing: 0.6,
    },
-   lessonListCount: {
-     fontSize: 11,
-     fontWeight: '600',
-     color: '#94a3b8',
-   },
- });
+    lessonListCount: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: '#94a3b8',
+    },
+    heroContainer: {
+      width: '100%',
+      maxWidth: 560,
+      alignSelf: 'center',
+      height: 160,
+      borderRadius: 24,
+      overflow: 'hidden',
+    },
+    heroImage: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      width: '100%',
+      height: '100%',
+    },
+    heroOverlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      padding: 18,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      gap: 4,
+    },
+    heroTitle: {
+      fontSize: 22,
+      fontWeight: '700',
+      lineHeight: 28,
+    },
+    heroSubtitle: {
+      fontSize: 13,
+      fontWeight: '500',
+    },
+  });

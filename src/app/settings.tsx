@@ -55,8 +55,11 @@ export default function SettingsScreen() {
     screen: {
       backgroundColor: colors.background,
     },
-    pageIntroImage: {
-      backgroundColor: isDark ? colors.backgroundSelected : '#e2e8f0',
+    heroTitle: {
+      color: '#ffffff',
+    },
+    heroSubtitle: {
+      color: 'rgba(255,255,255,0.8)',
     },
     pageIntroTitle: {
       color: colors.text,
@@ -686,18 +689,16 @@ export default function SettingsScreen() {
     <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Settings" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.pageIntro}>
-          <Image
-            source={require('@/assets/images/setting_image.jpeg')}
-            style={[styles.pageIntroImage, dynamicStyles.pageIntroImage]}
-            resizeMode="cover"
-          />
-          <Text style={[styles.pageIntroTitle, dynamicStyles.pageIntroTitle]}>Settings</Text>
-          <Text style={[styles.pageIntroText, dynamicStyles.pageIntroText]}>
-            Everything on this page runs entirely on this device. Use Learning data to import the
-            offline module content or export your progress as a PDF report, Preferences to tune the
-            tutorial and light or dark appearance, and Session to sign out when you are done.
-          </Text>
+        <View style={styles.heroContainer}>
+          <Image source={require('@/assets/images/setting_image.jpeg')} style={styles.heroImage} resizeMode="cover" />
+          <View style={styles.heroOverlay}>
+            <Text style={[styles.heroTitle, dynamicStyles.heroTitle]}>Settings</Text>
+            <Text style={[styles.heroSubtitle, dynamicStyles.heroSubtitle]}>
+              Everything on this page runs entirely on this device. Use Learning data to import the
+              offline module content or export your progress as a PDF report, Preferences to tune the
+              tutorial and light or dark appearance, and Session to sign out when you are done.
+            </Text>
+          </View>
         </View>
 
         <Text style={[styles.groupLabel, dynamicStyles.groupLabel]}>Learning data</Text>
@@ -940,28 +941,42 @@ const styles = StyleSheet.create({
     backgroundColor: '#edf4ea',
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 12,
+    padding: 16,
+    paddingBottom: 100,
     gap: 16,
   },
-  pageIntro: {
-    alignSelf: 'center',
+  heroContainer: {
     width: '100%',
     maxWidth: 560,
-    gap: 10,
-  },
-  pageIntroImage: {
-    width: '100%',
+    alignSelf: 'center',
     height: 160,
-    borderRadius: 16,
+    borderRadius: 24,
+    overflow: 'hidden',
   },
-  pageIntroTitle: {
-    fontSize: 18,
+  heroImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  heroOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 18,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    gap: 4,
+  },
+  heroTitle: {
+    fontSize: 22,
     fontWeight: '700',
+    lineHeight: 28,
   },
-  pageIntroText: {
+  heroSubtitle: {
     fontSize: 13,
-    lineHeight: 19,
+    fontWeight: '500',
   },
   groupLabel: {
     alignSelf: 'center',

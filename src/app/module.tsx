@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
@@ -59,11 +60,14 @@ export default function ModuleScreen() {
     headerIcon: {
       color: theme.text,
     },
-section: {
+    section: {
       marginTop: 20,
     },
-    pageIntroImage: {
-      backgroundColor: isDark ? theme.backgroundSelected : '#e2e8f0',
+    heroTitle: {
+      color: '#ffffff',
+    },
+    heroSubtitle: {
+      color: 'rgba(255,255,255,0.8)',
     },
     pageIntroTitle: {
       color: theme.text,
@@ -267,20 +271,14 @@ section: {
     <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Competency Library" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-        <View style={[styles.pageIntro, isCompact && styles.pageIntroCompact]}>
-          <Image
-            source={require('@/assets/images/tools.jpeg')}
-            style={[styles.pageIntroImage, dynamicStyles.pageIntroImage]}
-            resizeMode="cover"
-          />
-          <Text style={[styles.pageIntroTitle, dynamicStyles.pageIntroTitle]}>Competency Library</Text>
-          <Text style={[styles.pageIntroText, dynamicStyles.pageIntroText]}>
-            Browse the list of competencies for this qualification. Each competency contains a module
-            with learning materials, information sheets, job sheets and performance tasks you can work
-            on offline. Tap any competency to view its modules, then start a module to begin answering
-            the exercises and completing your job sheets.
-          </Text>
+        <View style={styles.heroContainer}>
+          <Image source={require('@/assets/images/tools.jpeg')} style={styles.heroImage} resizeMode="cover" />
+          <View style={styles.heroOverlay}>
+            <Text style={[styles.heroTitle, dynamicStyles.heroTitle]}>Competency Library</Text>
+            <Text style={[styles.heroSubtitle, dynamicStyles.heroSubtitle]}>
+              Browse competencies and start learning
+            </Text>
+          </View>
         </View>
 
         <View style={[styles.section, isCompact && styles.sectionCompact]}>
@@ -488,6 +486,39 @@ const styles = StyleSheet.create({
   },
   pageIntroCompact: {
     gap: 8,
+  },
+  heroContainer: {
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
+    height: 160,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  heroImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  heroOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 18,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    gap: 4,
+  },
+  heroTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    lineHeight: 28,
+  },
+  heroSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   pageIntroImage: {
     width: '100%',
