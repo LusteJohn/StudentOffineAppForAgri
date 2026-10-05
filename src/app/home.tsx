@@ -373,6 +373,15 @@ export default function HomeScreen() {
   const [weeklyActivity, setWeeklyActivity] = useState<number[]>([
     0, 0, 0, 0, 0, 0, 0,
   ]);
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  });
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(
     null,
   );
@@ -658,7 +667,7 @@ card: {
         listPerformanceAnswersByUser(userId),
         listQuestionAnswersByUser(userId),
         listLessonContentProgressByUser(userId),
-        getWeeklyActivity(userId),
+        getWeeklyActivity(userId, currentWeekStart),
       ]);
       setCompetencies(compData);
       setModules(modData);
@@ -675,7 +684,7 @@ card: {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, currentWeekStart]);
 
   useFocusEffect(
     useCallback(() => {
@@ -844,14 +853,8 @@ card: {
     setDailyLoading(true);
     setActivityModalVisible(true);
     try {
-      const today = new Date();
-      const dayOfWeek = today.getDay();
-      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      const monday = new Date(today);
-      monday.setDate(today.getDate() + mondayOffset);
-      monday.setHours(0, 0, 0, 0);
-      const target = new Date(monday);
-      target.setDate(monday.getDate() + index);
+      const target = new Date(currentWeekStart);
+      target.setDate(currentWeekStart.getDate() + index);
       const pad = (n: number) => String(n).padStart(2, '0');
       const dateStr = `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(target.getDate())}`;
       setSelectedDayDate(dateStr);
@@ -862,6 +865,20 @@ card: {
     } finally {
       setDailyLoading(false);
     }
+  };
+
+  const goToPrevWeek = () => {
+    const newWeekStart = new Date(currentWeekStart);
+    newWeekStart.setDate(currentWeekStart.getDate() - 7);
+    setCurrentWeekStart(newWeekStart);
+    getWeeklyActivity(userId, newWeekStart).then(setWeeklyActivity).catch(() => {});
+  };
+
+  const goToNextWeek = () => {
+    const newWeekStart = new Date(currentWeekStart);
+    newWeekStart.setDate(currentWeekStart.getDate() + 7);
+    setCurrentWeekStart(newWeekStart);
+    getWeeklyActivity(userId, newWeekStart).then(setWeeklyActivity).catch(() => {});
   };
 
   const closeDayActivity = () => {
@@ -1163,9 +1180,17 @@ card: {
         </View>
 
         <View style={[styles.chartContainer, dynamicStyles.chartContainer]}>
-          <Text style={[styles.chartTitle, dynamicStyles.chartTitle]}>
-            Weekly Activity
-          </Text>
+          <View style={styles.chartHeader}>
+            <Pressable onPress={goToPrevWeek} style={styles.weekChevron}>
+              <Ionicons name="chevron-back" size={20} color={isDark ? '#ffffff' : '#0f172a'} />
+            </Pressable>
+            <Text style={[styles.chartTitle, dynamicStyles.chartTitle]}>
+              Weekly Activity
+            </Text>
+            <Pressable onPress={goToNextWeek} style={styles.weekChevron}>
+              <Ionicons name="chevron-forward" size={20} color={isDark ? '#ffffff' : '#0f172a'} />
+            </Pressable>
+          </View>
           <View style={styles.chart}>
             {weeklyActivity.some((v) => v > 0) ? (
               <WeekCalendar
@@ -1388,17 +1413,19 @@ card: {
       >
         <View style={[styles.modalOverlay, dynamicStyles.modalOverlay]}>
           <View style={[styles.modalCard, dynamicStyles.modalCard]}>
-            <View style={styles.modalHeaderRow}>
-              <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>
-                {selectedDayDate
-                  ? new Date(selectedDayDate + 'T00:00:00').toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
-                  : 'Daily Activity'}
-              </Text>
+            <View style={styles.modalHero}>
+              <Image source={require('@/assets/images/calendar.jpeg')} style={styles.modalHeroImage} resizeMode="cover" />
+              <View style={styles.modalHeroOverlay}>
+                <Text style={styles.modalHeroTitle}>
+                  {selectedDayDate
+                    ? new Date(selectedDayDate + 'T00:00:00').toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                      })
+                    : 'Daily Activity'}
+                </Text>
+              </View>
               <Pressable
                 onPress={closeDayActivity}
                 style={[
@@ -1417,107 +1444,110 @@ card: {
               </Pressable>
             </View>
 
-            {dailyLoading ? (
-              <View style={styles.activityLoadingContainer}>
-                <Text style={styles.summaryText}>
-                  Loading activity...
-                </Text>
-              </View>
-            ) : dailyActivity && dailyActivity.length > 0 ? (
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                style={styles.modalContentList}
-              >
-                {(() => {
-                  const groups: Record<string, DailyActivityRecord[]> = {};
-                  const groupOrder = [
-                    "quiz", "job_sheet", "performance", "progress",
-                    "bookmark", "lesson_achievement", "module_achievement",
-                  ];
-                  for (const item of dailyActivity) {
-                    if (!groups[item.activity_type]) {
-                      groups[item.activity_type] = [];
+            <View style={styles.modalBody}>
+              {dailyLoading ? (
+                <View style={styles.activityLoadingContainer}>
+                  <Text style={styles.summaryText}>
+                    Loading activity...
+                  </Text>
+                </View>
+              ) : dailyActivity && dailyActivity.length > 0 ? (
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.modalContentList}
+                  style={styles.modalScrollArea}
+                >
+                  {(() => {
+                    const groups: Record<string, DailyActivityRecord[]> = {};
+                    const groupOrder = [
+                      "quiz", "job_sheet", "performance", "progress",
+                      "bookmark", "lesson_achievement", "module_achievement",
+                    ];
+                    for (const item of dailyActivity) {
+                      if (!groups[item.activity_type]) {
+                        groups[item.activity_type] = [];
+                      }
+                      groups[item.activity_type].push(item);
                     }
-                    groups[item.activity_type].push(item);
-                  }
 
-                  const groupLabels: Record<string, { label: string; icon: string; color: string }> = {
-                    quiz: { label: "Quiz Submissions", icon: "help-circle", color: "#2563eb" },
-                    job_sheet: { label: "Job Sheet Answers", icon: "document-text", color: "#dc2626" },
-                    performance: { label: "Performance Answers", icon: "checkmark-circle", color: "#7c3aed" },
-                    progress: { label: "Lesson Progress", icon: "bookmarks", color: "#059669" },
-                    bookmark: { label: "Bookmarks", icon: "bookmark", color: "#d97706" },
-                    lesson_achievement: { label: "Lesson Achievements", icon: "trophy", color: "#ca8a04" },
-                    module_achievement: { label: "Module Achievements", icon: "podium", color: "#be12ce" },
-                  };
+                    const groupLabels: Record<string, { label: string; icon: string; color: string }> = {
+                      quiz: { label: "Quiz Submissions", icon: "help-circle", color: "#2563eb" },
+                      job_sheet: { label: "Job Sheet Answers", icon: "document-text", color: "#dc2626" },
+                      performance: { label: "Performance Answers", icon: "checkmark-circle", color: "#7c3aed" },
+                      progress: { label: "Lesson Progress", icon: "bookmarks", color: "#059669" },
+                      bookmark: { label: "Bookmarks", icon: "bookmark", color: "#d97706" },
+                      lesson_achievement: { label: "Lesson Achievements", icon: "trophy", color: "#ca8a04" },
+                      module_achievement: { label: "Module Achievements", icon: "podium", color: "#be12ce" },
+                    };
 
-                  const orderedTypes = groupOrder.filter((t) => groups[t]);
+                    const orderedTypes = groupOrder.filter((t) => groups[t]);
 
-                  return orderedTypes.map((type) => {
-                    const items = groups[type];
-                    const meta = groupLabels[type];
-                    return (
-                      <View key={type} style={styles.activityGroup}>
-                        <View style={[styles.activityGroupHeader, { borderLeftColor: meta.color }]}>
-                          <Ionicons name={meta.icon as any} size={16} color={meta.color} />
-                          <Text style={[styles.activityGroupLabel, dynamicStyles.activityItemText]}>
-                            {meta.label}
-                          </Text>
-                          <View style={[styles.activityGroupCount, { backgroundColor: meta.color }]}>
-                            <Text style={styles.activityGroupCountText}>
-                              {items.length}
+                    return orderedTypes.map((type) => {
+                      const items = groups[type];
+                      const meta = groupLabels[type];
+                      return (
+                        <View key={type} style={styles.activityGroup}>
+                          <View style={[styles.activityGroupHeader, { borderLeftColor: meta.color }]}>
+                            <Ionicons name={meta.icon as any} size={18} color={meta.color} />
+                            <Text style={[styles.activityGroupLabel, dynamicStyles.activityItemText]}>
+                              {meta.label}
                             </Text>
-                          </View>
-                        </View>
-                        {items.map((item) => (
-                          <View key={`${item.activity_type}-${item.id}`} style={[styles.activityItem, dynamicStyles.activityItem]}>
-                            <View style={styles.activityItemHeader}>
-                              <Text style={[styles.activityItemType, { color: meta.color }]}>
-                                {meta.label.split(" ")[0]}
-                              </Text>
-                              <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
-                                {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <View style={[styles.activityGroupCount, { backgroundColor: meta.color }]}>
+                              <Text style={styles.activityGroupCountText}>
+                                {items.length}
                               </Text>
                             </View>
-                            <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
-                              {item.title}
-                            </Text>
-                            {item.description ? (
-                              <Text style={[styles.activityItemDesc, dynamicStyles.activityItemDesc]}>
-                                {item.description}
-                              </Text>
-                            ) : null}
-                            {item.lesson_name ? (
-                              <View style={styles.activityItemMetaRow}>
-                                <Ionicons name="book-outline" size={12} color={isDark ? "#86efac" : "#166534"} />
-                                <Text style={[styles.activityItemLesson, dynamicStyles.activityItemLesson]}>
-                                  {item.lesson_name}
-                                </Text>
-                              </View>
-                            ) : null}
-                            {item.module_name ? (
-                              <View style={styles.activityItemMetaRow}>
-                                <Ionicons name="library-outline" size={12} color={isDark ? "#c084fc" : "#7c3aed"} />
-                                <Text style={[styles.activityItemModule, dynamicStyles.activityItemModule]}>
-                                  {item.module_name}
-                                </Text>
-                              </View>
-                            ) : null}
                           </View>
-                        ))}
-                      </View>
-                    );
-                  });
-                })()}
-              </ScrollView>
-            ) : (
-              <View style={styles.activityLoadingContainer}>
-                <Ionicons name="calendar-outline" size={48} color={isDark ? "#4b5563" : "#cbd5e1"} />
-                <Text style={[styles.noDataText, dynamicStyles.noDataText]}>
-                  No activity recorded on this day.
-                </Text>
-              </View>
-            )}
+                          {items.map((item) => (
+                            <View key={`${item.activity_type}-${item.id}`} style={[styles.activityItem, dynamicStyles.activityItem]}>
+                              <View style={styles.activityItemHeader}>
+                                <Text style={[styles.activityItemType, { color: meta.color }]}>
+                                  {meta.label.split(" ")[0]}
+                                </Text>
+                                <Text style={[styles.activityItemTime, dynamicStyles.activityItemTime]}>
+                                  {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </Text>
+                              </View>
+                              <Text style={[styles.activityItemText, dynamicStyles.activityItemText]}>
+                                {item.title}
+                              </Text>
+                              {item.description ? (
+                                <Text style={[styles.activityItemDesc, dynamicStyles.activityItemDesc]}>
+                                  {item.description}
+                                </Text>
+                              ) : null}
+                              {item.lesson_name ? (
+                                <View style={styles.activityItemMetaRow}>
+                                  <Ionicons name="book-outline" size={12} color={isDark ? "#86efac" : "#166534"} />
+                                  <Text style={[styles.activityItemLesson, dynamicStyles.activityItemLesson]}>
+                                    {item.lesson_name}
+                                  </Text>
+                                </View>
+                              ) : null}
+                              {item.module_name ? (
+                                <View style={styles.activityItemMetaRow}>
+                                  <Ionicons name="library-outline" size={12} color={isDark ? "#c084fc" : "#7c3aed"} />
+                                  <Text style={[styles.activityItemModule, dynamicStyles.activityItemModule]}>
+                                    {item.module_name}
+                                  </Text>
+                                </View>
+                              ) : null}
+                            </View>
+                          ))}
+                        </View>
+                      );
+                    });
+                  })()}
+                </ScrollView>
+              ) : (
+                <View style={styles.activityLoadingContainer}>
+                  <Ionicons name="calendar-outline" size={48} color={isDark ? "#4b5563" : "#cbd5e1"} />
+                  <Text style={[styles.noDataText, dynamicStyles.noDataText]}>
+                    No activity recorded on this day.
+                  </Text>
+                </View>
+              )}
+            </View>
 
             <Pressable
               onPress={closeDayActivity}
@@ -1635,6 +1665,15 @@ const styles = StyleSheet.create({
     color: "#000000",
     textTransform: "uppercase",
     letterSpacing: 0.6,
+  },
+  chartHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  weekChevron: {
+    padding: 4,
   },
   chart: {
     borderRadius: 16,
@@ -1954,13 +1993,12 @@ const styles = StyleSheet.create({
   modalCard: {
     width: "100%",
     maxWidth: 420,
-    maxHeight: "85%",
+    height: "85%",
     borderRadius: 20,
     padding: 18,
-    gap: 12,
     backgroundColor: "#ffffff",
     alignSelf: "stretch",
-    flex: 1,
+    flexDirection: "column",
   },
   modalHeaderRow: {
     flexDirection: "row",
@@ -1986,6 +2024,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#000000",
+  },
+  modalHero: {
+    height: 140,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    overflow: "hidden",
+    justifyContent: "flex-end",
+  },
+  modalHeroImage: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: "100%",
+    height: "100%",
+  },
+  modalHeroOverlay: {
+    padding: 16,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  modalHeroTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#ffffff",
+    lineHeight: 26,
+  },
+  modalBody: {
+    flex: 1,
+    minHeight: 0,
+  },
+  modalScrollArea: {
+    flex: 1,
   },
   modalSummaryRow: {
     flexDirection: "row",
@@ -2014,8 +2085,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   modalContentList: {
-    flex: 1,
-    maxHeight: "75%",
+    gap: 12,
   },
   progressContentCard: {
     borderRadius: 14,

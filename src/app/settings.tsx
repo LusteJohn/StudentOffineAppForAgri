@@ -45,7 +45,6 @@ export default function SettingsScreen() {
   const [exporting, setExporting] = useState(false);
   const [reportData, setReportData] = useState<StudentReportData | null>(null);
 
-  const [loggingOut, setLoggingOut] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { showAlert } = useCustomAlert();
   const themeCtx = useThemeContext();
@@ -111,12 +110,6 @@ export default function SettingsScreen() {
     statusTextError: {
       color: '#b91c1c',
     },
-     logoutButton: {
-      backgroundColor: '#b91c1c',
-    },
-    logoutButtonText: {
-      color: '#ffffff',
-    },
     themeOption: {
       backgroundColor: 'transparent',
       borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148, 163, 184, 0.18)',
@@ -144,24 +137,6 @@ export default function SettingsScreen() {
       isMounted = false;
     };
   }, [activeUserId]);
-
-  const handleLogout = () => {
-    showAlert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => {
-            setLoggingOut(true);
-            router.replace({ pathname: '/login' });
-          },
-        },
-      ]
-    );
-  };
 
   const handleImportResources = async () => {
     setImporting(true);
@@ -924,39 +899,6 @@ export default function SettingsScreen() {
             <InfoRow label="Description" value="Agricultural production learning platform" />
           </View>
         </View>
-
-        <Text style={[styles.groupLabel, dynamicStyles.groupLabel]}>Session</Text>
-
-        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconWrap, styles.sectionIconWrapDanger, dynamicStyles.sectionIconWrapDanger]}>
-              <Ionicons name="log-out-outline" size={18} color="#ffffff" />
-            </View>
-            <View style={styles.sectionHeaderText}>
-              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>Account</Text>
-              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Logout</Text>
-            </View>
-          </View>
-          <Text style={[styles.sectionBody, dynamicStyles.sectionBody]}>
-            Ends your session on this device. Your saved answers and progress stay on the device and
-            will be here when you sign back in.
-          </Text>
-
-          <Pressable
-            onPress={handleLogout}
-            disabled={loggingOut}
-            style={({ pressed }) => [
-              styles.logoutButton,
-              dynamicStyles.logoutButton,
-              loggingOut && styles.logoutButtonDisabled,
-              pressed && styles.buttonPressed,
-            ]}>
-            <Ionicons name="exit-outline" size={18} color="#ffffff" />
-            <Text style={[styles.logoutButtonText, dynamicStyles.logoutButtonText]}>
-              {loggingOut ? 'Logging out...' : 'Logout'}
-            </Text>
-          </Pressable>
-        </View>
       </ScrollView>
       <BottomNavbar activeTab="settings" userId={activeUserId} />
     </ThemedView>
@@ -1107,23 +1049,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonActive: {
     backgroundColor: '#3db708',
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 2,
-    borderRadius: 14,
-    paddingVertical: 13,
-    backgroundColor: '#b91c1c',
-  },
-  logoutButtonDisabled: {
-    opacity: 0.7,
-  },
-  logoutButtonText: {
-    color: '#ffffff',
-    fontWeight: '700',
   },
   statusBox: {
     borderRadius: 16,

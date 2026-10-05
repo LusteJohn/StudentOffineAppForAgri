@@ -1556,7 +1556,11 @@ export default function ContentInfoScreen() {
       <Header title="Content Info" />
       <View style={[styles.tabStickyWrap, dynamicStyles.tabStickyWrap]}>
         <View style={[styles.tabHeader, dynamicStyles.tabHeader]}>
-          <View style={styles.tabHeaderContent}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabHeaderContent}
+          >
             <Pressable
               onPress={() => {
                 setActiveTab("content");
@@ -1653,7 +1657,7 @@ export default function ContentInfoScreen() {
                 Performance
               </Text>
             </Pressable>
-          </View>
+          </ScrollView>
         </View>
       </View>
 
