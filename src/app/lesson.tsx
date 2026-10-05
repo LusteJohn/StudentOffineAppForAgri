@@ -130,16 +130,16 @@ export default function LessonScreen() {
       color: theme.textSecondary,
     },
     moduleTogglePill: {
-      backgroundColor: isDark ? '#86efac' : '#55e10a',
+      backgroundColor: '#22c55e',
     },
     moduleTogglePillText: {
-      color: isDark ? '#000000' : '#0f172a',
+      color: '#ffffff',
     },
     moduleName: {
       color: theme.text,
     },
     moduleChevron: {
-      color: isDark ? '#000000' : '#0f172a',
+      color: '#ffffff',
     },
     lessonList: {
       backgroundColor: 'transparent',
@@ -158,10 +158,10 @@ export default function LessonScreen() {
       color: theme.textSecondary,
     },
     lessonViewButton: {
-      backgroundColor: isDark ? '#86efac' : '#55e10a',
+      backgroundColor: '#22c55e',
     },
     lessonViewButtonText: {
-      color: isDark ? '#000000' : '#0f172a',
+      color: '#ffffff',
     },
     emptyLessonRow: {
       backgroundColor: 'transparent',
@@ -192,13 +192,13 @@ export default function LessonScreen() {
       backgroundColor: theme.backgroundElement,
     },
     modalTitle: {
-      color: theme.text,
+      color: isDark ? '#67e8f9' : '#0e749a',
     },
     modalCloseButton: {
       backgroundColor: isDark ? theme.backgroundSelected : '#f1f5f9',
     },
     modalCloseText: {
-      color: theme.text,
+      color: '#ffffff',
     },
     modalSection: {
       color: theme.text,
@@ -251,13 +251,13 @@ export default function LessonScreen() {
       backgroundColor: theme.backgroundElement,
     },
     viewContentButton: {
-      backgroundColor: PRIMARY,
+      backgroundColor: '#22c55e',
     },
     viewContentButtonDisabled: {
       backgroundColor: isDark ? theme.backgroundSelected : '#cbd5e1',
     },
     viewContentButtonText: {
-      color: '#000000',
+      color: '#ffffff',
     },
     linkText: {
       color: '#2563eb',
@@ -967,6 +967,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
   },
   modalCloseText: {
     fontSize: 14,
