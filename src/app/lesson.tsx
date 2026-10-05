@@ -19,6 +19,33 @@ const getModuleImage = (moduleId: number) => {
   return moduleImages[moduleId] ?? null;
 };
 
+const getLessonOrderImage = (moduleId: number, orderNumber: number) => {
+  const map: Record<number, Record<number, any>> = {
+    1: {
+      1: require('@/assets/images/m1_1.jpeg'),
+      2: require('@/assets/images/m1_2.jpeg'),
+      3: require('@/assets/images/m1_3.jpeg'),
+      4: require('@/assets/images/m1_4.jpeg'),
+    },
+    2: {
+      1: require('@/assets/images/m2_1.jpeg'),
+      2: require('@/assets/images/m2_2.jpeg'),
+      3: require('@/assets/images/m2_3.jpeg'),
+      4: require('@/assets/images/m2_4.jpeg'),
+    },
+    3: {
+      1: require('@/assets/images/m3_1.jpeg'),
+      2: require('@/assets/images/m3_2.jpeg'),
+    },
+    4: {
+      1: require('@/assets/images/m4_1.jpeg'),
+      2: require('@/assets/images/m4_2.jpeg'),
+      3: require('@/assets/images/m4_3.jpeg'),
+    },
+  };
+  return map[moduleId]?.[orderNumber] ?? null;
+};
+
 const PRIMARY = '#5bec13';
 const BACKGROUND_LIGHT = '#f6f8f6';
 
@@ -122,9 +149,6 @@ export default function LessonScreen() {
     },
     lessonIndicator: {
       backgroundColor: isDark ? 'rgba(91, 236, 19, 0.15)' : '#e7f8d5',
-    },
-    lessonIndicatorText: {
-      color: isDark ? '#86efac' : '#166534',
     },
     lessonTitle: {
       color: theme.text,
@@ -458,11 +482,7 @@ export default function LessonScreen() {
                                 accessibilityRole="button"
                                 accessibilityLabel={`View lesson ${lesson.lesson_name}`}
                               >
-                                <View style={[styles.lessonIndicator, dynamicStyles.lessonIndicator]}>
-                                  <Text style={[styles.lessonIndicatorText, dynamicStyles.lessonIndicatorText]}>
-                                    {lesson.order_number}
-                                  </Text>
-                                </View>
+                                <Image source={getLessonOrderImage(group.module_id, lesson.order_number)} style={[styles.lessonIndicator, dynamicStyles.lessonIndicator]} resizeMode="cover" />
                                 <View style={styles.lessonTextGroup}>
                                   <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]} numberOfLines={2}>
                                     {lesson.lesson_name}
@@ -498,11 +518,7 @@ export default function LessonScreen() {
                                 accessibilityRole="button"
                                 accessibilityLabel={`View lesson ${lesson.lesson_name}`}
                               >
-                                <View style={[styles.lessonIndicator, dynamicStyles.lessonIndicator]}>
-                                  <Text style={[styles.lessonIndicatorText, dynamicStyles.lessonIndicatorText]}>
-                                    {lesson.order_number}
-                                  </Text>
-                                </View>
+                                <Image source={getLessonOrderImage(group.module_id, lesson.order_number)} style={[styles.lessonIndicator, dynamicStyles.lessonIndicator]} resizeMode="cover" />
                                 <View style={styles.lessonTextGroup}>
                                   <Text style={[styles.lessonTitle, dynamicStyles.lessonTitle]} numberOfLines={2}>
                                     {lesson.lesson_name}
@@ -806,15 +822,11 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   lessonIndicator: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  lessonIndicatorText: {
-    fontSize: 12,
-    fontWeight: '700',
   },
   lessonTextGroup: {
     flex: 1,
