@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -41,6 +41,8 @@ export default function BookmarkScreen() {
 
   const { showAlert } = useCustomAlert();
   const colors = useTheme();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
   const isDark = colors.text === '#ffffff';
 
   const dynamicStyles = useMemo(() => StyleSheet.create({
@@ -50,7 +52,6 @@ export default function BookmarkScreen() {
     sectionCard: {
       backgroundColor: colors.backgroundElement,
       borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(92, 107, 97, 0.12)',
-      shadowColor: isDark ? '#000000' : '#0f172a',
     },
     sectionIconWrap: {
       backgroundColor: isDark ? 'rgba(91, 236, 19, 0.12)' : '#f1f8e8',
@@ -67,7 +68,6 @@ export default function BookmarkScreen() {
     bookmarkRow: {
       backgroundColor: colors.backgroundElement,
       borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(148, 163, 184, 0.12)',
-      shadowColor: isDark ? '#000000' : '#0f172a',
     },
     bookmarkContentName: {
       color: isDark ? '#86efac' : '#166534',
@@ -83,6 +83,24 @@ export default function BookmarkScreen() {
     },
     bookmarkOpenButtonText: {
       color: isDark ? '#000000' : '#0f172a',
+    },
+    heroTitle: {
+      color: '#ffffff',
+    },
+    heroSubtitle: {
+      color: 'rgba(255,255,255,0.8)',
+    },
+    bookmarkCountBadge: {
+      backgroundColor: 'rgba(255,255,255,0.2)',
+    },
+    bookmarkCountText: {
+      color: '#ffffff',
+    },
+    emptyStateText: {
+      color: colors.textSecondary,
+    },
+    loadingText: {
+      color: colors.textSecondary,
     },
   }), [colors, isDark]);
 
@@ -128,27 +146,38 @@ export default function BookmarkScreen() {
   return (
     <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Bookmarks" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroContainer}>
+          <Image source={require('@/assets/images/bookmark.jpeg')} style={styles.heroImage} resizeMode="cover" />
+          <View style={styles.heroOverlay}>
+            <Text style={[styles.heroTitle, dynamicStyles.heroTitle]}>Bookmarks</Text>
+            <Text style={[styles.heroSubtitle, dynamicStyles.heroSubtitle]}>Your saved lesson content</Text>
+            <View style={[styles.bookmarkCountBadge, dynamicStyles.bookmarkCountBadge]}>
+              <Text style={[styles.bookmarkCountText, dynamicStyles.bookmarkCountText]}>{bookmarks.length} saved</Text>
+            </View>
+          </View>
+        </View>
+
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
-              <Ionicons name="bookmark-outline" size={18} color={colors.text} />
+              <Ionicons name="bookmark" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
               <ThemedText type="code" style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>
-                Bookmarks
+                Library
               </ThemedText>
               <ThemedText type="subtitle" style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-                Bookmarked lesson content
+                Bookmarked content
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>
-            Jump back to bookmarked lesson content.
-          </ThemedText>
 
           {bookmarksLoading ? (
-            <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>Loading bookmarks...</ThemedText>
+            <View style={styles.loadingContainer}>
+              <Ionicons name="bookmark-outline" size={40} color={isDark ? '#4b5563' : '#cbd5e1'} />
+              <Text style={[styles.loadingText, dynamicStyles.loadingText]}>Loading bookmarks...</Text>
+            </View>
           ) : bookmarks.length > 0 ? (
             <View style={styles.bookmarkList}>
               {bookmarks.map((item) => (
@@ -178,7 +207,11 @@ export default function BookmarkScreen() {
               ))}
             </View>
           ) : bookmarksLoaded ? (
-            <ThemedText style={[styles.sectionBody, dynamicStyles.sectionBody]}>No bookmarks yet. Bookmark lesson content from the content info page.</ThemedText>
+            <View style={styles.emptyState}>
+              <Ionicons name="bookmark-outline" size={40} color="#94a3b8" />
+              <ThemedText style={[styles.emptyStateText, dynamicStyles.emptyStateText]}>No bookmarks yet</ThemedText>
+              <ThemedText style={[styles.emptyStateSubtext, dynamicStyles.emptyStateText]}>Bookmark lesson content from the content info page to see it here</ThemedText>
+            </View>
           ) : null}
         </View>
       </ScrollView>
@@ -191,12 +224,55 @@ export default function BookmarkScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#edf4ea',
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 12,
+    padding: 16,
+    paddingBottom: 100,
     gap: 16,
+  },
+  heroContainer: {
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
+    height: 160,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  heroImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  heroOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 18,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    gap: 4,
+  },
+  heroTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    lineHeight: 28,
+  },
+  heroSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  bookmarkCountBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginTop: 6,
+  },
+  bookmarkCountText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   sectionCard: {
     alignSelf: 'center',
@@ -205,9 +281,7 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 24,
     gap: 12,
-    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(92, 107, 97, 0.12)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -241,8 +315,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  loadingContainer: {
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 32,
+  },
+  loadingText: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
   bookmarkList: {
-    gap: 8,
+    gap: 10,
     marginTop: 4,
   },
   bookmarkRow: {
@@ -252,14 +336,9 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
     gap: 12,
-    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.12)',
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   bookmarkTextGroup: {
     flex: 1,
@@ -292,5 +371,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#0f172a',
+  },
+  emptyState: {
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 32,
+  },
+  emptyStateText: {
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  emptyStateSubtext: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+    color: '#64748b',
   },
 });
