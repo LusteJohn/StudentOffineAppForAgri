@@ -536,13 +536,13 @@ export default function ContentInfoScreen() {
           borderColor: "rgba(185, 28, 28, 0.18)",
         },
         submitBlockedText: {
-          color: "#b91c1c",
+          color: '#b91c1c',
         },
         exerciseSubmitButton: {
-          backgroundColor: isDark ? "#86efac" : "#55e10a",
+          backgroundColor: '#22c55e',
         },
         exerciseSubmitButtonText: {
-          color: isDark ? "#000000" : "#0f172a",
+          color: '#ffffff',
         },
         surfaceCard: {
           shadowColor: isDark ? "#000000" : "#0f172a",
@@ -1365,7 +1365,12 @@ export default function ContentInfoScreen() {
   const renderJobSheetSection = () => (
     <View style={styles.jobSection}>
       {jobSheets.length > 0 ? (
-        jobSheets.map((sheet) => {
+        <>
+          <View style={styles.jobHeader}>
+            <Image source={require('@/assets/images/job_sheet.jpeg')} style={styles.jobImage} resizeMode="contain" />
+            <Text style={styles.jobHeaderTitle}>Job Sheet</Text>
+          </View>
+          {jobSheets.map((sheet) => {
           const hasAnswer = jobAnswers.some(
             (answer) => answer.job_id === sheet.job_id,
           );
@@ -1436,7 +1441,8 @@ export default function ContentInfoScreen() {
               </Pressable>
             </View>
           );
-        })
+        })}
+        </>
       ) : (
         <View style={styles.emptyBox}>
           <Text style={[styles.emptyBoxText, dynamicStyles.emptyBoxText]}>
@@ -1548,115 +1554,113 @@ export default function ContentInfoScreen() {
   return (
     <ThemedView style={[styles.screen, dynamicStyles.screen]}>
       <Header title="Content Info" />
+      <View style={[styles.tabStickyWrap, dynamicStyles.tabStickyWrap]}>
+        <View style={[styles.tabHeader, dynamicStyles.tabHeader]}>
+          <View style={styles.tabHeaderContent}>
+            <Pressable
+              onPress={() => {
+                setActiveTab("content");
+                loadContentInfo();
+              }}
+              style={[
+                styles.tabButton,
+                activeTab === "content" && styles.tabButtonActive,
+                dynamicStyles.tabButton,
+                activeTab === "content" && dynamicStyles.tabButtonActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tabButtonText,
+                  activeTab === "content" && styles.tabButtonTextActive,
+                  dynamicStyles.tabButtonText,
+                  activeTab === "content" &&
+                    dynamicStyles.tabButtonTextActive,
+                ]}
+              >
+                Content Info
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setActiveTab("exercise");
+                loadExercise();
+              }}
+              style={[
+                styles.tabButton,
+                activeTab === "exercise" && styles.tabButtonActive,
+                dynamicStyles.tabButton,
+                activeTab === "exercise" && dynamicStyles.tabButtonActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tabButtonText,
+                  activeTab === "exercise" && styles.tabButtonTextActive,
+                  dynamicStyles.tabButtonText,
+                  activeTab === "exercise" &&
+                    dynamicStyles.tabButtonTextActive,
+                ]}
+              >
+                Exercise
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setActiveTab("job");
+                loadJobSheet();
+              }}
+              style={[
+                styles.tabButton,
+                activeTab === "job" && styles.tabButtonActive,
+                dynamicStyles.tabButton,
+                activeTab === "job" && dynamicStyles.tabButtonActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tabButtonText,
+                  activeTab === "job" && styles.tabButtonTextActive,
+                  dynamicStyles.tabButtonText,
+                  activeTab === "job" &&
+                    dynamicStyles.tabButtonTextActive,
+                ]}
+              >
+                Job Sheet
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setActiveTab("performance");
+                loadPerformanceCheck();
+              }}
+              style={[
+                styles.tabButton,
+                activeTab === "performance" && styles.tabButtonActive,
+                dynamicStyles.tabButton,
+                activeTab === "performance" && dynamicStyles.tabButtonActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tabButtonText,
+                  activeTab === "performance" && styles.tabButtonTextActive,
+                  dynamicStyles.tabButtonText,
+                  activeTab === "performance" &&
+                    dynamicStyles.tabButtonTextActive,
+                ]}
+              >
+                Performance
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[0]}
       >
-        <View style={[styles.tabStickyWrap, dynamicStyles.tabStickyWrap]}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={[styles.tabHeader, dynamicStyles.tabHeader]}
-              contentContainerStyle={styles.tabHeaderContent}
-            >
-              <Pressable
-                onPress={() => {
-                  setActiveTab("content");
-                  loadContentInfo();
-                }}
-                style={[
-                  styles.tabButton,
-                  activeTab === "content" && styles.tabButtonActive,
-                  dynamicStyles.tabButton,
-                  activeTab === "content" && dynamicStyles.tabButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tabButtonText,
-                    activeTab === "content" && styles.tabButtonTextActive,
-                    dynamicStyles.tabButtonText,
-                    activeTab === "content" &&
-                      dynamicStyles.tabButtonTextActive,
-                  ]}
-                >
-                  Content Info
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setActiveTab("exercise");
-                  loadExercise();
-                }}
-                style={[
-                  styles.tabButton,
-                  activeTab === "exercise" && styles.tabButtonActive,
-                  dynamicStyles.tabButton,
-                  activeTab === "exercise" && dynamicStyles.tabButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tabButtonText,
-                    activeTab === "exercise" && styles.tabButtonTextActive,
-                    dynamicStyles.tabButtonText,
-                    activeTab === "exercise" &&
-                      dynamicStyles.tabButtonTextActive,
-                  ]}
-                >
-                  Exercise
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setActiveTab("job");
-                  loadJobSheet();
-                }}
-                style={[
-                  styles.tabButton,
-                  activeTab === "job" && styles.tabButtonActive,
-                  dynamicStyles.tabButton,
-                  activeTab === "job" && dynamicStyles.tabButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tabButtonText,
-                    activeTab === "job" && styles.tabButtonTextActive,
-                    dynamicStyles.tabButtonText,
-                    activeTab === "job" && dynamicStyles.tabButtonTextActive,
-                  ]}
-                >
-                  Job Sheet
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setActiveTab("performance");
-                  loadPerformanceCheck();
-                }}
-                style={[
-                  styles.tabButton,
-                  activeTab === "performance" && styles.tabButtonActive,
-                  dynamicStyles.tabButton,
-                  activeTab === "performance" && dynamicStyles.tabButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tabButtonText,
-                    activeTab === "performance" && styles.tabButtonTextActive,
-                    dynamicStyles.tabButtonText,
-                    activeTab === "performance" &&
-                      dynamicStyles.tabButtonTextActive,
-                  ]}
-                >
-                  Performance
-                </Text>
-              </Pressable>
-            </ScrollView>
-        </View>
         {error ? (
           <View style={[styles.errorBox, dynamicStyles.errorBox]}>
             <Text style={[styles.errorTitle, dynamicStyles.errorTitle]}>
@@ -1689,6 +1693,11 @@ export default function ContentInfoScreen() {
 
             {activeTab === "content" ? (
               <>
+                <View style={styles.contentHeader}>
+                  <Image source={require('@/assets/images/content.jpeg')} style={styles.contentImage} resizeMode="contain" />
+                  <Text style={styles.contentHeaderTitle}>Content Info</Text>
+                </View>
+
                 {contentInfos.length > 0 ? (
                   contentInfos.map((info) => (
                     <View
@@ -1843,161 +1852,72 @@ export default function ContentInfoScreen() {
 
             {activeTab === "exercise" ? (
               <View style={styles.exerciseContainer}>
-                {exerciseInstructs.map((instruct) => (
-                  <View
-                    key={instruct.instruct_id}
-                    style={[
-                      styles.instructCard,
-                      styles.surfaceCard,
-                      dynamicStyles.instructCard,
-                      dynamicStyles.surfaceCard,
-                      isCompact && styles.instructCardCompact,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.instructLabel,
-                        dynamicStyles.instructLabel,
-                      ]}
-                    >
-                      Instructions
-                    </Text>
-                    <Text
-                      style={[
-                        styles.instructTitle,
-                        dynamicStyles.instructTitle,
-                      ]}
-                    >
-                      {instruct.question_title}
-                    </Text>
-                    <Text
-                      style={[styles.instructText, dynamicStyles.instructText]}
-                    >
-                      {instruct.question_instruction}
-                    </Text>
-                  </View>
-                ))}
-
-                {exerciseQuestions.map((q, idx) => (
-                  <View
-                    key={q.question.question_id}
-                    style={[
-                      styles.questionCard,
-                      styles.surfaceCard,
-                      dynamicStyles.questionCard,
-                      dynamicStyles.surfaceCard,
-                      isCompact && styles.questionCardCompact,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.questionNumber,
-                        dynamicStyles.questionNumber,
-                      ]}
-                    >
-                      {idx + 1}. {q.question.question}
-                    </Text>
-                    <View style={styles.choicesContainer}>
-                      {renderExerciseChoices(
-                        q.question,
-                        q.choices,
-                        q.question.question_id,
-                      )}
-                    </View>
-                    {exerciseHasExistingAnswers &&
-                    isAnswerWrong(
-                      q.question,
-                      q.choices,
-                      exerciseAnswers[q.question.question_id],
-                    ) ? (
-                      <View
-                        style={[
-                          styles.correctAnswerContainer,
-                          dynamicStyles.correctAnswerContainer,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.correctAnswerLabel,
-                            dynamicStyles.correctAnswerLabel,
-                          ]}
-                        >
-                          Correct Answer:
-                        </Text>
-                        <Text
-                          style={[
-                            styles.correctAnswerText,
-                            dynamicStyles.correctAnswerText,
-                          ]}
-                        >
-                          {getCorrectAnswer(q.question, q.choices)}
-                        </Text>
+                {exerciseInstructs.length > 0 && (
+                  <View style={styles.exerciseHeader}>
+                    <Image source={require('@/assets/images/exercises.jpeg')} style={styles.exerciseImage} resizeMode="contain" />
+                    <Text style={styles.exerciseHeaderTitle}>Instructions</Text>
+                    {exerciseInstructs.map((instruct) => (
+                      <View key={instruct.instruct_id} style={styles.instructCard}>
+                        <Text style={styles.instructTitle}>{instruct.question_title}</Text>
+                        <Text style={styles.instructText}>{instruct.question_instruction}</Text>
                       </View>
-                    ) : null}
+                    ))}
                   </View>
-                ))}
+                )}
+
+                {exerciseQuestions.length > 0 && (
+                  <View style={styles.questionsList}>
+                    {exerciseQuestions.map((q, idx) => {
+                      const isWrong = exerciseHasExistingAnswers && isAnswerWrong(
+                        q.question, q.choices, exerciseAnswers[q.question.question_id]
+                      );
+                      return (
+                        <View key={q.question.question_id} style={styles.questionCard}>
+                          <View style={styles.questionHeader}>
+                            <Text style={styles.questionNumber}>{idx + 1}.</Text>
+                            <Text style={styles.questionText}>{q.question.question}</Text>
+                          </View>
+                          <View style={styles.choicesContainer}>
+                            {renderExerciseChoices(q.question, q.choices, q.question.question_id)}
+                          </View>
+                          {isWrong && (
+                            <View style={styles.correctAnswerBox}>
+                              <Text style={styles.correctAnswerLabel}>Correct Answer:</Text>
+                              <Text style={styles.correctAnswerText}>{getCorrectAnswer(q.question, q.choices)}</Text>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
 
                 {exerciseQuestions.length === 0 && !exerciseLoaded ? (
                   <View style={styles.emptyState}>
-                    <Text
-                      style={[
-                        styles.emptyStateText,
-                        dynamicStyles.emptyStateText,
-                      ]}
-                    >
-                      Loading exercise...
-                    </Text>
+                    <Text style={styles.emptyStateText}>Loading exercise...</Text>
                   </View>
                 ) : exerciseQuestions.length === 0 && exerciseLoaded ? (
                   <View style={styles.emptyState}>
-                    <Text
-                      style={[
-                        styles.emptyStateText,
-                        dynamicStyles.emptyStateText,
-                      ]}
-                    >
-                      No exercise questions available for this lesson content.
-                    </Text>
+                    <Text style={styles.emptyStateText}>No exercise questions available for this lesson content.</Text>
                   </View>
                 ) : null}
 
-                {!exerciseHasExistingAnswers && exerciseQuestions.length > 0 ? (
+                {!exerciseHasExistingAnswers && exerciseQuestions.length > 0 && (
                   <Pressable
                     onPress={handleExerciseSubmit}
                     disabled={exerciseSubmitting}
-                    style={[
-                      styles.exerciseSubmitButton,
-                      dynamicStyles.exerciseSubmitButton,
-                      exerciseSubmitting && styles.exerciseSubmitButtonDisabled,
-                    ]}
+                    style={[styles.exerciseSubmitButton, exerciseSubmitting && styles.exerciseSubmitButtonDisabled]}
                   >
-                    <Text
-                      style={[
-                        styles.exerciseSubmitButtonText,
-                        dynamicStyles.exerciseSubmitButtonText,
-                      ]}
-                    >
+                    <Text style={styles.exerciseSubmitButtonText}>
                       {exerciseSubmitting ? "Submitting..." : "Submit Answers"}
                     </Text>
                   </Pressable>
-                ) : exerciseHasExistingAnswers ? (
-                  <View
-                    style={[
-                      styles.submitBlockedBox,
-                      dynamicStyles.submitBlockedBox,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.submitBlockedText,
-                        dynamicStyles.submitBlockedText,
-                      ]}
-                    >
-                      You have already submitted answers for this lesson
-                      content.
-                    </Text>
+                )}
+                {exerciseHasExistingAnswers && (
+                  <View style={styles.submitBlockedBox}>
+                    <Text style={styles.submitBlockedText}>You have already submitted answers for this lesson content.</Text>
                   </View>
-                ) : null}
+                )}
               </View>
             ) : null}
 
@@ -2007,18 +1927,13 @@ export default function ContentInfoScreen() {
               <View style={styles.perfSection}>
                 {perfChecklist.length > 0 ? (
                   <>
-                    <View
-                      style={[
-                        styles.perfIntroCard,
-                        dynamicStyles.perfIntroCard,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.perfIntroText,
-                          dynamicStyles.perfIntroText,
-                        ]}
-                      >
+                    <View style={styles.perfHeader}>
+                      <Image source={require('@/assets/images/performance.jpeg')} style={styles.perfImage} resizeMode="contain" />
+                      <Text style={styles.perfHeaderTitle}>Performance</Text>
+                    </View>
+
+                    <View style={[styles.perfIntroCard, dynamicStyles.perfIntroCard]}>
+                      <Text style={[styles.perfIntroText, dynamicStyles.perfIntroText]}>
                         Did the trainee demonstrate the required performance?
                       </Text>
                     </View>
@@ -2395,6 +2310,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "rgba(148, 163, 184, 0.12)",
+    flexDirection: "row",
   },
   tabStickyWrap: {
     zIndex: 10,
@@ -2432,37 +2348,106 @@ const styles = StyleSheet.create({
     gap: 16,
     marginTop: 8,
   },
-  exerciseSubmitButton: {
-    borderRadius: 16,
-    paddingVertical: 15,
-    alignItems: "center",
-    backgroundColor: "#55e10a",
+  exerciseHeader: {
+    gap: 12,
+    marginBottom: 4,
   },
-  exerciseSubmitButtonDisabled: {
-    opacity: 0.7,
-  },
-  exerciseSubmitButtonText: {
-    color: "#000000",
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  instructCard: {
-    gap: 4,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(148, 163, 184, 0.12)",
-  },
-  instructLabel: {
-    fontSize: 12,
+  exerciseHeaderTitle: {
+    fontSize: 13,
     fontWeight: "700",
     color: "#64748b",
     textTransform: "uppercase",
     letterSpacing: 0.6,
   },
+  exerciseImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 14,
+    backgroundColor: "#e2e8f0",
+    marginTop: 4,
+  },
+  contentHeader: {
+    gap: 12,
+    marginBottom: 4,
+  },
+  contentHeaderTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  contentImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 14,
+    backgroundColor: "#e2e8f0",
+    marginTop: 4,
+  },
+  jobHeader: {
+    gap: 12,
+    marginBottom: 4,
+  },
+  jobHeaderTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  jobImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 14,
+    backgroundColor: "#e2e8f0",
+    marginTop: 4,
+  },
+  perfHeader: {
+    gap: 12,
+    marginBottom: 4,
+  },
+  perfHeaderTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  perfImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 14,
+    backgroundColor: "#e2e8f0",
+    marginTop: 4,
+  },
+  exerciseSubmitButton: {
+    borderRadius: 16,
+    paddingVertical: 15,
+    alignItems: "center",
+    backgroundColor: "#22c55e",
+  },
+  exerciseSubmitButtonDisabled: {
+    opacity: 0.7,
+  },
+  exerciseSubmitButtonText: {
+    color: "#ffffff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  instructCard: {
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.18)",
+    backgroundColor: "transparent",
+  },
   instructTitle: {
     fontSize: 14,
     fontWeight: "700",
     color: "#000000",
+    lineHeight: 20,
   },
   instructText: {
     fontSize: 13,
@@ -2470,19 +2455,31 @@ const styles = StyleSheet.create({
     color: "#334155",
     lineHeight: 18,
   },
-  instructCardCompact: {
-    paddingVertical: 10,
+  questionsList: {
+    gap: 12,
   },
   questionCard: {
     gap: 10,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(148, 163, 184, 0.12)",
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.18)",
+    backgroundColor: "transparent",
   },
-  questionCardCompact: {
-    padding: 10,
+  questionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
   },
   questionNumber: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#000000",
+    lineHeight: 20,
+  },
+  questionText: {
+    flex: 1,
     fontSize: 14,
     fontWeight: "600",
     color: "#000000",
@@ -2490,26 +2487,28 @@ const styles = StyleSheet.create({
   },
   choicesContainer: {
     gap: 8,
+    paddingLeft: 20,
   },
   choiceRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 10,
-    backgroundColor: "#f8fafc",
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.12)",
+    borderColor: "rgba(148, 163, 184, 0.18)",
   },
   choiceRowSelected: {
-    borderColor: "#166534",
+    borderColor: "#22c55e",
     backgroundColor: "#f0fdf4",
   },
   choiceText: {
     fontSize: 13,
     fontWeight: "500",
     color: "#000000",
+    flex: 1,
   },
   choiceTextSelected: {
     fontWeight: "700",
@@ -2525,41 +2524,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   radioOuterSelected: {
-    borderColor: "#166534",
+    borderColor: "#22c55e",
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#166534",
+    backgroundColor: "#22c55e",
   },
   textInput: {
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.12)",
+    borderColor: "rgba(148, 163, 184, 0.18)",
     borderRadius: 10,
     padding: 10,
     fontSize: 14,
     color: "#000000",
-    backgroundColor: "#ffffff",
+    backgroundColor: "transparent",
   },
-  submitBlockedBox: {
-    borderRadius: 16,
-    paddingVertical: 15,
-    paddingHorizontal: 16,
-    alignItems: "center",
-    backgroundColor: "#fef2f2",
-    borderWidth: 1,
-    borderColor: "rgba(185, 28, 28, 0.18)",
-  },
-  submitBlockedText: {
-    color: "#b91c1c",
-    fontWeight: "700",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  correctAnswerContainer: {
+  correctAnswerBox: {
     marginTop: 10,
-    padding: 10,
+    padding: 12,
     borderRadius: 10,
     backgroundColor: "#f0fdf4",
     borderWidth: 1,
@@ -2578,6 +2562,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#166534",
     lineHeight: 18,
+  },
+  submitBlockedBox: {
+    borderRadius: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    backgroundColor: "#fef2f2",
+    borderWidth: 1,
+    borderColor: "rgba(185, 28, 28, 0.18)",
+  },
+  submitBlockedText: {
+    color: "#b91c1c",
+    fontWeight: "700",
+    fontSize: 14,
+    textAlign: "center",
   },
   jobSection: {
     gap: 16,
