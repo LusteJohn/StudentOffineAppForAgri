@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { useCustomAlert } from '@/lib/custom-alert';
+import { useTheme } from '@/hooks/use-theme';
 
 import { AuthLink, AuthShell, AuthNotification } from '@/components/auth-shell';
 import { ThemedText } from '@/components/themed-text';
@@ -17,6 +18,33 @@ export default function RegisterScreen() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const { showAlert } = useCustomAlert();
+  const theme = useTheme();
+  const isDark = theme.text === '#ffffff';
+
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    formTitle: {
+      color: theme.text,
+    },
+    formHint: {
+      color: theme.textSecondary,
+    },
+    inputLabel: {
+      color: theme.textSecondary,
+    },
+    inputContainer: {
+      backgroundColor: isDark ? 'rgba(33, 34, 37, 0.9)' : 'rgba(255, 255, 255, 0.92)',
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.22)',
+    },
+    input: {
+      color: theme.text,
+    },
+    buttonText: {
+      color: theme.text,
+    },
+    linkText: {
+      color: theme.text,
+    },
+  }), [theme, isDark]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -41,24 +69,24 @@ export default function RegisterScreen() {
   return (
     <AuthShell
       eyebrow="New student account"
-      title={<ThemedText type="subtitle" style={{ color: '#000000' }}>Create account</ThemedText>}
+      title={<ThemedText type="subtitle" style={{ color: theme.text }}>Create account</ThemedText>}
       subtitle="Register once and the account stays on this device for offline use.">
       <View style={styles.formPanel}>
         <View style={styles.formHeader}>
-          <Text style={styles.formTitle}>Set up your student profile</Text>
-          <Text style={styles.formHint}>Create a local account to keep your progress and lessons ready offline.</Text>
+          <Text style={[styles.formTitle, dynamicStyles.formTitle]}>Set up your student profile</Text>
+          <Text style={[styles.formHint, dynamicStyles.formHint]}>Create a local account to keep your progress and lessons ready offline.</Text>
         </View>
 
         <View style={styles.field}>
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Username</Text>
-            <View style={styles.inputContainer}>
+            <Text style={[styles.inputLabel, dynamicStyles.inputLabel]}>Username</Text>
+            <View style={[styles.inputContainer, dynamicStyles.inputContainer]}>
               <Text style={styles.inputIcon}>👤</Text>
               <TextInput
                 autoCapitalize="words"
                 placeholder="Choose a username"
-                placeholderTextColor="#64748b"
-                style={styles.input}
+                placeholderTextColor={theme.textSecondary}
+                style={[styles.input, dynamicStyles.input]}
                 value={username}
                 onChangeText={setUsername}
               />
@@ -66,15 +94,15 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email address</Text>
-            <View style={styles.inputContainer}>
+            <Text style={[styles.inputLabel, dynamicStyles.inputLabel]}>Email address</Text>
+            <View style={[styles.inputContainer, dynamicStyles.inputContainer]}>
               <Text style={styles.inputIcon}>✉</Text>
               <TextInput
                 autoCapitalize="none"
                 keyboardType="email-address"
                 placeholder="Enter your email"
-                placeholderTextColor="#64748b"
-                style={styles.input}
+                placeholderTextColor={theme.textSecondary}
+                style={[styles.input, dynamicStyles.input]}
                 value={email}
                 onChangeText={setEmail}
               />
@@ -82,15 +110,15 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <View style={styles.inputContainer}>
+            <Text style={[styles.inputLabel, dynamicStyles.inputLabel]}>Password</Text>
+            <View style={[styles.inputContainer, dynamicStyles.inputContainer]}>
               <Text style={styles.inputIcon}>🔒</Text>
               <TextInput
                 autoCapitalize="none"
                 placeholder="Create a password"
-                placeholderTextColor="#64748b"
+                placeholderTextColor={theme.textSecondary}
                 secureTextEntry={!isPasswordVisible}
-                style={[styles.input, styles.inputWithIcon]}
+                style={[styles.input, styles.inputWithIcon, dynamicStyles.input]}
                 value={password}
                 onChangeText={setPassword}
               />
@@ -108,10 +136,10 @@ export default function RegisterScreen() {
           disabled={loading}
           onPress={handleSubmit}
           style={({ pressed }) => [styles.button, loading && styles.buttonDisabled, pressed && styles.pressed]}>
-          <ThemedText style={styles.buttonText}>{loading ? 'Creating...' : 'Register'}</ThemedText>
+          <ThemedText style={[styles.buttonText, dynamicStyles.buttonText]}>{loading ? 'Creating...' : 'Register'}</ThemedText>
         </Pressable>
 
-        <AuthLink onPress={() => router.push('/login')} textStyle={{ color: '#000000' }}>Already have an account? Login</AuthLink>
+        <AuthLink onPress={() => router.push('/login')} textStyle={{ color: theme.text }}>Already have an account? Login</AuthLink>
       </View>
     </AuthShell>
   );
@@ -127,12 +155,10 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0f172a',
   },
   formHint: {
     fontSize: 13,
     lineHeight: 19,
-    color: '#64748b',
   },
   field: {
     gap: 12,
@@ -143,7 +169,6 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#334155',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
@@ -151,11 +176,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.22)',
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
   },
   inputIcon: {
     fontSize: 16,
@@ -168,7 +191,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     backgroundColor: 'transparent',
-    color: '#102318',
   },
   inputWithIcon: {
     paddingRight: 44,
@@ -205,7 +227,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#000000',
     fontWeight: '700',
   },
   pressed: {

@@ -58,7 +58,7 @@ export default function LoginScreen() {
     () =>
       StyleSheet.create({
         screen: {
-          backgroundColor: theme.background,
+          backgroundColor: 'transparent',
         },
         formTitle: {
           color: theme.text,
@@ -71,36 +71,36 @@ export default function LoginScreen() {
         },
         inputContainer: {
           backgroundColor: isDark
-            ? "rgba(33, 34, 37, 0.9)"
-            : "rgba(255, 255, 255, 0.92)",
+            ? 'rgba(33, 34, 37, 0.9)'
+            : 'rgba(255, 255, 255, 0.92)',
           borderColor: isDark
-            ? "rgba(255,255,255,0.12)"
-            : "rgba(148, 163, 184, 0.22)",
+            ? 'rgba(255,255,255,0.12)'
+            : 'rgba(148, 163, 184, 0.22)',
         },
         input: {
           color: theme.text,
         },
         roleTabs: {
           backgroundColor: isDark
-            ? "rgba(33, 34, 37, 0.7)"
-            : "rgba(255, 255, 255, 0.7)",
+            ? 'rgba(33, 34, 37, 0.7)'
+            : 'rgba(255, 255, 255, 0.7)',
         },
         roleTab: {
           backgroundColor: isDark
-            ? "rgba(33, 34, 37, 0.9)"
-            : "rgba(255, 255, 255, 0.9)",
+            ? 'rgba(33, 34, 37, 0.9)'
+            : 'rgba(255, 255, 255, 0.9)',
         },
         roleTabActiveText: {
-          color: isDark ? "#000000" : "#000000",
+          color: isDark ? '#000000' : '#000000',
         },
         helperBox: {
-          backgroundColor: isDark ? theme.backgroundSelected : "#f8fff3",
+          backgroundColor: isDark ? theme.backgroundSelected : '#f8fff3',
           borderColor: isDark
-            ? "rgba(91, 236, 19, 0.24)"
-            : "rgba(85, 225, 10, 0.18)",
+            ? 'rgba(91, 236, 19, 0.24)'
+            : 'rgba(85, 225, 10, 0.18)',
         },
         helperTitle: {
-          color: isDark ? theme.backgroundSelected : "#166534",
+          color: isDark ? theme.backgroundSelected : '#166534',
         },
         buttonText: {
           color: theme.text,

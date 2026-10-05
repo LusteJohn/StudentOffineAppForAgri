@@ -1,6 +1,5 @@
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { type ReactNode } from 'react';
-import { Image as BlurImage } from 'expo-image';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -20,9 +19,7 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
 
   return (
     <ThemedView style={styles.screen}>
-      <BlurImage source={require('../../assets/images/agriLearnSchool.png')} style={styles.backgroundImage} contentFit="cover" blurRadius={2} />
-      <View pointerEvents="none" style={styles.skyGlow} />
-      <View pointerEvents="none" style={styles.fieldGlow} />
+      <Image source={require('../../assets/images/background_image.jpeg')} style={styles.backgroundImage} resizeMode="cover" />
       <View pointerEvents="none" style={styles.overlayWash} />
 
       <KeyboardAvoidingView
@@ -82,10 +79,10 @@ export function AuthNotification({ type, text }: { type: 'success' | 'error'; te
 const styles = StyleSheet.create({
   backgroundImage: {
     position: 'absolute',
-    top: 4,
-    left: 4,
-    right: 4,
-    bottom: 4,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     width: '100%',
     height: '100%',
   },
@@ -224,31 +221,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     gap: 8,
   },
-  skyGlow: {
-    position: 'absolute',
-    top: -100,
-    right: -70,
-    width: 260,
-    height: 260,
-    borderRadius: 260,
-    backgroundColor: 'rgba(104, 186, 78, 0.18)',
-  },
-  fieldGlow: {
-    position: 'absolute',
-    bottom: -130,
-    left: -90,
-    width: 280,
-    height: 280,
-    borderRadius: 280,
-    backgroundColor: 'rgba(82, 167, 54, 0.18)',
-  },
   overlayWash: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.10)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   field: {
     marginTop: 12,
