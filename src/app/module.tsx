@@ -619,17 +619,17 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    maxWidth: 420,
-    maxHeight: '88%',
-    borderRadius: 24,
+    maxWidth: 380,
+    maxHeight: '85%',
+    borderRadius: 20,
     overflow: 'hidden',
   },
   modalHero: {
-    height: 150,
+    height: 120,
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     overflow: 'hidden',
   },
   modalHeroImage: {
@@ -637,32 +637,32 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   modalBody: {
-    padding: 20,
-    gap: 14,
+    padding: 16,
+    gap: 12,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
-    lineHeight: 26,
+    lineHeight: 24,
   },
   modalCloseButton: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(15, 23, 42, 0.55)',
   },
   modalCloseText: {
     color: '#ffffff',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
   },
   modalSection: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   moduleList: {
-    maxHeight: 320,
+    maxHeight: 260,
   },
   moduleListContent: {
     gap: 12,
@@ -731,19 +731,19 @@ const styles = StyleSheet.create({
   moduleCardActions: {
     marginTop: 4,
   },
-modulePrimaryButton: {
+ modulePrimaryButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-    borderRadius: 24,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 20,
     borderWidth: 0,
   },
   modulePrimaryButtonPressed: {
     opacity: 0.85,
   },
   modulePrimaryButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
   },
   noModuleCard: {
