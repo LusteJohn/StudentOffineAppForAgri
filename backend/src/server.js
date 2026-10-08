@@ -15,13 +15,20 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 function setCorsHeaders(req, res) {
   const origin = req.headers.origin;
-  if (origin) {
+  const allowedOrigins = String(
+    process.env.CORS_ORIGINS || 'https://agrelearn.web.app,http://localhost:8081,http://localhost:19006',
+  )
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Vary', 'Origin');
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
 }
 
 function sendNotFound(res) {
@@ -61,7 +68,9 @@ const server = http.createServer(async (req, res) => {
   setCorsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
-    res.writeHead(204);
+    res.writeHead(204, {
+      'Content-Length': '0',
+    });
     res.end();
     return;
   }
