@@ -7,6 +7,7 @@ const { handleJobSheetAnswerRoutes } = require('./routes/jobSheetAnswerRoutes');
 const { handlePerformanceAnswerRoutes } = require('./routes/performanceAnswerRoutes');
 const { handleLessonContentProgressRoutes } = require('./routes/lessonContentProgressRoutes');
 const { handleLessonContentBookmarkRoutes } = require('./routes/lessonContentBookmarkRoutes');
+const { handleSyncRoutes } = require('./routes/syncRoutes');
 
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -80,7 +81,8 @@ const server = http.createServer(async (req, res) => {
     || (await handleJobSheetAnswerRoutes(req, res, requestUrl.pathname, body))
     || (await handlePerformanceAnswerRoutes(req, res, requestUrl.pathname, body))
     || (await handleLessonContentProgressRoutes(req, res, requestUrl.pathname, body))
-    || (await handleLessonContentBookmarkRoutes(req, res, requestUrl.pathname, body));
+    || (await handleLessonContentBookmarkRoutes(req, res, requestUrl.pathname, body))
+    || (await handleSyncRoutes(req, res, requestUrl.pathname, body));
 
   if (routeHandled === false) {
     sendNotFound(res);

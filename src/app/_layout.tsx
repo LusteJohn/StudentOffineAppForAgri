@@ -6,6 +6,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { ThemeProvider as AppThemeProvider, useThemeContext } from '@/contexts/theme-context';
 import { CustomAlertProvider } from '@/lib/custom-alert';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { getSetting, syncStudentRecordsIfOnline } from '@/lib/auth-api';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -49,6 +50,21 @@ function RootLayoutInner() {
     if (!loading) {
       SplashScreen.hideAsync();
     }
+  }, [loading]);
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    getSetting('active_user_id').then((value) => {
+      const userId = Number(value);
+      if (Number.isInteger(userId) && userId > 0) {
+        syncStudentRecordsIfOnline(userId).catch(() => {
+          // Offline startup is expected and does not block the app.
+        });
+      }
+    });
   }, [loading]);
 
   if (loading) {
