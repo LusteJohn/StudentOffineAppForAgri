@@ -90,17 +90,30 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  const routeHandled = (await handleAuthRoutes(req, res, requestUrl.pathname, body))
-    || (await handleCompetencyRoutes(req, res, requestUrl.pathname, body))
-    || (await handleQuestionAnswerRoutes(req, res, requestUrl.pathname, body))
-    || (await handleJobSheetAnswerRoutes(req, res, requestUrl.pathname, body))
-    || (await handlePerformanceAnswerRoutes(req, res, requestUrl.pathname, body))
-    || (await handleLessonContentProgressRoutes(req, res, requestUrl.pathname, body))
-    || (await handleLessonContentBookmarkRoutes(req, res, requestUrl.pathname, body))
-    || (await handleSyncRoutes(req, res, requestUrl.pathname, body))
-    || (await handleStaffRoutes(req, res, requestUrl.pathname, body));
+  let routeHandled = false;
+  try {
+    routeHandled = (await handleAuthRoutes(req, res, requestUrl.pathname, body))
+      || (await handleCompetencyRoutes(req, res, requestUrl.pathname, body))
+      || (await handleQuestionAnswerRoutes(req, res, requestUrl.pathname, body))
+      || (await handleJobSheetAnswerRoutes(req, res, requestUrl.pathname, body))
+      || (await handlePerformanceAnswerRoutes(req, res, requestUrl.pathname, body))
+      || (await handleLessonContentProgressRoutes(req, res, requestUrl.pathname, body))
+      || (await handleLessonContentBookmarkRoutes(req, res, requestUrl.pathname, body))
+      || (await handleSyncRoutes(req, res, requestUrl.pathname, body))
+      || (await handleStaffRoutes(req, res, requestUrl.pathname, body));
+  } catch (error) {
+    if (!res.headersSent) {
+      res.writeHead(500, {
+        'Content-Type': 'application/json; charset=utf-8',
+      });
+      res.end(JSON.stringify({
+        message: error instanceof Error ? error.message : 'Internal server error.',
+      }));
+    }
+    return;
+  }
 
-  if (routeHandled === false) {
+  if (routeHandled === false && !res.headersSent) {
     sendNotFound(res);
   }
 });
