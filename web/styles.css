@@ -35,6 +35,10 @@ body {
   box-shadow: 0 12px 30px rgb(45 92 38 / 9%);
 }
 
+.wide-card {
+  width: 100%;
+}
+
 .login-card {
   width: min(100%, 420px);
 }
@@ -105,6 +109,77 @@ button.secondary {
   padding: 18px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2eadf;
+  text-align: left;
+  vertical-align: top;
+}
+
+.data-table th {
+  color: #3d8122;
+  background: #f1faed;
+  font-size: 12px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.data-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 9px;
+  color: #27721e;
+  background: #edf9e9;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(23 43 27 / 52%);
+}
+
+.modal {
+  width: min(100%, 480px);
+  position: relative;
+  margin: 0;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 4px 10px;
+  background: transparent;
+  color: #647565;
+  font-size: 22px;
+}
+
+.modal[hidden],
+.modal-backdrop[hidden] {
+  display: none;
 }
 
 .record {

@@ -12,7 +12,7 @@ import { Header } from '@/components/header';
 import { InfoRow } from '@/components/info-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { resetAndSeedLocalData, getStudentReportData, StudentReportData, getSetting, setSetting, getStudentTutorialByUserId, updateStudentTutorial, createStudentTutorial } from '@/lib/auth-api';
+import { resetAndSeedLocalData, getStudentReportData, StudentReportData, getSetting, setSetting, getStudentTutorialByUserId, updateStudentTutorial, createStudentTutorial, syncStudentRecordsIfOnline } from '@/lib/auth-api';
 
 let Print: any;
 let Sharing: any;
@@ -41,6 +41,9 @@ export default function SettingsScreen() {
 
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState('');
+  const [isOnline, setIsOnline] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
 
   const [exporting, setExporting] = useState(false);
   const [reportData, setReportData] = useState<StudentReportData | null>(null);
@@ -120,6 +123,11 @@ export default function SettingsScreen() {
     themeOptionSelected: {
       backgroundColor: isDark ? '#86efac' : '#166534',
     },
+    onlineStatus: {
+      color: isOnline
+        ? (isDark ? '#86efac' : '#047857')
+        : colors.textSecondary,
+    },
   }), [colors, isDark]);
 
   useEffect(() => {
@@ -140,6 +148,66 @@ export default function SettingsScreen() {
       isMounted = false;
     };
   }, [activeUserId]);
+
+  useEffect(() => {
+    let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const checkConnection = async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const response = await fetch(
+          'https://studentoffineappforagri.onrender.com/api/health',
+          { signal: controller.signal },
+        );
+        if (isMounted) {
+          setIsOnline(response.ok);
+        }
+      } catch {
+        if (isMounted) {
+          setIsOnline(false);
+        }
+      } finally {
+        clearTimeout(timeout);
+        if (isMounted) {
+          timeoutId = setTimeout(checkConnection, 30000);
+        }
+      }
+    };
+
+    checkConnection();
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, []);
+
+  const handleSyncRecords = async () => {
+    if (!isOnline) {
+      setSyncMessage('Sync is unavailable while the device is offline.');
+      return;
+    }
+
+    setSyncing(true);
+    setSyncMessage('');
+    try {
+      const result = await syncStudentRecordsIfOnline(activeUserId);
+      const total = Object.values(result.synced).reduce((sum, count) => sum + count, 0);
+      setSyncMessage(`Sync successful. ${total} record(s) are saved online.`);
+    } catch (syncError) {
+      setSyncMessage(
+        syncError instanceof Error
+          ? `Sync failed: ${syncError.message}`
+          : 'Sync failed. Please try again when you are online.',
+      );
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const handleImportResources = async () => {
     setImporting(true);
@@ -757,6 +825,53 @@ export default function SettingsScreen() {
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
+              <Ionicons name="cloud-upload-outline" size={18} color={colors.text} />
+            </View>
+            <View style={styles.sectionHeaderText}>
+              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>Cloud synchronization</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Sync student records</Text>
+            </View>
+          </View>
+          <Text style={[styles.sectionBody, dynamicStyles.sectionBody]}>
+            Save your locally stored profile, answers, progress, bookmarks and achievements to the
+            online database when an internet connection is available.
+          </Text>
+          <View style={styles.connectionStatus}>
+            <View style={[styles.connectionDot, isOnline ? styles.connectionDotOnline : styles.connectionDotOffline]} />
+            <Text style={[styles.connectionText, dynamicStyles.onlineStatus]}>
+              {isOnline ? 'Online — sync is available' : 'Offline — sync is unavailable'}
+            </Text>
+          </View>
+          <Pressable
+            onPress={handleSyncRecords}
+            disabled={!isOnline || syncing}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              dynamicStyles.primaryButton,
+              (!isOnline || syncing) && styles.primaryButtonDisabled,
+              pressed && styles.buttonPressed,
+            ]}>
+            <Ionicons
+              name="cloud-upload-outline"
+              size={18}
+              color={isDark ? '#000000' : '#0f172a'}
+            />
+            <Text style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>
+              {syncing ? 'Syncing records...' : isOnline ? 'Sync records now' : 'Sync unavailable offline'}
+            </Text>
+          </Pressable>
+          {syncMessage ? (
+            <View style={[styles.statusBox, syncMessage.startsWith('Sync failed') || syncMessage.startsWith('Sync is unavailable') ? dynamicStyles.statusBoxError : dynamicStyles.statusBoxSuccess]}>
+              <Text style={[styles.statusText, syncMessage.startsWith('Sync failed') || syncMessage.startsWith('Sync is unavailable') ? dynamicStyles.statusTextError : dynamicStyles.statusTextSuccess]}>
+                {syncMessage}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
               <Ionicons name="document-text-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
@@ -1089,6 +1204,26 @@ const styles = StyleSheet.create({
   },
   statusTextError: {
     color: '#b91c1c',
+    fontWeight: '600',
+  },
+  connectionStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  connectionDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+  },
+  connectionDotOnline: {
+    backgroundColor: '#16a34a',
+  },
+  connectionDotOffline: {
+    backgroundColor: '#94a3b8',
+  },
+  connectionText: {
+    fontSize: 13,
     fontWeight: '600',
   },
   themeOptionGroup: {

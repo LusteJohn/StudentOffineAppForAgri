@@ -20,8 +20,26 @@
         <div class="stat"><span id="student-count" class="stat-value">0</span><span class="stat-label">Students</span></div>
         <div class="stat"><span class="stat-value">Faculty</span><span class="stat-label">Account management</span></div>
       </div>
-      <section class="card">
-        <h2>Register faculty member</h2>
+      <section class="card wide-card">
+        <div class="toolbar">
+          <div>
+            <h2>Faculty accounts</h2>
+            <p class="form-hint">Manage staff access to the student learning portal.</p>
+          </div>
+          <button id="open-faculty-modal">+ Register faculty</button>
+        </div>
+        <div id="faculty-list"></div>
+      </section>
+      <section class="card wide-card">
+        <h2>Student learning records</h2>
+        <p class="form-hint">Review records synchronized from the offline student application.</p>
+        <div id="students"></div>
+      </section>
+    </main>
+    <div id="faculty-modal" class="modal-backdrop" hidden>
+      <section class="card modal" role="dialog" aria-modal="true" aria-labelledby="faculty-modal-title">
+        <button id="close-faculty-modal" class="modal-close" type="button" aria-label="Close">×</button>
+        <h2 id="faculty-modal-title">Register faculty member</h2>
         <p class="form-hint">Create a faculty account for the student learning portal.</p>
         <form id="faculty-form">
           <label for="username">Username</label>
@@ -34,12 +52,7 @@
           <button type="submit">Create faculty account</button>
         </form>
       </section>
-      <section class="card">
-        <h2>Student learning records</h2>
-        <p class="form-hint">Review records synchronized from the offline student application.</p>
-        <div id="students"></div>
-      </section>
-    </main>
+    </div>
     <script src="./app.js"></script>
   </body>
 </html>

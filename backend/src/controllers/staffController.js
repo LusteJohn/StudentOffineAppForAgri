@@ -5,6 +5,7 @@ const {
   getSession,
   deleteSession,
   listStudents,
+  listFaculty,
 } = require('../services/staffService');
 const { sendJson } = require('./authController');
 
@@ -73,4 +74,13 @@ async function students(req, res) {
   }
 }
 
-module.exports = { staffLogin, staffLogout, currentStaff, registerFaculty, students };
+async function faculty(req, res) {
+  if (!requireStaff(req, res, ['admin'])) return true;
+  try {
+    return sendJson(res, 200, { faculty: await listFaculty() });
+  } catch (error) {
+    return sendJson(res, 502, { message: error instanceof Error ? error.message : 'Unable to load faculty.' });
+  }
+}
+
+module.exports = { staffLogin, staffLogout, currentStaff, registerFaculty, students, faculty };

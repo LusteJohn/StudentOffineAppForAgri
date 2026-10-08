@@ -126,6 +126,13 @@ async function listStudents() {
   return result;
 }
 
+async function listFaculty() {
+  const users = await supabaseRequest(
+    'users?select=user_id,username,email,role,created_at&role=eq.faculty&order=user_id.asc',
+  );
+  return users.map(sanitizeUser);
+}
+
 module.exports = {
   authenticateStaff,
   createFaculty,
@@ -133,4 +140,5 @@ module.exports = {
   getSession,
   deleteSession,
   listStudents,
+  listFaculty,
 };

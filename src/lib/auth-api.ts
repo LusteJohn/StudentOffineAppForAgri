@@ -2284,25 +2284,76 @@ export async function syncStudentRecordsIfOnline(
       );
     }
 
-    const healthResponse = await fetch(`${BACKEND_URL}/api/health`);
-    if (!healthResponse.ok) {
-      throw new Error("The sync server is unavailable.");
+    let response: Response | null = null;
+    let lastError: unknown = null;
+
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      try {
+        response = await fetch(`${BACKEND_URL}/api/sync/student-records`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userId, records }),
+          signal: controller.signal,
+        });
+        if (
+          response.ok ||
+          attempt === 2 ||
+          ![502, 503, 504].includes(response.status)
+        ) {
+          break;
+        }
+      } catch (error) {
+        lastError = error;
+        if (attempt === 2) {
+          if (error instanceof Error && error.name === "AbortError") {
+            throw new Error("The sync server took too long to respond.");
+          }
+          throw new Error(
+            "Unable to reach the sync server. Check your internet connection and try again.",
+          );
+        }
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/sync/student-records`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: userId, records }),
-    });
+    if (!response) {
+      throw new Error(
+        lastError instanceof Error
+          ? lastError.message
+          : "Unable to reach the sync server.",
+      );
+    }
 
-    const responseBody = (await response.json()) as {
+    const responseText = await response.text();
+    let responseBody: {
       message?: string;
       user_id?: number;
       synced?: Record<string, number>;
-    };
+    } = {};
+
+    if (responseText.trim()) {
+      try {
+        responseBody = JSON.parse(responseText);
+      } catch {
+        const statusMessage = response.status
+          ? ` (HTTP ${response.status})`
+          : "";
+        throw new Error(
+          `The sync server returned an invalid response${statusMessage}. Please try again.`,
+        );
+      }
+    }
 
     if (!response.ok || !responseBody.synced || !responseBody.user_id) {
-      throw new Error(responseBody.message || "Unable to synchronize records.");
+      throw new Error(
+        responseBody.message ||
+          `Unable to synchronize records (HTTP ${response.status}).`,
+      );
     }
 
     return {
