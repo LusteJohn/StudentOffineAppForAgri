@@ -45,13 +45,55 @@ function renderStudents(container, students) {
       const title = document.createElement("h4");
       title.className = "table-title";
       title.textContent = `${table} (${rows.length})`;
-      const details = document.createElement("pre");
-      details.className = "record";
-      details.textContent = JSON.stringify(rows, null, 2);
-      student.append(title, details);
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap";
+      const tableElement = document.createElement("table");
+      tableElement.className = "data-table";
+      const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+      tableElement.innerHTML = `<thead><tr>${keys.map((key) => `<th>${escapeHtml(key)}</th>`).join("")}</tr></thead>`;
+      const body = document.createElement("tbody");
+      rows.forEach((row) => {
+        const tableRow = document.createElement("tr");
+        keys.forEach((key) => {
+          const cell = document.createElement("td");
+          const value = row[key];
+          cell.textContent = value === null || value === undefined
+            ? ""
+            : typeof value === "object" ? JSON.stringify(value) : String(value);
+          tableRow.appendChild(cell);
+        });
+        body.appendChild(tableRow);
+      });
+      tableElement.appendChild(body);
+      wrap.appendChild(tableElement);
+      student.append(title, wrap);
     });
     container.appendChild(student);
   });
+}
+
+function renderFaculty(container, faculty) {
+  container.replaceChildren();
+  if (!faculty.length) {
+    container.innerHTML = '<p class="muted">No faculty accounts found.</p>';
+    return;
+  }
+  const tableElement = document.createElement("table");
+  tableElement.className = "data-table";
+  tableElement.innerHTML = `
+    <thead><tr><th>User ID</th><th>Username</th><th>Email</th><th>Role</th><th>Created</th></tr></thead>
+    <tbody>${faculty.map((user) => `
+      <tr>
+        <td>${escapeHtml(user.user_id)}</td>
+        <td>${escapeHtml(user.username)}</td>
+        <td>${escapeHtml(user.email)}</td>
+        <td><span class="badge">${escapeHtml(user.role)}</span></td>
+        <td>${escapeHtml(new Date(user.created_at).toLocaleString())}</td>
+      </tr>`).join("")}</tbody>`;
+  const wrap = document.createElement("div");
+  wrap.className = "table-wrap";
+  wrap.appendChild(tableElement);
+  container.appendChild(wrap);
 }
 
 function escapeHtml(value) {
@@ -77,6 +119,9 @@ async function loadPortal() {
     if (studentCount) {
       studentCount.textContent = students.children.length;
     }
+    if (page === "admin") {
+      renderFaculty(document.querySelector("#faculty-list"), (await request("/api/admin/faculty")).faculty);
+    }
   } catch (error) {
     window.location.href = "/staff/";
     return;
@@ -88,6 +133,17 @@ async function loadPortal() {
   });
 
   if (page === "admin") {
+    const modalBackdrop = document.querySelector("#faculty-modal");
+    document.querySelector("#open-faculty-modal").addEventListener("click", () => {
+      modalBackdrop.hidden = false;
+      document.querySelector("#username").focus();
+    });
+    document.querySelector("#close-faculty-modal").addEventListener("click", () => {
+      modalBackdrop.hidden = true;
+    });
+    modalBackdrop.addEventListener("click", (event) => {
+      if (event.target === modalBackdrop) modalBackdrop.hidden = true;
+    });
     document.querySelector("#faculty-form").addEventListener("submit", async (event) => {
       event.preventDefault();
       const formElement = event.currentTarget;
@@ -104,7 +160,9 @@ async function loadPortal() {
           }),
         });
         formElement.reset();
+        modalBackdrop.hidden = true;
         showMessage(message, "Faculty account registered.");
+        renderFaculty(document.querySelector("#faculty-list"), (await request("/api/admin/faculty")).faculty);
       } catch (error) {
         showMessage(message, error.message, true);
       } finally {
