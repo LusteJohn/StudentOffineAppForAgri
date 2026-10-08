@@ -8,12 +8,18 @@ const { handlePerformanceAnswerRoutes } = require('./routes/performanceAnswerRou
 const { handleLessonContentProgressRoutes } = require('./routes/lessonContentProgressRoutes');
 const { handleLessonContentBookmarkRoutes } = require('./routes/lessonContentBookmarkRoutes');
 const { handleSyncRoutes } = require('./routes/syncRoutes');
+const { handleStaffRoutes } = require('./routes/staffRoutes');
 
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
 
-function setCorsHeaders(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+function setCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
@@ -52,7 +58,7 @@ function parseJsonBody(req) {
 }
 
 const server = http.createServer(async (req, res) => {
-  setCorsHeaders(res);
+  setCorsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -82,7 +88,8 @@ const server = http.createServer(async (req, res) => {
     || (await handlePerformanceAnswerRoutes(req, res, requestUrl.pathname, body))
     || (await handleLessonContentProgressRoutes(req, res, requestUrl.pathname, body))
     || (await handleLessonContentBookmarkRoutes(req, res, requestUrl.pathname, body))
-    || (await handleSyncRoutes(req, res, requestUrl.pathname, body));
+    || (await handleSyncRoutes(req, res, requestUrl.pathname, body))
+    || (await handleStaffRoutes(req, res, requestUrl.pathname, body));
 
   if (routeHandled === false) {
     sendNotFound(res);
