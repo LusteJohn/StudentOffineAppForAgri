@@ -13,6 +13,13 @@ async function request(path, options = {}) {
   if (!response.ok) {
     throw new Error(body.message || "Request failed.");
   }
+
+  function displayLabel(key) {
+    return key
+      .replace(/_id$/g, "")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
   return body;
 }
 
@@ -49,8 +56,9 @@ function renderStudents(container, students) {
       wrap.className = "table-wrap";
       const tableElement = document.createElement("table");
       tableElement.className = "data-table";
-      const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
-      tableElement.innerHTML = `<thead><tr>${keys.map((key) => `<th>${escapeHtml(key)}</th>`).join("")}</tr></thead>`;
+      const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))]
+        .filter((key) => !key.endsWith("_id") && key !== "user_id");
+      tableElement.innerHTML = `<thead><tr>${keys.map((key) => `<th>${escapeHtml(displayLabel(key))}</th>`).join("")}</tr></thead>`;
       const body = document.createElement("tbody");
       rows.forEach((row) => {
         const tableRow = document.createElement("tr");
