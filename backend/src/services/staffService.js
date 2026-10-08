@@ -126,7 +126,7 @@ async function listStudents() {
     supabaseRequest('lessons?select=lesson_id,module_id,lesson_name'),
     supabaseRequest('lesson_content?select=lesson_content_id,lesson_id,content_name'),
     supabaseRequest('question_content?select=question_id,lesson_content_id,question'),
-    supabaseRequest('question_choice?select=question_id,choice_text,is_correct'),
+    supabaseRequest('question_choice?select=question_id,choice_label,choice_text,is_correct'),
     supabaseRequest('job_sheet?select=job_id,lesson_content_id,job_title'),
     supabaseRequest('performance_checklist?select=performance_id,lesson_content_id,performance_question'),
     supabaseRequest('module_achievement?select=module_achievement_id,module_id,name'),
