@@ -17,7 +17,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.thy.johnmark23.StudentOfflineApp"
+      "package": "com.thy.johnmark23.StudentOfflineApp",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -46,8 +49,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "f58d6893-60d9-4f53-907a-d51fd153fea1"
+        "projectId": "4ac14476-704d-4599-ae77-95f405fb3b0d"
       }
-    }
+    },
+    "owner": "interntrack3243"
   }
 }
