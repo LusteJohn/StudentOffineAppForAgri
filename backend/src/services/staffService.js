@@ -163,10 +163,14 @@ async function listStudents() {
       const question = questionById.get(String(record.question_id));
       const choices = choicesByQuestionId.get(String(record.question_id)) || [];
       const correctChoices = choices.filter((choice) => String(choice.is_correct).toLowerCase() === 'correct');
-      const answer = String(record.answer_text || '').trim().toLowerCase();
-      const isCorrect = correctChoices.some((choice) => String(choice.choice_text || '').trim().toLowerCase() === answer)
+      const normalizeAnswer = (value) => String(value || '').trim().toLowerCase();
+      const answer = normalizeAnswer(record.answer_text);
+      const isCorrect = correctChoices.some((choice) => (
+        normalizeAnswer(choice.choice_label) === answer
+        || normalizeAnswer(choice.choice_text) === answer
+      ))
         || choices.some((choice) => {
-          const keyAnswer = String(choice.is_correct || '').trim().toLowerCase();
+          const keyAnswer = normalizeAnswer(choice.is_correct);
           return !choice.choice_text && keyAnswer && keyAnswer !== 'correct' && keyAnswer === answer;
         });
       return {
