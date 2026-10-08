@@ -111,6 +111,81 @@ async function listStudents() {
   const users = await supabaseRequest('users?select=user_id,username,email,role,created_at&role=eq.student&order=user_id.asc');
   const result = users.map((user) => ({ user, records: {} }));
   const byUserId = new Map(result.map((student) => [String(student.user.user_id), student]));
+  const [
+    modules,
+    lessons,
+    lessonContents,
+    questions,
+    jobSheets,
+    performanceChecks,
+    moduleAchievements,
+    lessonAchievements,
+  ] = await Promise.all([
+    supabaseRequest('modules?select=module_id,module_name'),
+    supabaseRequest('lessons?select=lesson_id,module_id,lesson_name'),
+    supabaseRequest('lesson_content?select=lesson_content_id,lesson_id,content_name'),
+    supabaseRequest('question_content?select=question_id,lesson_content_id,question'),
+    supabaseRequest('job_sheet?select=job_id,lesson_content_id,job_title'),
+    supabaseRequest('performance_checklist?select=performance_id,lesson_content_id,performance_question'),
+    supabaseRequest('module_achievement?select=module_achievement_id,module_id,name'),
+    supabaseRequest('lesson_achievement?select=lesson_achievement_id,lesson_id,name'),
+  ]);
+  const moduleById = new Map(modules.map((item) => [String(item.module_id), item]));
+  const lessonById = new Map(lessons.map((item) => [String(item.lesson_id), item]));
+  const contentById = new Map(lessonContents.map((item) => [String(item.lesson_content_id), item]));
+  const questionById = new Map(questions.map((item) => [String(item.question_id), item]));
+  const jobSheetById = new Map(jobSheets.map((item) => [String(item.job_id), item]));
+  const performanceById = new Map(performanceChecks.map((item) => [String(item.performance_id), item]));
+  const moduleAchievementById = new Map(moduleAchievements.map((item) => [String(item.module_achievement_id), item]));
+  const lessonAchievementById = new Map(lessonAchievements.map((item) => [String(item.lesson_achievement_id), item]));
+
+  function location(lessonContentId) {
+    const content = contentById.get(String(lessonContentId));
+    const lesson = content ? lessonById.get(String(content.lesson_id)) : null;
+    const module = lesson ? moduleById.get(String(lesson.module_id)) : null;
+    return {
+      content_name: content?.content_name || null,
+      lesson_name: lesson?.lesson_name || null,
+      module_name: module?.module_name || null,
+    };
+  }
+
+  function enrich(table, record) {
+    if (table === 'question_answers') {
+      const question = questionById.get(String(record.question_id));
+      return { ...record, question_text: question?.question || null, ...location(question?.lesson_content_id) };
+    }
+    if (table === 'job_sheet_answers') {
+      const job = jobSheetById.get(String(record.job_id));
+      return { ...record, job_title: job?.job_title || null, ...location(job?.lesson_content_id) };
+    }
+    if (table === 'performance_answer') {
+      const performance = performanceById.get(String(record.performance_id));
+      return { ...record, performance_question: performance?.performance_question || null, ...location(performance?.lesson_content_id) };
+    }
+    if (table === 'lesson_content_progress' || table === 'lesson_content_bookmark') {
+      return { ...record, ...location(record.lesson_content_id) };
+    }
+    if (table === 'student_lesson_achievement') {
+      const achievement = lessonAchievementById.get(String(record.lesson_achievement_id));
+      const lesson = achievement ? lessonById.get(String(achievement.lesson_id)) : null;
+      return {
+        ...record,
+        achievement_name: achievement?.name || null,
+        lesson_name: lesson?.lesson_name || null,
+        module_name: lesson ? moduleById.get(String(lesson.module_id))?.module_name || null : null,
+      };
+    }
+    if (table === 'student_module_achievement') {
+      const achievement = moduleAchievementById.get(String(record.module_achievement_id));
+      return {
+        ...record,
+        achievement_name: achievement?.name || null,
+        module_name: achievement ? moduleById.get(String(achievement.module_id))?.module_name || null : null,
+      };
+    }
+    return record;
+  }
 
   await Promise.all(STUDENT_TABLES.map(async (table) => {
     const records = await supabaseRequest(`${table}?select=*&order=created_at.asc`);
@@ -118,7 +193,7 @@ async function listStudents() {
       const student = byUserId.get(String(record.user_id));
       if (student) {
         if (!student.records[table]) student.records[table] = [];
-        student.records[table].push(record);
+        student.records[table].push(enrich(table, record));
       }
     }
   }));
