@@ -93,15 +93,15 @@ async function createQuestionChoice(payload) {
     return newChoiceInfo;
 }
 
-async function getQuestionById(questionInfo) {
-    const questionInfo = await readContentQuestion();
-    const record = questionInfo.find((record) => String(record.question_id) === String(questionInfo)) || null;
+async function getQuestionById(questionId) {
+    const questionRecords = await readContentQuestion();
+    const record = questionRecords.find((record) => String(record.question_id) === String(questionId)) || null;
     return record;
 }
 
-async function getQuestionChoice(choiceInfo) {
-    const choiceInfo = await readQuestionChoice();
-    const record = choiceInfo.find((record) => String(record.choice_id) === String(choiceInfo)) || null;
+async function getQuestionChoice(choiceId) {
+    const choiceRecords = await readQuestionChoice();
+    const record = choiceRecords.find((record) => String(record.choice_id) === String(choiceId)) || null;
     return record;
 }
 

@@ -90,15 +90,15 @@ async function createQuestionAnswer(payload) {
     return newAnswerInfo;
 }
 
-async function getQuestionById(questionInfo) {
-    const questionInfo = await readContentQuestion();
-    const record = questionInfo.find((record) => String(record.question_id) === String(questionInfo)) || null;
+async function getQuestionById(questionId) {
+    const questionRecords = await readContentQuestion();
+    const record = questionRecords.find((record) => String(record.question_id) === String(questionId)) || null;
     return record;
 }
 
-async function getAnswerById(answerInfo) {
-    const answerInfo = await readQuestionAnswer();
-    const record = answerInfo.find((record) => String(record.answer_id) === String(answerInfo)) || null;
+async function getAnswerById(answerId) {
+    const answerRecords = await readQuestionAnswer();
+    const record = answerRecords.find((record) => String(record.answer_id) === String(answerId)) || null;
     return record;
 }
 
