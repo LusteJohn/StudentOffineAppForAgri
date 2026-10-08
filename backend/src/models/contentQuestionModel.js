@@ -59,8 +59,8 @@ async function validatePayload(payload) {
 
     return {
         question: question,
-        questionType = question_type,
-        questionOrder: question_order,
+        questionType: questionType,
+        questionOrder: questionOrder,
     };
 }
 
@@ -99,9 +99,9 @@ async function getLessonContentById(lessonContentId) {
     return record;
 }
 
-async function getQuestionById(questionInfo) {
-    const questionInfo = await readContentQuestion();
-    const record = questionInfo.find((record) => String(record.question_id) === String(questionInfo)) || null;
+async function getQuestionById(questionId) {
+    const questionRecords = await readContentQuestion();
+    const record = questionRecords.find((record) => String(record.question_id) === String(questionId)) || null;
     return record;
 }
 

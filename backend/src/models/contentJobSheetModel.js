@@ -103,9 +103,9 @@ async function getLessonContentById(lessonContentId) {
     return record;
 }
 
-async function getJobInstructById(jobInfo) {
-    const jobInfo = await readJobInstruct();
-    const record = jobInfo.find((record) => String(record.job_id) === String(jobInfo)) || null;
+async function getJobInstructById(jobId) {
+    const jobRecords = await readJobInstruct();
+    const record = jobRecords.find((record) => String(record.job_id) === String(jobId)) || null;
     return record;
 }
 

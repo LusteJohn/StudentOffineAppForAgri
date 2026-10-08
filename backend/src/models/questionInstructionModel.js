@@ -100,9 +100,9 @@ async function getLessonContentById(lessonContentId) {
     return record;
 }
 
-async function getQuestionInstructById(instructInfo) {
-    const instructInfo = await readContentQuestion();
-    const record = instructInfo.find((record) => String(record.instruct_id) === String(instructInfo)) || null;
+async function getQuestionInstructById(instructId) {
+    const instructRecords = await readContentQuestion();
+    const record = instructRecords.find((record) => String(record.instruct_id) === String(instructId)) || null;
     return record;
 }
 
