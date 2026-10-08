@@ -105,10 +105,12 @@ function renderReportSummary(student, records) {
   };
   (records.question_answers || []).forEach((row) => addActivity("Questions", row, Number(row.activity_score) || 0));
   (records.job_sheet_answers || []).forEach((row) => addActivity("Job sheet", row, Number(row.activity_score) || 100));
-  (records.performance_answer || []).forEach((row) => addActivity("Performance", row, String(row.performance_answer_text).toLowerCase() === "yes" ? 100 : 0));
+  (records.performance_answer || []).forEach((row) => addActivity("Performance", row, String(row.performance_answer_text || "").trim().toLowerCase() === "yes" ? 100 : 0));
   grouped.forEach(({ type, row, scores }) => {
     const score = type === "Questions"
       ? percentForCorrect(scores.filter((value) => value === 100).length)
+      : type === "Performance"
+        ? scores.every((value) => value === 100) ? 100 : 0
       : Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length);
     const label = `${type} · ${row.content_name || "Content unavailable"}`;
     activities.appendChild(progressBar(label, score, `${row.module_name || "Module unavailable"} · ${row.lesson_name || "Lesson unavailable"}`));
