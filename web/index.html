@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Staff login</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body data-page="login">
+    <main class="shell narrow">
+      <section class="card login-card">
+        <div class="brand">
+          <div class="brand-mark">🌱</div>
+          <div>
+            <p class="eyebrow">AgriLearn</p>
+            <strong>Organic Agriculture Production</strong>
+          </div>
+        </div>
+        <h1>Welcome back</h1>
+        <p class="form-hint">Sign in to manage student learning records and progress.</p>
+        <form id="login-form">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="username" required>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <p id="message" role="status" aria-live="polite"></p>
+          <button type="submit">Sign in</button>
+        </form>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

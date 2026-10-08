@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Faculty portal</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body data-page="faculty">
+    <main class="shell">
+      <header class="toolbar">
+        <div>
+          <p class="eyebrow">AgriLearn staff portal</p>
+          <h1>Faculty dashboard</h1>
+          <p id="staff-name" class="muted"></p>
+        </div>
+        <button id="logout" class="secondary">Sign out</button>
+      </header>
+      <section class="card">
+        <h2>Student learning records</h2>
+        <p class="form-hint">View student progress and synchronized learning activity.</p>
+        <div id="students"></div>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
