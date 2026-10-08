@@ -1609,6 +1609,26 @@ const DEFAULT_LESSON_ACHIEVEMENT: Omit<
 ];
 
 const databasePromise = SQLite.openDatabaseAsync("student-offline-auth.db");
+const BACKEND_URL =
+  process.env.EXPO_PUBLIC_API_URL ??
+  "https://studentoffineappforagri.onrender.com";
+const SYNC_TABLES = [
+  "student_info",
+  "question_answers",
+  "job_sheet_answers",
+  "performance_answer",
+  "lesson_content_progress",
+  "lesson_content_bookmark",
+  "student_lesson_achievement",
+  "student_module_achievement",
+  "student_tutorials",
+] as const;
+let syncPromise: Promise<SyncResult> | null = null;
+
+export type SyncResult = {
+  user_id: number;
+  synced: Record<string, number>;
+};
 
 function toStudentUser(user: StoredStudentUser): StudentUser {
   return {
@@ -2226,10 +2246,76 @@ export async function loginStudent(payload: {
     throw new Error("Invalid student credentials.");
   }
 
+  await setSetting("active_user_id", String(user.user_id));
+
   return {
     message: "Student login successful.",
     user: toStudentUser(user),
   } satisfies AuthResponse;
+}
+
+export async function syncStudentRecordsIfOnline(
+  userId: number,
+): Promise<SyncResult> {
+  if (syncPromise) {
+    return syncPromise;
+  }
+
+  syncPromise = (async () => {
+    await ensureDatabase();
+    const db = await databasePromise;
+    const user = await db.getFirstAsync<Record<string, unknown>>(
+      "SELECT * FROM users WHERE user_id = ?",
+      [userId],
+    );
+
+    if (!user) {
+      throw new Error("Cannot synchronize a user that does not exist locally.");
+    }
+
+    const records: Record<string, Record<string, unknown>[]> = {
+      users: [user],
+    };
+
+    for (const table of SYNC_TABLES) {
+      records[table] = await db.getAllAsync<Record<string, unknown>>(
+        `SELECT * FROM ${table} WHERE user_id = ?`,
+        [userId],
+      );
+    }
+
+    const healthResponse = await fetch(`${BACKEND_URL}/api/health`);
+    if (!healthResponse.ok) {
+      throw new Error("The sync server is unavailable.");
+    }
+
+    const response = await fetch(`${BACKEND_URL}/api/sync/student-records`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, records }),
+    });
+
+    const responseBody = (await response.json()) as {
+      message?: string;
+      user_id?: number;
+      synced?: Record<string, number>;
+    };
+
+    if (!response.ok || !responseBody.synced || !responseBody.user_id) {
+      throw new Error(responseBody.message || "Unable to synchronize records.");
+    }
+
+    return {
+      user_id: responseBody.user_id,
+      synced: responseBody.synced,
+    };
+  })();
+
+  try {
+    return await syncPromise;
+  } finally {
+    syncPromise = null;
+  }
 }
 
 function validateProfilePayload(

@@ -14,7 +14,7 @@ import { useTheme } from "@/hooks/use-theme";
 
 import { AuthLink, AuthShell, AuthNotification } from "@/components/auth-shell";
 import { ThemedText } from "@/components/themed-text";
-import { loginStudent } from "@/lib/auth-api";
+import { loginStudent, syncStudentRecordsIfOnline } from "@/lib/auth-api";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -119,6 +119,9 @@ export default function LoginScreen() {
 
     try {
       const response = await loginStudent({ email, password });
+      syncStudentRecordsIfOnline(response.user.user_id).catch(() => {
+        // Login remains available when the device is offline.
+      });
       setMessage(response.message);
       showAlert(
         "Login successful",
