@@ -270,6 +270,26 @@ function escapeHtml(value) {
   }[character]));
 }
 
+function setupStudentFilter(students, container) {
+  const filter = document.querySelector("#student-filter");
+  if (!filter) return;
+  students.forEach(({ user }) => {
+    const option = document.createElement("option");
+    option.value = String(user.user_id);
+    option.textContent = `User ID ${user.user_id} · ${user.username}`;
+    filter.appendChild(option);
+  });
+  filter.addEventListener("change", () => {
+    const selectedUserId = filter.value;
+    const visibleStudents = selectedUserId
+      ? students.filter(({ user }) => String(user.user_id) === selectedUserId)
+      : students;
+    renderStudents(container, visibleStudents);
+    const count = document.querySelector("#student-count");
+    if (count) count.textContent = visibleStudents.length;
+  });
+}
+
 async function loadPortal() {
   const page = document.body.dataset.page;
   const message = document.querySelector("#message");
@@ -280,7 +300,9 @@ async function loadPortal() {
     if (page === "admin" && session.user.role !== "admin") {
       throw new Error("Administrator access is required.");
     }
-    renderStudents(students, (await request("/api/staff/students")).students);
+    const studentResults = (await request("/api/staff/students")).students;
+    renderStudents(students, studentResults);
+    setupStudentFilter(studentResults, students);
     document.querySelector("#staff-name").textContent =
       `${session.user.username} · ${session.user.role}`;
     const studentCount = document.querySelector("#student-count");
