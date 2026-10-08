@@ -116,6 +116,7 @@ async function listStudents() {
     lessons,
     lessonContents,
     questions,
+    questionChoices,
     jobSheets,
     performanceChecks,
     moduleAchievements,
@@ -125,6 +126,7 @@ async function listStudents() {
     supabaseRequest('lessons?select=lesson_id,module_id,lesson_name'),
     supabaseRequest('lesson_content?select=lesson_content_id,lesson_id,content_name'),
     supabaseRequest('question_content?select=question_id,lesson_content_id,question'),
+    supabaseRequest('question_choice?select=question_id,choice_text,is_correct'),
     supabaseRequest('job_sheet?select=job_id,lesson_content_id,job_title'),
     supabaseRequest('performance_checklist?select=performance_id,lesson_content_id,performance_question'),
     supabaseRequest('module_achievement?select=module_achievement_id,module_id,name'),
@@ -134,6 +136,12 @@ async function listStudents() {
   const lessonById = new Map(lessons.map((item) => [String(item.lesson_id), item]));
   const contentById = new Map(lessonContents.map((item) => [String(item.lesson_content_id), item]));
   const questionById = new Map(questions.map((item) => [String(item.question_id), item]));
+  const choicesByQuestionId = new Map();
+  questionChoices.forEach((choice) => {
+    const key = String(choice.question_id);
+    if (!choicesByQuestionId.has(key)) choicesByQuestionId.set(key, []);
+    choicesByQuestionId.get(key).push(choice);
+  });
   const jobSheetById = new Map(jobSheets.map((item) => [String(item.job_id), item]));
   const performanceById = new Map(performanceChecks.map((item) => [String(item.performance_id), item]));
   const moduleAchievementById = new Map(moduleAchievements.map((item) => [String(item.module_achievement_id), item]));
@@ -153,15 +161,30 @@ async function listStudents() {
   function enrich(table, record) {
     if (table === 'question_answers') {
       const question = questionById.get(String(record.question_id));
-      return { ...record, question_text: question?.question || null, ...location(question?.lesson_content_id) };
+      const choices = choicesByQuestionId.get(String(record.question_id)) || [];
+      const correctChoices = choices.filter((choice) => String(choice.is_correct).toLowerCase() === 'correct');
+      const answer = String(record.answer_text || '').trim().toLowerCase();
+      const isCorrect = correctChoices.some((choice) => String(choice.choice_text || '').trim().toLowerCase() === answer)
+        || choices.some((choice) => {
+          const keyAnswer = String(choice.is_correct || '').trim().toLowerCase();
+          return !choice.choice_text && keyAnswer && keyAnswer !== 'correct' && keyAnswer === answer;
+        });
+      return {
+        ...record,
+        question_text: question?.question || null,
+        is_correct: isCorrect,
+        activity_score: isCorrect ? 100 : 0,
+        ...location(question?.lesson_content_id),
+      };
     }
     if (table === 'job_sheet_answers') {
       const job = jobSheetById.get(String(record.job_id));
-      return { ...record, job_title: job?.job_title || null, ...location(job?.lesson_content_id) };
+      return { ...record, job_title: job?.job_title || null, activity_score: 100, ...location(job?.lesson_content_id) };
     }
     if (table === 'performance_answer') {
       const performance = performanceById.get(String(record.performance_id));
-      return { ...record, performance_question: performance?.performance_question || null, ...location(performance?.lesson_content_id) };
+      const isYes = String(record.performance_answer_text || '').trim().toLowerCase() === 'yes';
+      return { ...record, performance_question: performance?.performance_question || null, is_yes: isYes, ...location(performance?.lesson_content_id) };
     }
     if (table === 'lesson_content_progress' || table === 'lesson_content_bookmark') {
       return { ...record, ...location(record.lesson_content_id) };

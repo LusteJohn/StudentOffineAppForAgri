@@ -14,13 +14,14 @@ async function request(path, options = {}) {
     throw new Error(body.message || "Request failed.");
   }
 
-  function displayLabel(key) {
-    return key
-      .replace(/_id$/g, "")
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (letter) => letter.toUpperCase());
-  }
   return body;
+}
+
+function displayLabel(key) {
+  return key
+    .replace(/_id$/g, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function showMessage(element, message, isError = false) {
@@ -31,6 +32,90 @@ function showMessage(element, message, isError = false) {
 function setLoading(button, loading, label) {
   button.disabled = loading;
   button.textContent = loading ? "Please wait..." : label;
+}
+
+function percentForCorrect(count) {
+  return ({ 0: 0, 1: 10, 2: 40, 3: 60, 4: 80, 5: 100 }[count] ?? Math.round((count / 5) * 100));
+}
+
+function progressBar(label, percent, detail = "") {
+  const wrapper = document.createElement("div");
+  wrapper.className = "progress-item";
+  wrapper.innerHTML = `
+    <div class="progress-header">
+      <span>${escapeHtml(label)}</span>
+      <strong>${percent}%</strong>
+    </div>
+    <div class="progress-track"><span style="width: ${Math.max(0, Math.min(100, percent))}%"></span></div>
+    ${detail ? `<small class="muted">${escapeHtml(detail)}</small>` : ""}
+  `;
+  return wrapper;
+}
+
+function renderReportSummary(student, records) {
+  const report = document.createElement("div");
+  report.className = "report-summary";
+  const progressRows = records.lesson_content_progress || [];
+  const bookmarks = new Set(
+    (records.lesson_content_bookmark || [])
+      .filter((row) => Number(row.is_bookmark) === 1)
+      .map((row) => String(row.lesson_content_id)),
+  );
+  const moduleMap = new Map();
+  progressRows.forEach((row) => {
+    const module = row.module_name || "Module unavailable";
+    if (!moduleMap.has(module)) moduleMap.set(module, { total: 0, completed: 0, bookmarked: 0 });
+    const summary = moduleMap.get(module);
+    summary.total += 1;
+    summary.completed += Number(row.is_read) === 1 ? 1 : 0;
+    summary.bookmarked += bookmarks.has(String(row.lesson_content_id)) ? 1 : 0;
+  });
+  const chart = document.createElement("div");
+  chart.className = "module-progress-report";
+  chart.innerHTML = "<h4 class=\"table-title\">Module progress report</h4>";
+  if (!moduleMap.size) {
+    chart.insertAdjacentHTML("beforeend", '<p class="muted">No lesson-content progress has been synchronized.</p>');
+  }
+  moduleMap.forEach((summary, module) => {
+    const percent = summary.total ? Math.round((summary.completed / summary.total) * 100) : 0;
+    const bookmarkPercent = summary.total ? Math.round((summary.bookmarked / summary.total) * 100) : 0;
+    const moduleCard = document.createElement("div");
+    moduleCard.className = "module-progress-item";
+    const pie = document.createElement("div");
+    pie.className = "progress-pie";
+    pie.style.setProperty("--progress", `${percent}%`);
+    pie.setAttribute("aria-label", `${module}: ${percent}% completed`);
+    pie.innerHTML = `<span>${percent}%</span>`;
+    moduleCard.appendChild(pie);
+    const details = document.createElement("div");
+    details.appendChild(progressBar(module, percent, `${summary.completed}/${summary.total} completed · ${bookmarkPercent}% bookmarked`));
+    moduleCard.appendChild(details);
+    chart.appendChild(moduleCard);
+  });
+  report.appendChild(chart);
+
+  const activities = document.createElement("div");
+  activities.className = "activity-report";
+  activities.innerHTML = "<h4 class=\"table-title\">Activity scores</h4>";
+  const grouped = new Map();
+  const addActivity = (type, row, score) => {
+    const key = `${type}:${row.lesson_content_id}`;
+    if (!grouped.has(key)) grouped.set(key, { type, row, scores: [] });
+    grouped.get(key).scores.push(score);
+  };
+  (records.question_answers || []).forEach((row) => addActivity("Questions", row, Number(row.activity_score) || 0));
+  (records.job_sheet_answers || []).forEach((row) => addActivity("Job sheet", row, Number(row.activity_score) || 100));
+  (records.performance_answer || []).forEach((row) => addActivity("Performance", row, String(row.performance_answer_text).toLowerCase() === "yes" ? 100 : 0));
+  grouped.forEach(({ type, row, scores }) => {
+    const score = type === "Questions"
+      ? percentForCorrect(scores.filter((value) => value === 100).length)
+      : Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length);
+    const label = `${type} · ${row.content_name || "Content unavailable"}`;
+    activities.appendChild(progressBar(label, score, `${row.module_name || "Module unavailable"} · ${row.lesson_name || "Lesson unavailable"}`));
+  });
+  if (!grouped.size) activities.insertAdjacentHTML("beforeend", '<p class="muted">No activity scores have been synchronized.</p>');
+  report.appendChild(activities);
+  student.appendChild(report);
 }
 
 function renderStudents(container, students) {
@@ -47,17 +132,75 @@ function renderStudents(container, students) {
       <h3>${escapeHtml(user.username)}</h3>
       <p class="muted">${escapeHtml(user.email)} · user_id: ${escapeHtml(user.user_id)}</p>
     `;
+    renderReportSummary(student, records);
 
-    Object.entries(records).forEach(([table, rows]) => {
-      const title = document.createElement("h4");
-      title.className = "table-title";
-      title.textContent = `${table} (${rows.length})`;
+    const sections = [
+      {
+        key: "student_info",
+        title: "Student profile",
+        columns: ["first_name", "middle_name", "last_name", "birthdate", "home_address", "grade_level"],
+      },
+      {
+        key: "question_answers",
+        title: "Question answers",
+        location: true,
+        columns: ["content_name", "question_text", "answer_text", "is_correct", "activity_score", "created_at"],
+      },
+      {
+        key: "job_sheet_answers",
+        title: "Job-sheet answers",
+        location: true,
+        columns: ["content_name", "job_title", "answer_text", "activity_score", "created_at"],
+      },
+      {
+        key: "performance_answer",
+        title: "Performance answers",
+        location: true,
+        columns: ["content_name", "performance_question", "performance_answer_text", "created_at"],
+      },
+      {
+        key: "lesson_content_progress",
+        title: "Lesson-content progress",
+        columns: ["module_name", "lesson_name", "content_name", "is_read", "read_at", "updated_at"],
+      },
+      {
+        key: "lesson_content_bookmark",
+        title: "Bookmarked content",
+        columns: ["module_name", "lesson_name", "content_name", "is_bookmark", "created_at"],
+      },
+      {
+        key: "student_lesson_achievement",
+        title: "Lesson achievements",
+        columns: ["module_name", "lesson_name", "achievement_name", "created_at"],
+      },
+      {
+        key: "student_module_achievement",
+        title: "Module achievements",
+        columns: ["module_name", "achievement_name", "created_at"],
+      },
+    ];
+
+    sections.forEach(({ key, title, columns, location }) => {
+      const rows = records[key] || [];
+      if (!rows.length) return;
+      const titleElement = document.createElement("h4");
+      titleElement.className = "table-title";
+      titleElement.textContent = `${title} (${rows.length})`;
+      if (location) {
+        const moduleName = rows[0].module_name || "Module unavailable";
+        const lessonName = rows[0].lesson_name || "Lesson unavailable";
+        const locationElement = document.createElement("p");
+        locationElement.className = "record-location";
+        locationElement.textContent = `${moduleName} · ${lessonName}`;
+        student.append(titleElement, locationElement);
+      } else {
+        student.appendChild(titleElement);
+      }
       const wrap = document.createElement("div");
       wrap.className = "table-wrap";
       const tableElement = document.createElement("table");
       tableElement.className = "data-table";
-      const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))]
-        .filter((key) => !key.endsWith("_id") && key !== "user_id");
+      const keys = columns.filter((key) => rows.some((row) => row[key] !== null && row[key] !== undefined && row[key] !== ""));
       tableElement.innerHTML = `<thead><tr>${keys.map((key) => `<th>${escapeHtml(displayLabel(key))}</th>`).join("")}</tr></thead>`;
       const body = document.createElement("tbody");
       rows.forEach((row) => {
@@ -67,14 +210,16 @@ function renderStudents(container, students) {
           const value = row[key];
           cell.textContent = value === null || value === undefined
             ? ""
-            : typeof value === "object" ? JSON.stringify(value) : String(value);
+            : key === "created_at" || key === "updated_at"
+              ? new Date(value).toLocaleString()
+              : typeof value === "object" ? JSON.stringify(value) : String(value);
           tableRow.appendChild(cell);
         });
         body.appendChild(tableRow);
       });
       tableElement.appendChild(body);
       wrap.appendChild(tableElement);
-      student.append(title, wrap);
+      student.appendChild(wrap);
     });
     container.appendChild(student);
   });
