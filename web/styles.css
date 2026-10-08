@@ -197,6 +197,93 @@ button.secondary {
   color: #3d8122;
 }
 
+.record-location {
+  margin: 0 0 8px;
+  color: #647565;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.report-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin: 18px 0 24px;
+  padding: 16px;
+  background: #f8fcf5;
+  border: 1px solid #dbead3;
+  border-radius: 10px;
+}
+
+.module-progress-report,
+.activity-report {
+  min-width: 0;
+}
+
+.progress-item {
+  margin: 12px 0;
+}
+
+.module-progress-item {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.progress-pie {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  background: conic-gradient(#4d9b2a var(--progress), #dfead9 0);
+  border-radius: 50%;
+}
+
+.progress-pie::before {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  content: "";
+  background: #f8fcf5;
+  border-radius: 50%;
+}
+
+.progress-pie span {
+  position: relative;
+  color: #3d8122;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5px;
+  color: #334d35;
+  font-size: 13px;
+}
+
+.progress-header strong {
+  color: #3d8122;
+}
+
+.progress-track {
+  height: 10px;
+  overflow: hidden;
+  background: #dfead9;
+  border-radius: 999px;
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #4d9b2a, #86c34a);
+  border-radius: inherit;
+  transition: width .25s ease;
+}
+
 .brand {
   display: flex;
   align-items: center;
