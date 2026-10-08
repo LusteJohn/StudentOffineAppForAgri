@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Faculty portal</title>
+    <title>Faculty dashboard</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body data-page="faculty">
@@ -16,9 +16,19 @@
         </div>
         <button id="logout" class="secondary">Sign out</button>
       </header>
-      <section class="card">
+      <div class="stats">
+        <div class="stat">
+          <span id="student-count" class="stat-value">0</span>
+          <span class="stat-label">Students</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">Reports</span>
+          <span class="stat-label">Learning progress</span>
+        </div>
+      </div>
+      <section class="card wide-card">
         <h2>Student learning records</h2>
-        <p class="form-hint">View student progress and synchronized learning activity.</p>
+        <p class="form-hint">Review synchronized student profiles, activity scores, module progress, bookmarks, and achievements.</p>
         <div id="students"></div>
       </section>
     </main>

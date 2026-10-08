@@ -66,6 +66,25 @@ input {
   background: #fbfef9;
 }
 
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 76px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  padding: 6px 8px;
+  color: #3d8122;
+  background: transparent;
+  font-size: 12px;
+  transform: translateY(-50%);
+}
+
 button {
   cursor: pointer;
   padding: 11px 16px;

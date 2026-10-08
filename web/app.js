@@ -34,6 +34,19 @@ function setLoading(button, loading, label) {
   button.textContent = loading ? "Please wait..." : label;
 }
 
+function setupPasswordToggles() {
+  document.querySelectorAll("[data-password-toggle]").forEach((toggle) => {
+    const input = document.querySelector(toggle.dataset.passwordToggle);
+    if (!input) return;
+    toggle.addEventListener("click", () => {
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      toggle.textContent = showing ? "Show" : "Hide";
+      toggle.setAttribute("aria-label", `${showing ? "Show" : "Hide"} password`);
+    });
+  });
+}
+
 function percentForCorrect(count) {
   return ({ 0: 0, 1: 10, 2: 40, 3: 60, 4: 80, 5: 100 }[count] ?? Math.round((count / 5) * 100));
 }
@@ -328,6 +341,7 @@ async function loadPortal() {
 }
 
 if (document.body.dataset.page === "login") {
+  setupPasswordToggles();
   document.querySelector("#login-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const message = document.querySelector("#message");
@@ -350,5 +364,6 @@ if (document.body.dataset.page === "login") {
     }
   });
 } else {
+  setupPasswordToggles();
   loadPortal();
 }
