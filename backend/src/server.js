@@ -7,7 +7,6 @@ const { handleJobSheetAnswerRoutes } = require('./routes/jobSheetAnswerRoutes');
 const { handlePerformanceAnswerRoutes } = require('./routes/performanceAnswerRoutes');
 const { handleLessonContentProgressRoutes } = require('./routes/lessonContentProgressRoutes');
 const { handleLessonContentBookmarkRoutes } = require('./routes/lessonContentBookmarkRoutes');
-const { handlePerformanceAnswerRoutes } = require('./routes/performanceAnswerRoutes');
 
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
