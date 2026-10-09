@@ -12,7 +12,7 @@ import { Header } from '@/components/header';
 import { InfoRow } from '@/components/info-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { resetAndSeedLocalData, getStudentReportData, StudentReportData, getSetting, setSetting, getStudentTutorialByUserId, updateStudentTutorial, createStudentTutorial, syncStudentRecordsIfOnline } from '@/lib/auth-api';
+import { resetAndSeedLocalData, getStudentReportData, StudentReportData, syncStudentRecordsIfOnline } from '@/lib/auth-api';
 
 let Print: any;
 let Sharing: any;
@@ -48,7 +48,6 @@ export default function SettingsScreen() {
   const [exporting, setExporting] = useState(false);
   const [reportData, setReportData] = useState<StudentReportData | null>(null);
 
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const { showAlert } = useCustomAlert();
   const themeCtx = useThemeContext();
   const colors = useTheme();
@@ -132,25 +131,6 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     let isMounted = true;
-
-    (async () => {
-      try {
-        const onboardingSetting = await getSetting('show_home_tutorial');
-        if (isMounted) {
-          setShowOnboarding(onboardingSetting === 'true');
-        }
-      } catch {
-        // ignore
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [activeUserId]);
-
-  useEffect(() => {
-    let isMounted = true;
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const checkConnection = async () => {
@@ -226,23 +206,6 @@ export default function SettingsScreen() {
       }
     } finally {
       setImporting(false);
-    }
-  };
-
-  const handleOnboardingToggle = async (value: boolean) => {
-    setShowOnboarding(value);
-    await setSetting('show_home_tutorial', value ? 'true' : 'false');
-    if (value) {
-      try {
-        const existing = await getStudentTutorialByUserId(activeUserId);
-        if (existing) {
-          await updateStudentTutorial(existing.tutorial_id, { completed: 0 });
-        } else {
-          await createStudentTutorial({ user_id: activeUserId, completed: false });
-        }
-      } catch {
-        // ignore
-      }
     }
   };
 
@@ -905,40 +868,6 @@ export default function SettingsScreen() {
         <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
-              <Ionicons name="school-outline" size={18} color={colors.text} />
-            </View>
-            <View style={styles.sectionHeaderText}>
-              <Text style={[styles.sectionEyebrow, dynamicStyles.sectionEyebrow]}>Onboarding</Text>
-              <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Tutorial guide</Text>
-            </View>
-          </View>
-          <Text style={[styles.sectionBody, dynamicStyles.sectionBody]}>
-            Show the step-by-step tutorial on the home page. Turning it on also restarts the guide
-            from the beginning.
-          </Text>
-
-          <Pressable
-            onPress={() => handleOnboardingToggle(!showOnboarding)}
-            style={({ pressed }) => [
-              styles.primaryButton,
-              dynamicStyles.primaryButton,
-              showOnboarding && styles.primaryButtonActive,
-              pressed && styles.buttonPressed,
-            ]}>
-            <Ionicons
-              name={showOnboarding ? 'checkmark-circle' : 'close-circle-outline'}
-              size={18}
-              color={isDark ? '#000000' : '#0f172a'}
-            />
-            <Text style={[styles.primaryButtonText, dynamicStyles.primaryButtonText]}>
-              {showOnboarding ? 'Enabled' : 'Disabled'}
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={[styles.sectionCard, dynamicStyles.sectionCard]}>
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconWrap, dynamicStyles.sectionIconWrap]}>
               <Ionicons name="contrast-outline" size={18} color={colors.text} />
             </View>
             <View style={styles.sectionHeaderText}>
@@ -1176,9 +1105,6 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#0f172a',
     fontWeight: '700',
-  },
-  primaryButtonActive: {
-    backgroundColor: '#3db708',
   },
   statusBox: {
     borderRadius: 16,

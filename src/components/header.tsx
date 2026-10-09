@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/use-theme';
 import { getUserById, getStudentProfileByUserId } from '@/lib/auth-api';
+import { TutorialGuideModal } from '@/components/tutorial-guide';
 
 type HeaderProps = {
   title?: string;
@@ -20,6 +21,7 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [userName, setUserName] = useState('');
+  const [tutorialVisible, setTutorialVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
@@ -90,14 +92,34 @@ export function Header({ title = 'AgriLearn', showBack = false, onBack }: Header
           </View>
         </View>
         <View style={styles.rightArea}>
-          <Pressable onPress={() => router.replace({ pathname: '/settings', params: { userId: String(userId) } })} style={styles.profileButton}>
-            <Ionicons name="person" size={24} color={isDark ? '#ffffff' : '#000000'} />
-          </Pressable>
+          <View style={styles.actionRow}>
+            <Pressable
+              onPress={() => setTutorialVisible(true)}
+              style={styles.iconButton}
+              accessibilityRole="button"
+              accessibilityLabel="Open tutorial guide"
+            >
+              <Ionicons name="help-circle-outline" size={24} color={isDark ? '#ffffff' : '#000000'} />
+            </Pressable>
+            <Pressable
+              onPress={() => router.replace({ pathname: '/settings', params: { userId: String(userId) } })}
+              style={styles.iconButton}
+              accessibilityRole="button"
+              accessibilityLabel="Open profile"
+            >
+              <Ionicons name="person" size={24} color={isDark ? '#ffffff' : '#000000'} />
+            </Pressable>
+          </View>
           <View style={[styles.roleBadge, { backgroundColor: '#a8e6a2' }]}>
             <Text style={[styles.roleText, { color: '#2d5016' }]}>{displayRole}</Text>
           </View>
         </View>
       </View>
+
+      <TutorialGuideModal
+        visible={tutorialVisible}
+        onClose={() => setTutorialVisible(false)}
+      />
     </View>
   );
 }
@@ -174,6 +196,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  iconButton: {
+    width: 36,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+  },
   roleBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -184,11 +218,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
-  },
-  profileButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
