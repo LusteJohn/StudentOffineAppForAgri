@@ -203,6 +203,10 @@ const ASSET_MAP: Record<string, number> = {
   'module_images/M3/L1/site_prep.jpg': require('../../assets/module_images/M3/L1/site_prep.png'),
   'module_images/M3/L1/sunken.jpg': require('../../assets/module_images/M3/L1/sunken.png'),
   'module_images/M3/L1/triple_compost.jpg': require('../../assets/module_images/M3/L1/triple_compost.png'),
+  // Some seeded exercises point at names that are not exact matches for the
+  // bundled files, so alias them to the closest bundled asset.
+  'module_images/M3/L1/compost.png': require('../../assets/module_images/M3/L1/compost_bin.png'),
+  'module_images/M3/L1/compost.jpg': require('../../assets/module_images/M3/L1/compost_bin.png'),
   'module_images/M3/L2/finish_compost.jpg': require('../../assets/module_images/M3/L2/finish_compost.png'),
   'module_images/M3/L2/harvest.jpg': require('../../assets/module_images/M3/L2/harvest.png'),
   'module_images/M4/L2/cal.jpg': require('../../assets/module_images/M4/L2/cal.png'),
@@ -214,6 +218,24 @@ const ASSET_MAP: Record<string, number> = {
   'module_images/M4/L2/ohn.jpg': require('../../assets/module_images/M4/L2/ohn.png'),
   'module_images/placeholder.jpg': require('../../assets/module_images/placeholder.png'),
 };
+
+/**
+ * Detects values that are actually asset paths stored in a text column.
+ * Some seeded exercises put an image path in the `question` field instead of
+ * question text, so those values have to be rendered as an image.
+ */
+export function isAssetImagePath(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (
+    trimmed.startsWith('file://') ||
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://')
+  ) {
+    return /\.(png|jpe?g|gif|webp|heic|avif)$/i.test(trimmed);
+  }
+  return /\.(png|jpe?g|gif|webp|heic|avif)$/i.test(trimmed);
+}
 
 export function resolveContentInfoAsset(assetPath: string): string | null {
   if (!assetPath) return null;

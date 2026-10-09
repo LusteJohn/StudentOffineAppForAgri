@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { BottomNavbar } from '@/components/bottom-navbar';
 import { Header } from '@/components/header';
+import { PreTestModal } from '@/components/pre-test';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { CompetencyRecord, ModuleRecord, listCompetencies, listModules, LessonRecord, LessonContentRecord, listLessons, listLessonContent, listLessonContentProgressByUser, LessonContentProgressRecord } from '@/lib/auth-api';
@@ -41,6 +42,7 @@ export default function ModuleScreen() {
   const [selectedCompetency, setSelectedCompetency] = useState<CompetencyRecord | null>(null);
   const [selectedModules, setSelectedModules] = useState<ModuleRecord[]>([]);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [preTestModule, setPreTestModule] = useState<ModuleRecord | null>(null);
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
   const theme = useTheme();
@@ -177,17 +179,6 @@ export default function ModuleScreen() {
     },
   }), [theme, isDark]);
 
-  const handleModuleStart = (moduleItem: ModuleRecord) => {
-    setDetailVisible(false);
-    router.replace({
-      pathname: '/lesson',
-      params: {
-        userId: String(activeUserId),
-        moduleId: String(moduleItem.module_id),
-      },
-    });
-  };
-
    const loadData = useCallback(async () => {
     setError('');
     try {
@@ -247,6 +238,33 @@ export default function ModuleScreen() {
     setDetailVisible(false);
     setSelectedCompetency(null);
     setSelectedModules([]);
+  };
+
+  // "Start" now opens the module pre-test instead of jumping straight to the
+  // lesson page. The lesson page is only opened once the pre-test is submitted
+  // (or skipped / when the module has no exercises at all).
+  const handleModuleStart = (moduleItem: ModuleRecord) => {
+    setDetailVisible(false);
+    setPreTestModule(moduleItem);
+  };
+
+  const closePreTest = () => {
+    setPreTestModule(null);
+  };
+
+  const handlePreTestComplete = () => {
+    const moduleItem = preTestModule;
+    setPreTestModule(null);
+    if (!moduleItem) {
+      return;
+    }
+    router.replace({
+      pathname: '/lesson',
+      params: {
+        userId: String(activeUserId),
+        moduleId: String(moduleItem.module_id),
+      },
+    });
   };
 
   const getModuleProgress = (moduleId: number) => {
@@ -440,6 +458,17 @@ export default function ModuleScreen() {
           </View>
         </View>
       </Modal>
+
+      {preTestModule ? (
+        <PreTestModal
+          visible
+          userId={activeUserId}
+          moduleId={preTestModule.module_id}
+          moduleName={preTestModule.module_name}
+          onClose={closePreTest}
+          onComplete={handlePreTestComplete}
+        />
+      ) : null}
     </ThemedView>
   );
 }
