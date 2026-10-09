@@ -19,6 +19,7 @@ import { useTheme } from "@/hooks/use-theme";
 
 import { BottomNavbar } from "@/components/bottom-navbar";
 import { Header } from "@/components/header";
+import { AssetTextView } from "@/components/asset-text";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import {
@@ -65,7 +66,10 @@ import {
   listPerformanceCheckByLessonContentId,
   listPerformanceAnswersByUser,
 } from "@/lib/auth-api";
-import { resolveContentInfoAsset } from "@/lib/content-info-assets";
+import {
+  isAssetImagePath,
+  resolveContentInfoAsset,
+} from "@/lib/content-info-assets";
 import { resolveAchievementAsset } from "@/lib/achievement-assets";
 
 let ImagePicker: any = null;
@@ -983,7 +987,11 @@ export default function ContentInfoScreen() {
         const answer = exerciseAnswers[q.question.question_id];
         return !answer || String(answer).trim().length === 0;
       })
-      .map((q) => q.question.question);
+      .map((q, index) =>
+        isAssetImagePath(q.question.question)
+          ? `Question ${index + 1} (image)`
+          : q.question.question,
+      );
 
     if (unanswered.length > 0) {
       const missingList = unanswered
@@ -1879,7 +1887,10 @@ export default function ContentInfoScreen() {
                         <View key={q.question.question_id} style={styles.questionCard}>
                           <View style={styles.questionHeader}>
                             <Text style={styles.questionNumber}>{idx + 1}.</Text>
-                            <Text style={styles.questionText}>{q.question.question}</Text>
+                            <AssetTextView
+                              value={q.question.question}
+                              style={styles.questionText}
+                            />
                           </View>
                           <View style={styles.choicesContainer}>
                             {renderExerciseChoices(q.question, q.choices, q.question.question_id)}
