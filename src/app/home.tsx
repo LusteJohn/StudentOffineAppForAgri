@@ -17,7 +17,6 @@ import { BottomNavbar } from "@/components/bottom-navbar";
 import { Header } from "@/components/header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { TutorialOverlay } from "@/components/tutorial-overlay";
 import { useTheme } from "@/hooks/use-theme";
 import {
   listCompetencies,
@@ -30,13 +29,9 @@ import {
   LessonContentProgressRecord,
   listContinueLearning,
   ContinueLearningRecord,
-  getStudentTutorialByUserId,
-  updateStudentTutorial,
-  createStudentTutorial,
   getWeeklyActivity,
   getDailyActivity,
   DailyActivityRecord,
-  getSetting,
 } from "@/lib/auth-api";
 
 function WeekCalendar({ data, color, onDayPress }: { data: number[]; color: string; onDayPress?: (index: number) => void }) {
@@ -361,7 +356,6 @@ export default function HomeScreen() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [tutorialVisible, setTutorialVisible] = useState(false);
   const [continueLearning, setContinueLearning] = useState<
     ContinueLearningRecord[]
   >([]);
@@ -689,31 +683,6 @@ card: {
   useFocusEffect(
     useCallback(() => {
       (async () => {
-        try {
-          const showTutorial = await getSetting('show_home_tutorial');
-          if (showTutorial !== 'true') {
-            return;
-          }
-          const existing = await getStudentTutorialByUserId(userId);
-          if (existing) {
-            if (existing.completed !== 1) {
-              setTutorialVisible(true);
-            }
-          } else {
-            await createStudentTutorial({
-              user_id: userId,
-              completed: false,
-              step1_done: false,
-              step2_done: false,
-              step3_done: false,
-            });
-            setTutorialVisible(true);
-          }
-        } catch {
-          setTutorialVisible(true);
-        }
-      })();
-      (async () => {
         if (continueLearningLoaded.current) return;
         continueLearningLoaded.current = true;
         try {
@@ -739,51 +708,6 @@ card: {
     }
     return continueLearning;
   }, [continueLearning, continueFilter]);
-
-  const handleStep1Complete = useCallback(async () => {
-    const existing = await getStudentTutorialByUserId(userId);
-    if (existing) {
-      await updateStudentTutorial(existing.tutorial_id, { step1_done: 1 });
-    } else {
-      await createStudentTutorial({ user_id: userId, step1_done: true });
-    }
-  }, [userId]);
-
-  const handleStep2Complete = useCallback(async () => {
-    const existing = await getStudentTutorialByUserId(userId);
-    if (existing) {
-      await updateStudentTutorial(existing.tutorial_id, { step2_done: 1 });
-    } else {
-      await createStudentTutorial({ user_id: userId, step2_done: true });
-    }
-  }, [userId]);
-
-  const handleStep3Complete = useCallback(async () => {
-    const existing = await getStudentTutorialByUserId(userId);
-    if (existing) {
-      await updateStudentTutorial(existing.tutorial_id, {
-        step3_done: 1,
-        completed: 1,
-      });
-    } else {
-      await createStudentTutorial({
-        user_id: userId,
-        step3_done: true,
-        completed: true,
-      });
-    }
-    setTutorialVisible(false);
-  }, [userId]);
-
-  const handleTutorialSkip = useCallback(async () => {
-    const existing = await getStudentTutorialByUserId(userId);
-    if (existing) {
-      await updateStudentTutorial(existing.tutorial_id, { completed: 1 });
-    } else {
-      await createStudentTutorial({ user_id: userId, completed: true });
-    }
-    setTutorialVisible(false);
-  }, [userId]);
 
   const moduleCompletionData = useMemo(() => {
     const readContentIds = new Set(
@@ -1569,16 +1493,6 @@ card: {
           </View>
         </View>
       </Modal>
-
-      <TutorialOverlay
-        visible={tutorialVisible}
-        userId={userId}
-        onStep1Complete={handleStep1Complete}
-        onStep2Complete={handleStep2Complete}
-        onStep3Complete={handleStep3Complete}
-        onCompleted={() => setTutorialVisible(false)}
-        onSkip={handleTutorialSkip}
-      />
     </ThemedView>
   );
 }
