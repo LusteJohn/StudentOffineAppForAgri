@@ -1,10 +1,13 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image, type ImageRef } from 'expo-image';
 
 import { useTheme } from '@/hooks/use-theme';
 
 const PRIMARY = '#5bec13';
+/** Preloaded at this width so portrait screenshots stay sharp without hogging memory. */
+const PRELOAD_MAX_WIDTH = 900;
 
 type TutorialGuideModalProps = {
   visible: boolean;
@@ -15,7 +18,7 @@ type TutorialStep = {
   step: number;
   title: string;
   description: string;
-  imageNote: string;
+  image: Parameters<typeof Image.loadAsync>[0];
 };
 
 const TUTORIAL_STEPS: TutorialStep[] = [
@@ -24,77 +27,77 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Import resources on setting page.',
     description:
       'Open the Settings page and tap "Import resources" to load all competencies, modules, lessons, exercises, job sheets and performance checklists onto this device.',
-    imageNote: 'Settings page - Import resources button',
+    image: require('@/assets/images/step1.jpg'),
   },
   {
     step: 2,
     title: 'Add your profile so your progress is recorded.',
     description:
       'After importing resources, go to the Profile page and add your profile details. Your name, grade level and photo are stored with your answers and progress.',
-    imageNote: 'Profile page - Student profile form',
+    image: require('@/assets/images/step2.jpg'),
   },
   {
     step: 3,
     title: 'Explore the Library page.',
     description:
       'Navigate the "Library" page where all the learning materials are located. Tapping "View" on a competency displays the module description, and tapping "Start" redirects you to the Lesson page.',
-    imageNote: 'Library page - Competency list with View button',
+    image: require('@/assets/images/step3.jpg'),
   },
   {
     step: 4,
     title: 'Open a lesson from the Lesson page.',
     description:
       'The Lesson page lists all the lesson outcomes of the module. Tapping "View" on a specific lesson outcome displays the description, links and the list of lesson contents you can open.',
-    imageNote: 'Lesson page - Lesson outcomes list',
+    image: require('@/assets/images/step4.jpg'),
   },
   {
     step: 5,
     title: 'Work on the Lesson Content page.',
     description:
       'The Lesson Content page displays the lesson content information together with its exercises, job sheet and performance tasks you can answer and submit. Scroll the Content Info section to find the "Mark as read" and "Bookmark" buttons.',
-    imageNote: 'Lesson Content page - Content info with mark as read and bookmark',
+    image: require('@/assets/images/step5.jpg'),
   },
   {
     step: 6,
     title: 'Answer the Exercise section.',
     description:
       'The Exercise section varies by type: multiple choice, identification, true or false and enumeration. Read each question and submit your answer when you are done.',
-    imageNote: 'Exercise section - Question types',
+    image: require('@/assets/images/step6.jpg'),
   },
   {
     step: 7,
     title: 'Submit your Job Sheet.',
     description:
       'In the Job Sheet section you answer by attaching one (1) image as evidence and writing a short text about the assessment you completed.',
-    imageNote: 'Job Sheet section - Image upload and answer text',
+    image: require('@/assets/images/step7.jpg'),
   },
   {
     step: 8,
     title: 'Check your Performance.',
     description:
       'The Performance section lists the performance criteria. Go through each item and mark whether you followed the instruction while doing the task.',
-    imageNote: 'Performance section - Performance checklist',
+    image: require('@/assets/images/step8.jpg'),
   },
   {
     step: 9,
     title: 'Revisit bookmarks from the Bookmark page.',
     description:
       'The Bookmark page lists every lesson content you bookmarked. Tapping an entry redirects you to the lesson content so you can continue where you left off.',
-    imageNote: 'Bookmark page - Bookmarked lesson contents',
+    image: require('@/assets/images/step9.jpg'),
   },
   {
     step: 10,
     title: 'Track badges on the Achievement page.',
     description:
       'The Achievement page lists every module and lesson achievement you can claim by completing the lesson contents, lessons and modules.',
-    imageNote: 'Achievement page - Module and lesson badges',
+    image: require('@/assets/images/step10.jpg'),
   },
   {
     step: 11,
     title: 'Export your progress as PDF.',
     description:
       'On the Settings page, tap "Export student report" to generate a PDF of your profile, answers, progress and achievements so you can save or share it.',
-    imageNote: 'Settings page - Export student report',
+    image: require('@/assets/images/step11.jpg'),
   },
 ];
 
@@ -105,11 +108,38 @@ export function TutorialGuideModal({ visible, onClose }: TutorialGuideModalProps
   const theme = useTheme();
   const isDark = theme.text === '#ffffff';
   const [stepIndex, setStepIndex] = useState(0);
+  const [imageRefs, setImageRefs] = useState<(ImageRef | null)[]>([]);
+  const preloadedRef = useRef(false);
 
   const totalSteps = TUTORIAL_STEPS.length;
   const step = TUTORIAL_STEPS[stepIndex];
   const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === totalSteps - 1;
+
+  // Decode every step image into memory as soon as the guide opens, so tapping
+  // next/previous just swaps an already-decoded reference instead of decoding
+  // a fresh bitmap on each navigation.
+  useEffect(() => {
+    if (!visible || preloadedRef.current) {
+      return;
+    }
+    let isMounted = true;
+    (async () => {
+      const refs = await Promise.all(
+        TUTORIAL_STEPS.map((item) =>
+          Image.loadAsync(item.image, { maxWidth: PRELOAD_MAX_WIDTH }).catch(() => null),
+        ),
+      );
+      if (!isMounted) {
+        return;
+      }
+      preloadedRef.current = true;
+      setImageRefs(refs);
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [visible]);
 
   const dynamicStyles = useMemo(
     () =>
@@ -124,16 +154,6 @@ export function TutorialGuideModal({ visible, onClose }: TutorialGuideModalProps
           color: theme.text,
         },
         description: {
-          color: theme.textSecondary,
-        },
-        imagePlaceholder: {
-          backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
-          borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.28)',
-        },
-        imagePlaceholderTitle: {
-          color: theme.text,
-        },
-        imagePlaceholderText: {
           color: theme.textSecondary,
         },
         counter: {
@@ -196,24 +216,27 @@ export function TutorialGuideModal({ visible, onClose }: TutorialGuideModalProps
             </Pressable>
           </View>
 
+          <View style={styles.counterRow}>
+            <Text style={[styles.stepLabel, dynamicStyles.stepLabel]}>
+              Step {step.step} of {totalSteps}
+            </Text>
+            <Text style={[styles.counter, dynamicStyles.counter]}>{step.title}</Text>
+          </View>
+
+          <View style={styles.imageFrame}>
+            <Image
+              source={imageRefs[stepIndex] ?? step.image}
+              style={styles.stepImage}
+              contentFit="contain"
+              contentPosition="center"
+              cachePolicy="memory-disk"
+              priority="high"
+              transition={0}
+              allowDownscaling
+            />
+          </View>
+
           <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
-            <View style={styles.counterRow}>
-              <Text style={[styles.stepLabel, dynamicStyles.stepLabel]}>
-                Step {step.step} of {totalSteps}
-              </Text>
-              <Text style={[styles.counter, dynamicStyles.counter]}>{step.title}</Text>
-            </View>
-
-            <View style={[styles.imagePlaceholder, dynamicStyles.imagePlaceholder]}>
-              <Ionicons name="image-outline" size={28} color={theme.textSecondary} />
-              <Text style={[styles.imagePlaceholderTitle, dynamicStyles.imagePlaceholderTitle]}>
-                Screenshot
-              </Text>
-              <Text style={[styles.imagePlaceholderText, dynamicStyles.imagePlaceholderText]}>
-                {step.imageNote}
-              </Text>
-            </View>
-
             <Text style={[styles.description, dynamicStyles.description]}>{step.description}</Text>
 
             {isLastStep ? (
@@ -342,10 +365,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: {
-    flexGrow: 0,
+    flexShrink: 1,
   },
   bodyContent: {
     gap: 12,
+    paddingBottom: 4,
   },
   counterRow: {
     gap: 2,
@@ -361,26 +385,23 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 18,
   },
-  imagePlaceholder: {
-    height: 150,
+  imageFrame: {
+    alignSelf: 'center',
+    width: '100%',
+    height: 320,
+    flexShrink: 1,
+    minHeight: 160,
     borderRadius: 16,
     borderWidth: 1,
-    borderStyle: 'dashed',
+    borderColor: 'rgba(148, 163, 184, 0.28)',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    backgroundColor: 'rgba(148, 163, 184, 0.08)',
   },
-  imagePlaceholderTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  imagePlaceholderText: {
-    fontSize: 12,
-    fontWeight: '500',
-    textAlign: 'center',
-    paddingHorizontal: 16,
+  stepImage: {
+    width: '100%',
+    height: '100%',
   },
   description: {
     fontSize: 14,
