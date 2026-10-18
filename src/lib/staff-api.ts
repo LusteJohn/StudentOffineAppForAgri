@@ -48,6 +48,13 @@ export function listFaculty() {
   return request<{ faculty: StaffUser[] }>("/api/admin/faculty");
 }
 
+export function deleteFaculty(userId: number) {
+  return request<{ message: string }>("/api/admin/faculty", {
+    method: "DELETE",
+    body: JSON.stringify({ user_id: userId }),
+  });
+}
+
 export function listStudents() {
   return request<{ students: StudentWithRecords[] }>("/api/staff/students");
 }

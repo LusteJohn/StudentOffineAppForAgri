@@ -239,6 +239,19 @@ async function listFaculty() {
   return users.map(sanitizeUser);
 }
 
+async function deleteStaffUser(userId) {
+  const parsedId = Number(userId);
+  if (!Number.isInteger(parsedId) || parsedId <= 0) {
+    throw new Error('user_id must be a positive integer.');
+  }
+
+  await supabaseRequest(
+    `users?user_id=eq.${parsedId}`,
+    { method: 'DELETE' },
+  );
+  return true;
+}
+
 module.exports = {
   authenticateStaff,
   createStaff,
@@ -248,4 +261,5 @@ module.exports = {
   deleteSession,
   listStudents,
   listFaculty,
+  deleteStaffUser,
 };
