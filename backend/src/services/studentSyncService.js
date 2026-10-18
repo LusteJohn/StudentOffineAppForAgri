@@ -1,5 +1,5 @@
 const SYNC_TABLES = [
-  { name: 'users', conflictColumn: 'user_id', requiresUserId: false, stripFields: ['password', 'password_hash'] },
+  { name: 'users', conflictColumn: 'user_id', requiresUserId: false },
   { name: 'student_info', conflictColumn: 'user_id', requiresUserId: true },
   { name: 'question_answers', conflictColumn: 'answer_id', requiresUserId: true },
   { name: 'job_sheet_answers', conflictColumn: 'answer_id', requiresUserId: true },
@@ -36,13 +36,7 @@ function validateRecords(table, userId, records) {
       throw new Error(`Sync payload for ${table.name} contains a record for another user.`);
     }
 
-    const stripFields = table.stripFields || [];
-    const sanitized = { ...record };
-    for (const field of stripFields) {
-      delete sanitized[field];
-    }
-
-    return sanitized;
+    return record;
   });
 }
 
