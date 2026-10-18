@@ -30,10 +30,11 @@ export default function StaffLogin() {
     setError("");
     setMessage("");
     try {
-      await loginStaff(email.trim(), password);
+      const result = await loginStaff(email.trim(), password);
       setMessage("Login successful. Redirecting...");
       setTimeout(() => {
-        router.replace("/admin" as any);
+        const route = result.user.role === "admin" ? "/admin" : "/faculty";
+        router.replace(route as any);
       }, 500);
     } catch (value) {
       setError(value instanceof Error ? value.message : "Unable to sign in.");

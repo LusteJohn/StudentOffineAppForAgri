@@ -18,6 +18,7 @@ import {
   StudentWithRecords,
 } from "@/lib/staff-api";
 import { StudentDetailModal } from "@/components/student-detail-modal";
+import { useCustomAlert } from "@/lib/custom-alert";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function FacultyPage() {
@@ -29,6 +30,7 @@ export default function FacultyPage() {
   const [selectedStudent, setSelectedStudent] = useState<StudentWithRecords | null>(null);
   const theme = useTheme();
   const isDark = theme.text === "#ffffff";
+  const { showAlert } = useCustomAlert();
 
   useEffect(() => {
     (async () => {
@@ -55,8 +57,22 @@ export default function FacultyPage() {
   }, []);
 
   const handleSignOut = async () => {
-    await logoutStaff().catch(() => undefined);
-    router.replace("/auth/login" as Href);
+    showAlert(
+      "Sign out",
+      "Are you sure you want to sign out of the faculty portal?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Sign out",
+          style: "destructive",
+          onPress: async () => {
+            await logoutStaff().catch(() => undefined);
+            router.replace("/auth/login" as Href);
+          },
+        },
+      ],
+      { cancelable: true },
+    );
   };
 
   if (loading || !user) {

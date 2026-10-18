@@ -23,7 +23,7 @@ import {
   StudentWithRecords,
 } from "@/lib/staff-api";
 import { StudentDetailModal } from "@/components/student-detail-modal";
-import { ThemedText } from "@/components/themed-text";
+import { useCustomAlert } from "@/lib/custom-alert";
 import { useTheme } from "@/hooks/use-theme";
 
 type AdminNavItem = "dashboard" | "faculty";
@@ -42,6 +42,7 @@ export default function AdminPage() {
   const [selectedStudent, setSelectedStudent] = useState<StudentWithRecords | null>(null);
   const theme = useTheme();
   const isDark = theme.text === "#ffffff";
+  const { showAlert } = useCustomAlert();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -93,8 +94,22 @@ export default function AdminPage() {
   };
 
   const handleSignOut = async () => {
-    await logoutStaff().catch(() => undefined);
-    router.replace("/auth/login" as Href);
+    showAlert(
+      "Sign out",
+      "Are you sure you want to sign out of the admin portal?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Sign out",
+          style: "destructive",
+          onPress: async () => {
+            await logoutStaff().catch(() => undefined);
+            router.replace("/auth/login" as Href);
+          },
+        },
+      ],
+      { cancelable: true },
+    );
   };
 
   if (loading || !user) {
