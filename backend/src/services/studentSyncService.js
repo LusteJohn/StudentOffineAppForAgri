@@ -1,13 +1,13 @@
 const SYNC_TABLES = [
   { name: 'student_info', conflictColumn: 'user_id', requiresUserId: true, stripPk: true, pkColumn: 'student_id' },
-  { name: 'question_answers', conflictColumn: 'answer_id', requiresUserId: true, stripPk: false, pkColumn: 'answer_id' },
-  { name: 'job_sheet_answers', conflictColumn: 'answer_id', requiresUserId: true, stripPk: false, pkColumn: 'answer_id' },
-  { name: 'performance_answer', conflictColumn: 'performance_answer_id', requiresUserId: true, stripPk: false, pkColumn: 'performance_answer_id' },
-  { name: 'lesson_content_progress', conflictColumn: 'progress_lesson_id', requiresUserId: true, stripPk: false, pkColumn: 'progress_lesson_id' },
-  { name: 'lesson_content_bookmark', conflictColumn: 'lesson_content_bookmark_id', requiresUserId: true, stripPk: false, pkColumn: 'lesson_content_bookmark_id' },
-  { name: 'student_lesson_achievement', conflictColumn: 'stud_lesson_achievement_id', requiresUserId: true, stripPk: false, pkColumn: 'stud_lesson_achievement_id' },
-  { name: 'student_module_achievement', conflictColumn: 'stud_module_achievement_id', requiresUserId: true, stripPk: false, pkColumn: 'stud_module_achievement_id' },
-  { name: 'student_tutorials', conflictColumn: 'tutorial_id', requiresUserId: true, stripPk: false, pkColumn: 'tutorial_id' },
+  { name: 'question_answers', conflictColumn: 'answer_id', requiresUserId: true },
+  { name: 'job_sheet_answers', conflictColumn: 'answer_id', requiresUserId: true },
+  { name: 'performance_answer', conflictColumn: 'performance_answer_id', requiresUserId: true },
+  { name: 'lesson_content_progress', conflictColumn: 'progress_lesson_id', requiresUserId: true },
+  { name: 'lesson_content_bookmark', conflictColumn: 'lesson_content_bookmark_id', requiresUserId: true },
+  { name: 'student_lesson_achievement', conflictColumn: 'stud_lesson_achievement_id', requiresUserId: true },
+  { name: 'student_module_achievement', conflictColumn: 'stud_module_achievement_id', requiresUserId: true },
+  { name: 'student_tutorials', conflictColumn: 'tutorial_id', requiresUserId: true },
 ];
 
 function getSupabaseConfig() {
@@ -176,21 +176,22 @@ async function syncStudentRecords(userId, payload) {
 
   const config = getSupabaseConfig();
   const synced = {};
+  const records = payload.records || {};
 
   const supabaseUserId = await createOrFindStudentUser(config, payload);
 
   let remapped = supabaseUserId !== parsedUserId;
 
   for (const table of SYNC_TABLES) {
-    let tablePayload = payload[table.name] || [];
+    let tablePayload = records[table.name] || [];
     if (remapped) {
       tablePayload = tablePayload.map((r) => ({
         ...r,
         user_id: supabaseUserId,
       }));
     }
-    const records = validateRecords(table, supabaseUserId, tablePayload);
-    synced[table.name] = await upsertTable(config, table, records);
+    const validatedRecords = validateRecords(table, supabaseUserId, tablePayload);
+    synced[table.name] = await upsertTable(config, table, validatedRecords);
   }
 
   const result = { user_id: supabaseUserId, synced };
