@@ -2266,22 +2266,23 @@ export async function syncStudentRecordsIfOnline(
   syncPromise = (async () => {
     await ensureDatabase();
     const db = await databasePromise;
-    const localUserId = userId;
     const user = await db.getFirstAsync<Record<string, unknown>>(
       "SELECT * FROM users WHERE user_id = ?",
-      [localUserId],
+      [userId],
     );
 
     if (!user) {
       throw new Error("Cannot synchronize a user that does not exist locally.");
     }
 
-    const records: Record<string, Record<string, unknown>[]> = {};
+    const records: Record<string, Record<string, unknown>[]> = {
+      users: [user],
+    };
 
     for (const table of SYNC_TABLES) {
       records[table] = await db.getAllAsync<Record<string, unknown>>(
         `SELECT * FROM ${table} WHERE user_id = ?`,
-        [localUserId],
+        [userId],
       );
     }
 
@@ -2295,12 +2296,7 @@ export async function syncStudentRecordsIfOnline(
         response = await fetch(`${BACKEND_URL}/api/sync/student-records`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id: localUserId,
-            email: user.email,
-            username: user.username,
-            records,
-          }),
+          body: JSON.stringify({ user_id: userId, records }),
           signal: controller.signal,
         });
         if (
