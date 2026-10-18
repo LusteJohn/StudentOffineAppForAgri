@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -8,6 +9,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import type { Href } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import {
   getStaffSession,
   listStudents,
@@ -15,17 +17,19 @@ import {
   StaffUser,
   StudentWithRecords,
 } from "@/lib/staff-api";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function FacultyPage() {
   const [user, setUser] = useState<StaffUser | null>(null);
   const [students, setStudents] = useState<StudentWithRecords[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
+  const [error, setError] = useState("");
+  const theme = useTheme();
+  const isDark = theme.text === "#ffffff";
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      setLoadError("");
       try {
         const session = await getStaffSession();
         if (
@@ -37,10 +41,10 @@ export default function FacultyPage() {
         setUser(session.user);
         setStudents((await listStudents()).students);
       } catch (value) {
-        setLoadError(
+        setError(
           value instanceof Error ? value.message : "Unable to load faculty portal.",
         );
-        router.replace("/auth/login" as Href);
+        setTimeout(() => router.replace("/auth/login" as Href), 1500);
       } finally {
         setLoading(false);
       }
@@ -52,208 +56,282 @@ export default function FacultyPage() {
     router.replace("/auth/login" as Href);
   };
 
-  if (!user || loading) {
+  if (loading || !user) {
     return (
-      <View style={[styles.page, styles.center]}>
-        <Text style={styles.loading}>
-          {loading ? "Loading..." : loadError}
-        </Text>
+      <View style={[styles.screen, { backgroundColor: theme.background }]}>
+        <View style={styles.loadingContainer}>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+            {error || "Loading faculty portal..."}
+          </Text>
+        </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.page}>
-      <View style={styles.toolbar}>
-        <View>
-          <Text style={styles.eyebrow}>AgriLearn staff portal</Text>
-          <Text style={styles.title}>Faculty dashboard</Text>
-          <Text style={styles.muted}>
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            borderBottomColor: isDark
+              ? "rgba(255,255,255,0.08)"
+              : "rgba(148, 163, 184, 0.18)",
+            backgroundColor: theme.backgroundElement,
+          },
+        ]}
+      >
+        <View style={styles.headerLeft}>
+          <Text style={[styles.eyebrow, { color: isDark ? "#86efac" : "#3d8122" }]}>
+            AgriLearn Staff Portal
+          </Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>
+            Faculty Dashboard
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
             {user.username} · {user.role}
           </Text>
         </View>
-        <Pressable onPress={handleSignOut} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>Sign out</Text>
+        <Pressable onPress={handleSignOut} style={styles.headerButton}>
+          <Ionicons name="log-out-outline" size={20} color={theme.text} />
+          <Text style={[styles.headerButtonText, { color: theme.text }]}>
+            Sign out
+          </Text>
         </Pressable>
       </View>
 
-      <View style={styles.stats}>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>{String(students.length)}</Text>
-          <Text style={styles.statLabel}>Students</Text>
-        </View>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>Reports</Text>
-          <Text style={styles.statLabel}>Learning progress</Text>
-        </View>
-      </View>
-
-      <View style={[styles.card, styles.wideCard]}>
-        <Text style={styles.sectionTitle}>Student learning records</Text>
-        <Text style={styles.formHint}>
-          Review synchronized student profiles, activity scores, module progress,
-          bookmarks, and achievements.
-        </Text>
-        <ScrollView>
-          {students.length > 0 ? (
-            students.map((student) => (
-              <View
-                key={student.user.user_id}
-                style={styles.studentCard}
-              >
-                <Text style={styles.studentName}>{student.user.username}</Text>
-                <Text style={styles.studentEmail}>
-                  {student.user.email} · user_id: {student.user.user_id}
-                </Text>
-                {Object.entries(student.records).map(([table, records]) => (
-                  <View key={table} style={{ marginTop: 10 }}>
-                    <Text style={styles.studentBody}>
-                      {table}: {records.length} record(s)
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ))
-          ) : (
-            <Text style={styles.empty}>
-              No student records have been synchronized yet.
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View
+          style={[
+            styles.statCard,
+            {
+              backgroundColor: theme.backgroundElement,
+              borderColor: isDark
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(148, 163, 184, 0.12)",
+            },
+          ]}
+        >
+          <Image
+            source={require("@/assets/images/dashboard.jpeg")}
+            style={styles.statImage}
+            resizeMode="cover"
+          />
+          <View style={styles.statContent}>
+            <Text style={[styles.statValue, { color: theme.text }]}>
+              {students.length}
             </Text>
-          )}
-        </ScrollView>
-      </View>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
+              Students under your supervision
+            </Text>
+          </View>
+        </View>
+
+        <View
+          style={[
+            styles.statCard,
+            {
+              backgroundColor: theme.backgroundElement,
+              borderColor: isDark
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(148, 163, 184, 0.12)",
+            },
+          ]}
+        >
+          <Image
+            source={require("@/assets/images/setting_image.jpeg")}
+            style={styles.statImage}
+            resizeMode="cover"
+          />
+          <View style={styles.statContent}>
+            <Text style={[styles.statValue, { color: theme.text }]}>Reports</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
+              Learning progress
+            </Text>
+          </View>
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>
+          Student learning records
+        </Text>
+        <Text style={[styles.sectionHint, { color: theme.textSecondary }]}>
+          Review synchronized student profiles, activity scores, module
+          progress, bookmarks, and achievements.
+        </Text>
+
+        {students.length > 0 ? (
+          students.map((student) => (
+            <View
+              key={student.user.user_id}
+              style={[
+                styles.studentCard,
+                {
+                  backgroundColor: theme.backgroundElement,
+                  borderColor: isDark
+                    ? "rgba(255,255,255,0.06)"
+                    : "rgba(148, 163, 184, 0.12)",
+                },
+              ]}
+            >
+              <Text style={[styles.studentName, { color: theme.text }]}>
+                {student.user.username}
+              </Text>
+              <Text style={[styles.studentEmail, { color: theme.textSecondary }]}>
+                {student.user.email} · user_id: {student.user.user_id}
+              </Text>
+              {Object.entries(student.records).map(([table, records]) => (
+                <View key={table} style={styles.studentRecordRow}>
+                  <Text
+                    style={[styles.studentRecordLabel, { color: theme.textSecondary }]}
+                  >
+                    {table}
+                  </Text>
+                  <Text style={[styles.studentRecordCount, { color: theme.text }]}>
+                    {records.length} record(s)
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ))
+        ) : (
+          <Text style={[styles.empty, { color: theme.textSecondary }]}>
+            No student records have been synchronized yet.
+          </Text>
+        )}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  page: {
+  screen: {
     flex: 1,
-    backgroundColor: "#f3f8ef",
-    padding: 32,
+    padding: 20,
   },
-  center: {
+  loadingContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  loading: {
-    color: "#647565",
+  loadingText: {
     fontSize: 16,
   },
-  toolbar: {
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 16,
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+  },
+  headerLeft: {
+    flex: 1,
+    gap: 4,
   },
   eyebrow: {
-    margin: 0,
-    marginBottom: 6,
-    color: "#4d9b2a",
     fontSize: 12,
     fontWeight: 800,
-    letterSpacing: 1.4,
     textTransform: "uppercase",
+    letterSpacing: 1.4,
   },
-  title: {
-    margin: 0,
-    color: "#0f172a",
+  headerTitle: {
     fontSize: 28,
     fontWeight: 700,
   },
-  muted: {
-    color: "#647565",
-  },
-  stats: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 20,
-  },
-  stat: {
-    flex: 1,
-    minWidth: 140,
-    padding: 16,
-    backgroundColor: "#f1faed",
-    borderWidth: 1,
-    borderColor: "#dbead3",
-    borderRadius: 10,
-  },
-  statValue: {
-    color: "#3d8122",
-    fontSize: 24,
-    fontWeight: 800,
-  },
-  statLabel: {
-    color: "#647565",
-    fontSize: 13,
-  },
-  card: {
-    width: "100%",
-    padding: 24,
-    marginBottom: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.92)",
-    borderWidth: 1,
-    borderColor: "#dbead3",
-    borderRadius: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  wideCard: {
-    padding: 24,
-  },
-  sectionTitle: {
-    margin: 0,
-    marginBottom: 6,
-    color: "#0f172a",
-    fontSize: 20,
-    fontWeight: 700,
-  },
-  formHint: {
-    margin: 0,
-    marginBottom: 18,
-    color: "#647565",
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  secondaryButton: {
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#647565",
-  },
-  secondaryButtonText: {
-    color: "#fff",
-    fontWeight: 700,
+  headerSubtitle: {
     fontSize: 14,
   },
-  studentCard: {
-    marginTop: 16,
-    padding: 18,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
+  headerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 10,
   },
+  headerButtonText: {
+    fontSize: 14,
+    fontWeight: 600,
+  },
+  scrollContent: {
+    paddingBottom: 24,
+  },
+  statCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    borderRadius: 20,
+    overflow: "hidden",
+    padding: 4,
+    marginBottom: 20,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
+  statImage: {
+    width: 120,
+    height: 90,
+  },
+  statContent: {
+    flex: 1,
+    gap: 4,
+  },
+  statValue: {
+    fontSize: 32,
+    fontWeight: 700,
+  },
+  statLabel: {
+    fontSize: 14,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 700,
+    marginBottom: 6,
+  },
+  sectionHint: {
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  studentCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
   studentName: {
-    color: "#0f172a",
     fontSize: 16,
     fontWeight: 700,
   },
   studentEmail: {
-    color: "#475569",
+    fontSize: 13,
     marginBottom: 8,
   },
-  studentBody: {
-    color: "#334155",
-    lineHeight: 21,
+  studentRecordRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 4,
+  },
+  studentRecordLabel: {
+    fontSize: 13,
+  },
+  studentRecordCount: {
+    fontSize: 13,
+    fontWeight: 600,
   },
   empty: {
-    color: "#647565",
-    fontSize: 14,
+    fontSize: 15,
     fontStyle: "italic",
+    textAlign: "center",
+    paddingVertical: 24,
   },
 });

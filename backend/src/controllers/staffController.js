@@ -6,6 +6,7 @@ const {
   deleteSession,
   listStudents,
   listFaculty,
+  deleteStaffUser,
 } = require('../services/staffService');
 const { sendJson } = require('./authController');
 
@@ -83,4 +84,18 @@ async function faculty(req, res) {
   }
 }
 
-module.exports = { staffLogin, staffLogout, currentStaff, registerFaculty, students, faculty };
+async function deleteFaculty(req, res, body) {
+  if (!requireStaff(req, res, ['admin'])) return true;
+  const userId = Number(body?.user_id);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return sendJson(res, 400, { message: 'Invalid user_id.' });
+  }
+  try {
+    await deleteStaffUser(userId);
+    return sendJson(res, 200, { message: 'Faculty account deleted successfully.' });
+  } catch (error) {
+    return sendJson(res, 400, { message: error instanceof Error ? error.message : 'Unable to delete faculty account.' });
+  }
+}
+
+module.exports = { staffLogin, staffLogout, currentStaff, registerFaculty, deleteFaculty, students, faculty };
