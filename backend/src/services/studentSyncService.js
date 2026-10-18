@@ -1,6 +1,5 @@
 const SYNC_TABLES = [
-  { name: 'users', conflictColumn: 'user_id', requiresUserId: false },
-  { name: 'student_info', conflictColumn: 'student_id', requiresUserId: true },
+  { name: 'student_info', conflictColumn: 'user_id', requiresUserId: true },
   { name: 'question_answers', conflictColumn: 'answer_id', requiresUserId: true },
   { name: 'job_sheet_answers', conflictColumn: 'answer_id', requiresUserId: true },
   { name: 'performance_answer', conflictColumn: 'performance_answer_id', requiresUserId: true },
@@ -80,11 +79,6 @@ async function syncStudentRecords(userId, payload) {
 
   for (const table of SYNC_TABLES) {
     const records = validateRecords(table, parsedUserId, payload[table.name] || []);
-    if (table.name === 'users') {
-      if (records.some((record) => Number(record.user_id) !== parsedUserId)) {
-        throw new Error('The users sync record must match user_id.');
-      }
-    }
     synced[table.name] = await upsertTable(config, table, records);
   }
 
