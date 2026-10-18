@@ -5,6 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "start": "node src/server.js",
-    "seed:competencies": "node scripts/seed-competencies.js"
+    "seed:competencies": "node scripts/seed-competencies.js",
+    "seed:staff": "node scripts/seed-staff.js"
   }
 }

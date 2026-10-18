@@ -243,13 +243,30 @@ export default function LoginScreen() {
             </ThemedText>
           </Pressable>
 
-          <AuthLink
-            onPress={() => router.push("/register")}
-            textStyle={{ color: theme.text }}
-          >
-            Need an account? Register
-          </AuthLink>
-        </View>
+           <AuthLink
+             onPress={() => router.push("/register")}
+             textStyle={{ color: theme.text }}
+           >
+             Need an account? Register
+           </AuthLink>
+
+           <View style={styles.staffAccessRow}>
+             <ThemedText themeColor="textSecondary" style={styles.staffAccessText}>
+               Staff access?
+             </ThemedText>
+             <Pressable
+               onPress={() => router.push("/auth/login")}
+               style={({ pressed }) => [
+                 styles.staffLoginButton,
+                 pressed && styles.pressed,
+               ]}
+             >
+               <ThemedText style={styles.staffLoginButtonText}>
+                 Sign in as Admin or Faculty
+               </ThemedText>
+             </Pressable>
+           </View>
+         </View>
       </AuthShell>
     </>
   );
@@ -351,7 +368,28 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.7,
   },
-  pressed: {
+   pressed: {
     opacity: 0.75,
+  },
+  staffAccessRow: {
+    marginTop: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  staffAccessText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  staffLoginButton: {
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: "rgba(100, 117, 101, 0.15)",
+  },
+  staffLoginButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#3d8122",
   },
 });

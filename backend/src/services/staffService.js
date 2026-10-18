@@ -82,7 +82,7 @@ function deleteSession(token) {
   sessions.delete(token);
 }
 
-async function createFaculty({ username, email, password }) {
+async function createStaff({ username, email, password, role }) {
   const existing = await supabaseRequest(
     `users?select=user_id&email=eq.${encodeURIComponent(email)}&limit=1`,
   );
@@ -100,11 +100,15 @@ async function createFaculty({ username, email, password }) {
       username,
       email,
       password,
-      role: 'faculty',
+      role: role || 'faculty',
       created_at: new Date().toISOString(),
     }]),
   });
   return sanitizeUser(rows[0]);
+}
+
+async function createFaculty({ username, email, password }) {
+  return createStaff({ username, email, password, role: 'faculty' });
 }
 
 async function listStudents() {
@@ -237,6 +241,7 @@ async function listFaculty() {
 
 module.exports = {
   authenticateStaff,
+  createStaff,
   createFaculty,
   createSession,
   getSession,
