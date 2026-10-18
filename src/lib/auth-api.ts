@@ -2273,7 +2273,9 @@ export async function syncStudentRecordsIfOnline(
       throw new Error("Cannot synchronize a user that does not exist locally.");
     }
 
-    const records: Record<string, Record<string, unknown>[]> = {};
+    const records: Record<string, Record<string, unknown>[]> = {
+      users: [user],
+    };
 
     for (const table of SYNC_TABLES) {
       records[table] = await db.getAllAsync<Record<string, unknown>>(

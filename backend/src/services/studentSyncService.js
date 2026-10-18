@@ -1,4 +1,5 @@
 const SYNC_TABLES = [
+  { name: 'users', conflictColumn: 'user_id', requiresUserId: false, stripFields: ['password', 'password_hash'] },
   { name: 'student_info', conflictColumn: 'user_id', requiresUserId: true },
   { name: 'question_answers', conflictColumn: 'answer_id', requiresUserId: true },
   { name: 'job_sheet_answers', conflictColumn: 'answer_id', requiresUserId: true },
@@ -35,7 +36,13 @@ function validateRecords(table, userId, records) {
       throw new Error(`Sync payload for ${table.name} contains a record for another user.`);
     }
 
-    return record;
+    const stripFields = table.stripFields || [];
+    const sanitized = { ...record };
+    for (const field of stripFields) {
+      delete sanitized[field];
+    }
+
+    return sanitized;
   });
 }
 
@@ -79,6 +86,11 @@ async function syncStudentRecords(userId, payload) {
 
   for (const table of SYNC_TABLES) {
     const records = validateRecords(table, parsedUserId, payload[table.name] || []);
+    if (table.name === 'users') {
+      if (records.some((record) => Number(record.user_id) !== parsedUserId)) {
+        throw new Error('The users sync record must match user_id.');
+      }
+    }
     synced[table.name] = await upsertTable(config, table, records);
   }
 
