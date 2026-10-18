@@ -4,7 +4,7 @@ const { sendJson } = require('./authController');
 async function syncStudentRecordsHandler(req, res, body) {
   try {
     const userId = Number(body?.user_id);
-    const result = await syncStudentRecords(userId, body?.records);
+    const result = await syncStudentRecords(userId, body);
     return sendJson(res, 200, {
       message: 'Student records synchronized successfully.',
       ...result,
