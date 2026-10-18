@@ -37,6 +37,25 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return body;
 }
 
+export function registerFaculty(username: string, email: string, password: string) {
+  return request<{ user: StaffUser }>("/api/admin/faculty", {
+    method: "POST",
+    body: JSON.stringify({ username, email, password }),
+  });
+}
+
+export function listFaculty() {
+  return request<{ faculty: StaffUser[] }>("/api/admin/faculty");
+}
+
+export function listStudents() {
+  return request<{ students: StudentWithRecords[] }>("/api/staff/students");
+}
+
+export function logoutStaff() {
+  return request<{ message: string }>("/api/staff/logout", { method: "POST" });
+}
+
 export function loginStaff(email: string, password: string) {
   return request<{ user: StaffUser }>("/api/staff/login", {
     method: "POST",
@@ -46,19 +65,4 @@ export function loginStaff(email: string, password: string) {
 
 export function getStaffSession() {
   return request<{ user: StaffUser }>("/api/staff/me");
-}
-
-export function logoutStaff() {
-  return request<{ message: string }>("/api/staff/logout", { method: "POST" });
-}
-
-export function registerFaculty(username: string, email: string, password: string) {
-  return request<{ user: StaffUser }>("/api/admin/faculty", {
-    method: "POST",
-    body: JSON.stringify({ username, email, password }),
-  });
-}
-
-export function listStudents() {
-  return request<{ students: StudentWithRecords[] }>("/api/staff/students");
 }
