@@ -1,13 +1,13 @@
 const SYNC_TABLES = [
-  { name: 'student_info', conflictColumn: 'user_id', requiresUserId: true },
-  { name: 'question_answers', conflictColumn: 'answer_id', requiresUserId: true },
-  { name: 'job_sheet_answers', conflictColumn: 'answer_id', requiresUserId: true },
-  { name: 'performance_answer', conflictColumn: 'performance_answer_id', requiresUserId: true },
-  { name: 'lesson_content_progress', conflictColumn: 'progress_lesson_id', requiresUserId: true },
-  { name: 'lesson_content_bookmark', conflictColumn: 'lesson_content_bookmark_id', requiresUserId: true },
-  { name: 'student_lesson_achievement', conflictColumn: 'stud_lesson_achievement_id', requiresUserId: true },
-  { name: 'student_module_achievement', conflictColumn: 'stud_module_achievement_id', requiresUserId: true },
-  { name: 'student_tutorials', conflictColumn: 'tutorial_id', requiresUserId: true },
+  { name: 'student_info', conflictColumn: 'user_id', requiresUserId: true, stripPk: true, pkColumn: 'student_id' },
+  { name: 'question_answers', conflictColumn: 'answer_id', requiresUserId: true, stripPk: false, pkColumn: 'answer_id' },
+  { name: 'job_sheet_answers', conflictColumn: 'answer_id', requiresUserId: true, stripPk: false, pkColumn: 'answer_id' },
+  { name: 'performance_answer', conflictColumn: 'performance_answer_id', requiresUserId: true, stripPk: false, pkColumn: 'performance_answer_id' },
+  { name: 'lesson_content_progress', conflictColumn: 'progress_lesson_id', requiresUserId: true, stripPk: false, pkColumn: 'progress_lesson_id' },
+  { name: 'lesson_content_bookmark', conflictColumn: 'lesson_content_bookmark_id', requiresUserId: true, stripPk: false, pkColumn: 'lesson_content_bookmark_id' },
+  { name: 'student_lesson_achievement', conflictColumn: 'stud_lesson_achievement_id', requiresUserId: true, stripPk: false, pkColumn: 'stud_lesson_achievement_id' },
+  { name: 'student_module_achievement', conflictColumn: 'stud_module_achievement_id', requiresUserId: true, stripPk: false, pkColumn: 'stud_module_achievement_id' },
+  { name: 'student_tutorials', conflictColumn: 'tutorial_id', requiresUserId: true, stripPk: false, pkColumn: 'tutorial_id' },
 ];
 
 function getSupabaseConfig() {
@@ -41,7 +41,7 @@ async function supabaseRequest(config, path, options = {}) {
 
   if (!response.ok) {
     const details = await response.text();
-    throw new Error(`Supabase request failed (${response.status}) on ${path}: ${details.slice(500)}`);
+    throw new Error(`Supabase request failed (${response.status}) on ${path}: ${details.slice(0, 500)}`);
   }
 
   return response.status === 204 ? null : response.json();
@@ -70,16 +70,23 @@ async function upsertTable(config, table, records) {
     return 0;
   }
 
+  const processedRecords = table.stripPk
+    ? records.map((record) => {
+        const { [table.pkColumn]: _stripped, ...rest } = record;
+        return rest;
+      })
+    : records;
+
   const endpoint = `${config.url}/rest/v1/${table.name}?on_conflict=${table.conflictColumn}`;
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: buildSupabaseHeaders(config),
-    body: JSON.stringify(records),
+    body: JSON.stringify(processedRecords),
   });
 
   if (!response.ok) {
     const details = await response.text();
-    throw new Error(`Supabase rejected ${table.name} (${response.status}): ${details.slice(500)}`);
+    throw new Error(`Supabase rejected ${table.name} (${response.status}): ${details.slice(0, 500)}`);
   }
 
   return records.length;
@@ -137,14 +144,16 @@ async function ensureStudentUserRecord(config, userId, email, username) {
 
   const response = await fetch(`${config.url}/rest/v1/users`, {
     method: 'POST',
-    headers: buildSupabaseHeaders(config),
-    Prefer: 'return=minimal',
+    headers: {
+      ...buildSupabaseHeaders(config),
+      Prefer: 'resolution=merge-duplicates,return=minimal',
+    },
     body: JSON.stringify(userData),
   });
 
   if (!response.ok) {
     const details = await response.text();
-    throw new Error(`Failed to create student user record (HTTP ${response.status}): ${details.slice(500)}`);
+    throw new Error(`Failed to create student user record (HTTP ${response.status}): ${details.slice(0, 500)}`);
   }
 }
 
@@ -167,16 +176,15 @@ async function syncStudentRecords(userId, payload) {
   if (conflictUser && conflictUser.role && conflictUser.role !== 'student') {
     effectiveUserId = await findNextAvailableUserId(config, parsedUserId);
     await ensureStudentUserRecord(config, effectiveUserId, payload.email, payload.username);
-    const records = validateRecords({ name: 'student_info' }, effectiveUserId, payload.student_info || []);
-    if (records.length > 0) {
-      synced.student_info = await upsertTable(config, { name: 'student_info' }, records.map((r) => ({ ...r, user_id: effectiveUserId })));
-    }
 
     for (const table of SYNC_TABLES) {
-      if (table.name === 'student_info') continue;
       if (!payload[table.name]) continue;
-      const tableRecords = validateRecords(table, effectiveUserId, payload[table.name].map((r) => ({ ...r, user_id: effectiveUserId })));
-      synced[table.name] = await upsertTable(config, table, tableRecords);
+      const remappedRecords = payload[table.name].map((r) => ({
+        ...r,
+        user_id: effectiveUserId,
+      }));
+      const records = validateRecords(table, effectiveUserId, remappedRecords);
+      synced[table.name] = await upsertTable(config, table, records);
     }
 
     return { user_id: effectiveUserId, remapped: true, original_user_id: parsedUserId, synced };
