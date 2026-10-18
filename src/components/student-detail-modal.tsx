@@ -1,6 +1,7 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/hooks/use-theme";
+import { InfoRow } from "@/components/info-row";
 import { StudentWithRecords } from "@/lib/staff-api";
 
 type StudentDetailModalProps = {
@@ -9,52 +10,19 @@ type StudentDetailModalProps = {
   student: StudentWithRecords | null;
 };
 
-const recordSections = [
-  {
-    key: "question_answers",
-    title: "Question answers",
-    columns: ["content_name", "question_text", "answer_text", "is_correct", "activity_score", "created_at"],
-  },
-  {
-    key: "job_sheet_answers",
-    title: "Job-sheet answers",
-    columns: ["content_name", "job_title", "answer_text", "activity_score", "created_at"],
-  },
-  {
-    key: "performance_answer",
-    title: "Performance answers",
-    columns: ["content_name", "performance_question", "performance_answer_text", "created_at"],
-  },
-  {
-    key: "lesson_content_progress",
-    title: "Lesson-content progress",
-    columns: ["module_name", "lesson_name", "content_name", "is_read", "read_at", "updated_at"],
-  },
-  {
-    key: "lesson_content_bookmark",
-    title: "Bookmarked content",
-    columns: ["module_name", "lesson_name", "content_name", "is_bookmark", "created_at"],
-  },
-  {
-    key: "student_lesson_achievement",
-    title: "Lesson achievements",
-    columns: ["module_name", "lesson_name", "achievement_name", "created_at"],
-  },
-  {
-    key: "student_module_achievement",
-    title: "Module achievements",
-    columns: ["module_name", "achievement_name", "created_at"],
-  },
-];
-
-function displayLabel(key: string) {
-  return key
-    .replace(/_id$/g, "")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+function formatDate(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString();
+    }
+    return value;
+  }
+  return String(value);
 }
 
-function formatDate(value: unknown): string {
+function formatDateTime(value: unknown): string {
   if (!value) return "";
   if (typeof value === "string") {
     const parsed = new Date(value);
@@ -66,20 +34,25 @@ function formatDate(value: unknown): string {
   return String(value);
 }
 
-function formatCellValue(value: unknown, key: string): string {
-  if (value === null || value === undefined) return "";
-  if (key === "created_at" || key === "updated_at" || key === "read_at") {
-    return formatDate(value);
-  }
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
+function displayLabel(key: string): string {
+  return key
+    .replace(/_id$/g, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function percentForCorrect(count: number): number {
   return ({ 0: 0, 1: 10, 2: 40, 3: 60, 4: 80, 5: 100 } as Record<number, number>)[count] ?? Math.round((count / 5) * 100);
 }
 
-type ActivityGroup = {
+type ModuleProgress = {
+  moduleName: string;
+  total: number;
+  completed: number;
+  bookmarked: number;
+};
+
+type ModuleActivity = {
   type: string;
   label: string;
   moduleName: string;
@@ -87,14 +60,42 @@ type ActivityGroup = {
   score: number;
 };
 
-function computeActivities(records: Record<string, Record<string, unknown>[]>): ActivityGroup[] {
-  const grouped = new Map<string, { type: string; label: string; moduleName: string; lessonName: string; scores: number[] }>();
+function computeModuleProgress(
+  records: Record<string, Record<string, unknown>[]>,
+): ModuleProgress[] {
+  const progressRows = records.lesson_content_progress || [];
+  const bookmarks = new Set(
+    (records.lesson_content_bookmark || [])
+      .filter((row) => Number(row.is_bookmark) === 1)
+      .map((row) => String(row.lesson_content_id)),
+  );
 
-  const addActivity = (
-    type: string,
-    row: Record<string, unknown>,
-    score: number,
-  ) => {
+  const moduleMap = new Map<string, ModuleProgress>();
+  progressRows.forEach((row) => {
+    const module = String(row.module_name || "Module unavailable");
+    if (!moduleMap.has(module)) {
+      moduleMap.set(module, { moduleName: module, total: 0, completed: 0, bookmarked: 0 });
+    }
+    const summary = moduleMap.get(module)!;
+    summary.total += 1;
+    summary.completed += Number(row.is_read) === 1 ? 1 : 0;
+    if (bookmarks.has(String(row.lesson_content_id))) {
+      summary.bookmarked += 1;
+    }
+  });
+
+  return Array.from(moduleMap.values());
+}
+
+function computeActivities(
+  records: Record<string, Record<string, unknown>[]>,
+): ModuleActivity[] {
+  const grouped = new Map<
+    string,
+    { type: string; label: string; moduleName: string; lessonName: string; scores: number[] }
+  >();
+
+  const addActivity = (type: string, row: Record<string, unknown>, score: number) => {
     const lessonContentId = String(row.lesson_content_id ?? "");
     const key = `${type}:${lessonContentId}`;
     if (!grouped.has(key)) {
@@ -120,7 +121,7 @@ function computeActivities(records: Record<string, Record<string, unknown>[]>): 
     addActivity("Performance", row, text === "yes" ? 100 : 0);
   });
 
-  const result: ActivityGroup[] = [];
+  const result: ModuleActivity[] = [];
   grouped.forEach(({ type, label, moduleName, lessonName, scores }) => {
     let score: number;
     if (type === "Questions") {
@@ -136,38 +137,65 @@ function computeActivities(records: Record<string, Record<string, unknown>[]>): 
   return result;
 }
 
-type ModuleSummary = {
-  moduleName: string;
-  total: number;
-  completed: number;
-  bookmarked: number;
+type RecordTableSection = {
+  key: string;
+  title: string;
+  columns: string[];
+  groupByModule?: boolean;
 };
 
-function computeModuleProgress(
-  records: Record<string, Record<string, unknown>[]>,
-): ModuleSummary[] {
-  const progressRows = records.lesson_content_progress || [];
-  const bookmarks = new Set(
-    (records.lesson_content_bookmark || [])
-      .filter((row) => Number(row.is_bookmark) === 1)
-      .map((row) => String(row.lesson_content_id)),
-  );
+const recordSections: RecordTableSection[] = [
+  {
+    key: "question_answers",
+    title: "Question answers",
+    columns: ["module_name", "lesson_name", "content_name", "question_text", "answer_text", "is_correct", "activity_score", "created_at"],
+    groupByModule: true,
+  },
+  {
+    key: "job_sheet_answers",
+    title: "Job-sheet answers",
+    columns: ["module_name", "lesson_name", "content_name", "job_title", "answer_text", "activity_score", "created_at"],
+    groupByModule: true,
+  },
+  {
+    key: "performance_answer",
+    title: "Performance answers",
+    columns: ["module_name", "lesson_name", "content_name", "performance_question", "performance_answer_text", "created_at"],
+    groupByModule: true,
+  },
+  {
+    key: "lesson_content_progress",
+    title: "Lesson-content progress",
+    columns: ["module_name", "lesson_name", "content_name", "is_read", "read_at", "updated_at"],
+    groupByModule: true,
+  },
+  {
+    key: "lesson_content_bookmark",
+    title: "Bookmarked content",
+    columns: ["module_name", "lesson_name", "content_name", "is_bookmark", "created_at"],
+    groupByModule: true,
+  },
+  {
+    key: "student_lesson_achievement",
+    title: "Lesson achievements",
+    columns: ["module_name", "lesson_name", "achievement_name", "created_at"],
+    groupByModule: true,
+  },
+  {
+    key: "student_module_achievement",
+    title: "Module achievements",
+    columns: ["module_name", "achievement_name", "created_at"],
+    groupByModule: false,
+  },
+];
 
-  const moduleMap = new Map<string, ModuleSummary>();
-  progressRows.forEach((row) => {
-    const module = String(row.module_name || "Module unavailable");
-    if (!moduleMap.has(module)) {
-      moduleMap.set(module, { moduleName: module, total: 0, completed: 0, bookmarked: 0 });
-    }
-    const summary = moduleMap.get(module)!;
-    summary.total += 1;
-    summary.completed += Number(row.is_read) === 1 ? 1 : 0;
-    if (bookmarks.has(String(row.lesson_content_id))) {
-      summary.bookmarked += 1;
-    }
-  });
-
-  return Array.from(moduleMap.values());
+function formatCellValue(value: unknown, key: string): string {
+  if (value === null || value === undefined) return "";
+  if (key === "created_at" || key === "updated_at" || key === "read_at") {
+    return formatDateTime(value);
+  }
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
 }
 
 export function StudentDetailModal({ visible, onClose, student }: StudentDetailModalProps) {
@@ -179,6 +207,12 @@ export function StudentDetailModal({ visible, onClose, student }: StudentDetailM
   const records = student.records;
   const moduleProgress = computeModuleProgress(records);
   const activities = computeActivities(records);
+  const hasStudentInfo = (records.student_info || []).length > 0;
+  const studentInfo = hasStudentInfo ? records.student_info![0] : null;
+
+  const allModules = new Set<string>();
+  moduleProgress.forEach((item) => allModules.add(item.moduleName));
+  activities.forEach((item) => allModules.add(item.moduleName));
 
   return (
     <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
@@ -186,28 +220,54 @@ export function StudentDetailModal({ visible, onClose, student }: StudentDetailM
         <View style={[styles.modalCard, { backgroundColor: theme.backgroundElement, borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(148, 163, 184, 0.12)" }]}>
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: theme.text }]}>
-              {student.user.username} — Learning records
+              Student learning records
             </Text>
             <Pressable onPress={onClose} style={styles.modalClose}>
               <Ionicons name="close" size={22} color={theme.textSecondary} />
             </Pressable>
           </View>
 
-          <Text style={[styles.modalSubtitle, { color: theme.textSecondary }]}>
-            {student.user.email} · user_id: {student.user.user_id}
-          </Text>
-
           <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.reportSection}>
-              <Text style={[styles.reportTitle, { color: theme.text }]}>
-                Module progress report
-              </Text>
-              {moduleProgress.length === 0 ? (
-                <Text style={[styles.muted, { color: theme.textSecondary }]}>
-                  No lesson-content progress has been synchronized.
-                </Text>
+            <View style={[styles.profileCard, { backgroundColor: isDark ? "rgba(33, 34, 37, 0.9)" : "#fbfef9", borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(148, 163, 184, 0.12)" }]}>
+              <View style={styles.profileHeader}>
+                <View style={[styles.profileAvatar, { backgroundColor: isDark ? "rgba(91, 236, 19, 0.15)" : "#e4f8d6" }]}>
+                  <Ionicons name="person" size={28} color={isDark ? "#86efac" : "#166534"} />
+                </View>
+                <View style={styles.profileIdentity}>
+                  <Text style={[styles.profileName, { color: theme.text }]}>
+                    {student.user.username}
+                  </Text>
+                  <Text style={[styles.profileEmail, { color: theme.textSecondary }]}>
+                    {student.user.email}
+                  </Text>
+                  <Text style={[styles.profileUserId, { color: theme.textSecondary }]}>
+                    user_id: {student.user.user_id}
+                  </Text>
+                </View>
+              </View>
+
+              {hasStudentInfo ? (
+                <View style={styles.infoGrid}>
+                  {studentInfo?.first_name ? <InfoRow label="First name" value={String(studentInfo.first_name)} /> : null}
+                  {studentInfo?.middle_name ? <InfoRow label="Middle name" value={String(studentInfo.middle_name)} /> : null}
+                  {studentInfo?.last_name ? <InfoRow label="Last name" value={String(studentInfo.last_name)} /> : null}
+                  {studentInfo?.birthdate ? <InfoRow label="Birthdate" value={formatDate(studentInfo.birthdate)} /> : null}
+                  {studentInfo?.home_address ? <InfoRow label="Home address" value={String(studentInfo.home_address)} /> : null}
+                  {studentInfo?.grade_level ? <InfoRow label="Grade level" value={String(studentInfo.grade_level)} /> : null}
+                </View>
               ) : (
-                moduleProgress.map((item) => {
+                <Text style={[styles.muted, { color: theme.textSecondary }]}>
+                  No student profile data has been synchronized.
+                </Text>
+              )}
+            </View>
+
+            {moduleProgress.length > 0 && (
+              <View style={styles.reportSection}>
+                <Text style={[styles.reportTitle, { color: theme.text }]}>
+                  Module progress report
+                </Text>
+                {moduleProgress.map((item) => {
                   const percent = item.total ? Math.round((item.completed / item.total) * 100) : 0;
                   const bookmarkPercent = item.total ? Math.round((item.bookmarked / item.total) * 100) : 0;
                   return (
@@ -228,20 +288,16 @@ export function StudentDetailModal({ visible, onClose, student }: StudentDetailM
                       </Text>
                     </View>
                   );
-                })
-              )}
-            </View>
+                })}
+              </View>
+            )}
 
-            <View style={styles.reportSection}>
-              <Text style={[styles.reportTitle, { color: theme.text }]}>
-                Activity scores
-              </Text>
-              {activities.length === 0 ? (
-                <Text style={[styles.muted, { color: theme.textSecondary }]}>
-                  No activity scores have been synchronized.
+            {activities.length > 0 && (
+              <View style={styles.reportSection}>
+                <Text style={[styles.reportTitle, { color: theme.text }]}>
+                  Activity scores
                 </Text>
-              ) : (
-                activities.map((activity, index) => (
+                {activities.map((activity, index) => (
                   <View key={index} style={styles.progressBarRow}>
                     <View style={styles.progressBarHeader}>
                       <Text style={[styles.progressBarLabel, { color: theme.text }]}>
@@ -258,64 +314,142 @@ export function StudentDetailModal({ visible, onClose, student }: StudentDetailM
                       {activity.moduleName} · {activity.lessonName}
                     </Text>
                   </View>
-                ))
-              )}
-            </View>
+                ))}
+              </View>
+            )}
 
-            {recordSections.map(({ key, title, columns }) => {
-              const rows = records[key] || [];
+            {allModules.size > 0 && (
+              <View style={styles.reportSection}>
+                <Text style={[styles.reportTitle, { color: theme.text }]}>
+                  Modules in this report
+                </Text>
+                <View style={styles.moduleList}>
+                  {Array.from(allModules).map((moduleName) => (
+                    <View
+                      key={moduleName}
+                      style={[
+                        styles.moduleItem,
+                        { backgroundColor: isDark ? "rgba(33, 34, 37, 0.9)" : "#f8fff3", borderColor: isDark ? "rgba(91, 236, 19, 0.18)" : "rgba(85, 225, 10, 0.16)" },
+                      ]}
+                    >
+                      <Ionicons name="leaf-outline" size={16} color={isDark ? "#86efac" : "#55e10a"} />
+                      <Text style={[styles.moduleItemText, { color: theme.text }]}>{moduleName}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {recordSections.map((section) => {
+              const rows = records[section.key] || [];
               if (!rows.length) return null;
 
-              const visibleColumns = columns.filter(
-                (col) => rows.some((row) => row[col] !== null && row[col] !== undefined && row[col] !== ""),
+              const visibleColumns = section.columns.filter((col) =>
+                rows.some((row) => row[col] !== null && row[col] !== undefined && row[col] !== ""),
               );
 
+              const groupedRows = section.groupByModule
+                ? (() => {
+                    const groups = new Map<string, Record<string, unknown>[]>();
+                    rows.forEach((row) => {
+                      const moduleName = String(row.module_name || "Module unavailable");
+                      if (!groups.has(moduleName)) groups.set(moduleName, []);
+                      groups.get(moduleName)!.push(row);
+                    });
+                    return groups;
+                  })()
+                : null;
+
               return (
-                <View key={key} style={styles.recordSection}>
+                <View key={section.key} style={styles.recordSection}>
                   <Text style={[styles.recordSectionTitle, { color: theme.text }]}>
-                    {title} ({rows.length})
+                    {section.title} ({rows.length})
                   </Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={styles.table}>
+                  {section.groupByModule ? (
+                    Array.from(groupedRows?.entries() || []).map(([moduleName, moduleRows]) => (
                       <View
+                        key={moduleName}
                         style={[
-                          styles.tableHeader,
-                          { borderBottomColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(148, 163, 184, 0.18)" },
+                          styles.moduleGroup,
+                          {
+                            backgroundColor: isDark ? "rgba(33, 34, 37, 0.5)" : "#f8fff3",
+                            borderColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(148, 163, 184, 0.06)",
+                          },
                         ]}
                       >
-                        {visibleColumns.map((col) => (
-                          <Text
-                            key={col}
-                            style={[styles.tableHeaderCell, { color: theme.textSecondary, minWidth: 120 }]}
-                          >
-                            {displayLabel(col)}
-                          </Text>
-                        ))}
+                        <Text style={[styles.moduleGroupName, { color: isDark ? "#86efac" : "#166534" }]}>
+                          {moduleName}
+                        </Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                          <View style={styles.table}>
+                            <View
+                              style={[styles.tableHeader, { borderBottomColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(148, 163, 184, 0.18)" }]}
+                            >
+                              {visibleColumns.map((col) => (
+                                <Text
+                                  key={col}
+                                  style={[styles.tableHeaderCell, { color: theme.textSecondary, minWidth: 120 }]}
+                                >
+                                  {displayLabel(col)}
+                                </Text>
+                              ))}
+                            </View>
+                            {moduleRows.map((row, rowIndex) => (
+                              <View
+                                key={rowIndex}
+                                style={[styles.tableRow, { borderBottomColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(148, 163, 184, 0.04)" }]}
+                              >
+                                {visibleColumns.map((col) => (
+                                  <Text key={col} style={[styles.tableCell, { color: theme.text, minWidth: 120 }]}>
+                                    {formatCellValue(row[col], col)}
+                                  </Text>
+                                ))}
+                              </View>
+                            ))}
+                          </View>
+                        </ScrollView>
                       </View>
-                      {rows.map((row, rowIndex) => (
+                    ))
+                  ) : (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View style={styles.table}>
                         <View
-                          key={rowIndex}
-                          style={[
-                            styles.tableRow,
-                            { borderBottomColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(148, 163, 184, 0.06)" },
-                          ]}
+                          style={[styles.tableHeader, { borderBottomColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(148, 163, 184, 0.18)" }]}
                         >
                           {visibleColumns.map((col) => (
-                            <Text key={col} style={[styles.tableCell, { color: theme.text, minWidth: 120 }]}>
-                              {formatCellValue(row[col], col)}
+                            <Text
+                              key={col}
+                              style={[styles.tableHeaderCell, { color: theme.textSecondary, minWidth: 120 }]}
+                            >
+                              {displayLabel(col)}
                             </Text>
                           ))}
                         </View>
-                      ))}
-                    </View>
-                  </ScrollView>
+                        {rows.map((row, rowIndex) => (
+                          <View
+                            key={rowIndex}
+                            style={[styles.tableRow, { borderBottomColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(148, 163, 184, 0.04)" }]}
+                          >
+                            {visibleColumns.map((col) => (
+                              <Text key={col} style={[styles.tableCell, { color: theme.text, minWidth: 120 }]}>
+                                {formatCellValue(row[col], col)}
+                              </Text>
+                            ))}
+                          </View>
+                        ))}
+                      </View>
+                    </ScrollView>
+                  )}
                 </View>
               );
             })}
 
-            {recordSections.every((section) => !records[section.key]?.length) && activities.length === 0 && moduleProgress.length === 0 && (
+            {!hasStudentInfo &&
+              moduleProgress.length === 0 &&
+              activities.length === 0 &&
+              recordSections.every((section) => !(records[section.key] || []).length) && (
               <Text style={[styles.muted, { color: theme.textSecondary, textAlign: "center", paddingVertical: 20 }]}>
-                No detailed records have been synchronized yet.
+                No detailed records have been synchronized for this student yet.
               </Text>
             )}
           </ScrollView>
@@ -338,7 +472,7 @@ const styles = StyleSheet.create({
     maxHeight: "85%",
     borderRadius: 24,
     padding: 20,
-    gap: 12,
+    gap: 16,
     borderWidth: 1,
   },
   modalHeader: {
@@ -349,25 +483,56 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 700,
-    flex: 1,
   },
   modalClose: {
     padding: 4,
   },
-  modalSubtitle: {
+  profileCard: {
+    borderRadius: 20,
+    padding: 18,
+    gap: 14,
+    borderWidth: 1,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  profileAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  profileIdentity: {
+    flex: 1,
+    gap: 2,
+  },
+  profileName: {
+    fontSize: 19,
+    fontWeight: 700,
+  },
+  profileEmail: {
     fontSize: 13,
-    marginBottom: 12,
+  },
+  profileUserId: {
+    fontSize: 12,
+  },
+  infoGrid: {
+    gap: 10,
   },
   reportSection: {
-    marginBottom: 20,
-    gap: 10,
+    gap: 12,
   },
   reportTitle: {
     fontSize: 16,
     fontWeight: 700,
-  },
-  muted: {
-    fontSize: 14,
   },
   progressBarRow: {
     gap: 6,
@@ -396,18 +561,48 @@ const styles = StyleSheet.create({
     minWidth: 2,
   },
   progressDetail: {
-    fontSize: 12,
+    fontSize: 11,
+  },
+  moduleList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  moduleItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  moduleItemText: {
+    fontSize: 13,
+    fontWeight: 600,
   },
   recordSection: {
-    marginBottom: 20,
-    gap: 8,
+    gap: 10,
   },
   recordSectionTitle: {
     fontSize: 14,
     fontWeight: 700,
   },
+  moduleGroup: {
+    borderRadius: 14,
+    padding: 12,
+    gap: 8,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  moduleGroupName: {
+    fontSize: 13,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
   table: {
-    gap: 0,
+    flexDirection: "column",
   },
   tableHeader: {
     flexDirection: "row",
@@ -429,5 +624,8 @@ const styles = StyleSheet.create({
   tableCell: {
     fontSize: 13,
     paddingHorizontal: 8,
+  },
+  muted: {
+    fontSize: 14,
   },
 });

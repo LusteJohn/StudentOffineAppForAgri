@@ -118,10 +118,12 @@ export default function LoginScreen() {
     setMessage("");
 
     try {
-      const response = await loginStudent({ email, password });
-      syncStudentRecordsIfOnline(response.user.user_id).catch(() => {
-        // Login remains available when the device is offline.
-      });
+       const response = await loginStudent({ email, password });
+      const synced = await syncStudentRecordsIfOnline(response.user.user_id).catch(() => null);
+      const finalUserId = synced?.remapped ? synced.user_id : response.user.user_id;
+      if (synced?.remapped && synced.original_user_id) {
+        setMessage(`Your user ID was remapped from ${synced.original_user_id} to ${finalUserId} to avoid conflicts with staff accounts.`);
+      }
       setMessage(response.message);
       showAlert(
         "Login successful",
@@ -129,7 +131,7 @@ export default function LoginScreen() {
       );
       router.replace({
         pathname: "/home",
-        params: { userId: String(response.user.user_id) },
+        params: { userId: String(finalUserId) },
       });
     } catch (submitError) {
       setError(
