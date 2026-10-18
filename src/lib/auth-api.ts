@@ -1628,6 +1628,8 @@ let syncPromise: Promise<SyncResult> | null = null;
 export type SyncResult = {
   user_id: number;
   synced: Record<string, number>;
+  remapped?: boolean;
+  original_user_id?: number;
 };
 
 function toStudentUser(user: StoredStudentUser): StudentUser {
@@ -2264,9 +2266,10 @@ export async function syncStudentRecordsIfOnline(
   syncPromise = (async () => {
     await ensureDatabase();
     const db = await databasePromise;
+    const localUserId = userId;
     const user = await db.getFirstAsync<Record<string, unknown>>(
       "SELECT * FROM users WHERE user_id = ?",
-      [userId],
+      [localUserId],
     );
 
     if (!user) {
@@ -2278,7 +2281,7 @@ export async function syncStudentRecordsIfOnline(
     for (const table of SYNC_TABLES) {
       records[table] = await db.getAllAsync<Record<string, unknown>>(
         `SELECT * FROM ${table} WHERE user_id = ?`,
-        [userId],
+        [localUserId],
       );
     }
 
@@ -2292,7 +2295,12 @@ export async function syncStudentRecordsIfOnline(
         response = await fetch(`${BACKEND_URL}/api/sync/student-records`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: userId, records }),
+          body: JSON.stringify({
+            user_id: localUserId,
+            email: user.email,
+            username: user.username,
+            records,
+          }),
           signal: controller.signal,
         });
         if (
@@ -2332,6 +2340,8 @@ export async function syncStudentRecordsIfOnline(
       message?: string;
       user_id?: number;
       synced?: Record<string, number>;
+      remapped?: boolean;
+      original_user_id?: number;
     } = {};
 
     if (responseText.trim()) {
@@ -2354,9 +2364,27 @@ export async function syncStudentRecordsIfOnline(
       );
     }
 
+    const remapped = Boolean(responseBody.remapped);
+    const originalUserId = responseBody.original_user_id
+      ? Number(responseBody.original_user_id)
+      : userId;
+    const newUserId = Number(responseBody.user_id);
+
+    if (remapped && newUserId !== originalUserId) {
+      const tables = ["users", ...SYNC_TABLES];
+      for (const table of tables) {
+        await db.runAsync(
+          `UPDATE ${table} SET user_id = ? WHERE user_id = ?`,
+          [newUserId, originalUserId],
+        );
+      }
+    }
+
     return {
-      user_id: responseBody.user_id,
+      user_id: newUserId,
       synced: responseBody.synced,
+      remapped,
+      original_user_id: originalUserId,
     };
   })();
 

@@ -175,9 +175,13 @@ export default function SettingsScreen() {
     setSyncing(true);
     setSyncMessage('');
     try {
-      const result = await syncStudentRecordsIfOnline(activeUserId);
+       const result = await syncStudentRecordsIfOnline(activeUserId);
       const total = Object.values(result.synced).reduce((sum, count) => sum + count, 0);
-      setSyncMessage(`Sync successful. ${total} record(s) are saved online.`);
+      let syncMsg = `Sync successful. ${total} record(s) are saved online.`;
+      if (result.remapped && result.original_user_id) {
+        syncMsg += ` Your user ID was remapped from ${result.original_user_id} to ${result.user_id} to avoid conflicts with staff accounts.`;
+      }
+      setSyncMessage(syncMsg);
     } catch (syncError) {
       setSyncMessage(
         syncError instanceof Error
