@@ -17,6 +17,7 @@ import {
   StaffUser,
   StudentWithRecords,
 } from "@/lib/staff-api";
+import { StudentDetailModal } from "@/components/student-detail-modal";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function FacultyPage() {
@@ -24,6 +25,8 @@ export default function FacultyPage() {
   const [students, setStudents] = useState<StudentWithRecords[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [studentDetailVisible, setStudentDetailVisible] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<StudentWithRecords | null>(null);
   const theme = useTheme();
   const isDark = theme.text === "#ffffff";
 
@@ -194,6 +197,22 @@ export default function FacultyPage() {
                   </Text>
                 </View>
               ))}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.viewRecordsButton,
+                  pressed && styles.pressed,
+                  { backgroundColor: isDark ? "rgba(91, 236, 19, 0.15)" : "#e4f8d6" },
+                ]}
+                onPress={() => {
+                  setSelectedStudent(student);
+                  setStudentDetailVisible(true);
+                }}
+              >
+                <Ionicons name="open-outline" size={16} color={isDark ? "#86efac" : "#166534"} />
+                <Text style={[styles.viewRecordsText, { color: isDark ? "#86efac" : "#166534" }]}>
+                  View records
+                </Text>
+              </Pressable>
             </View>
           ))
         ) : (
@@ -202,6 +221,15 @@ export default function FacultyPage() {
           </Text>
         )}
       </ScrollView>
+
+      <StudentDetailModal
+        visible={studentDetailVisible}
+        onClose={() => {
+          setStudentDetailVisible(false);
+          setSelectedStudent(null);
+        }}
+        student={selectedStudent}
+      />
     </View>
   );
 }
@@ -327,6 +355,23 @@ const styles = StyleSheet.create({
   studentRecordCount: {
     fontSize: 13,
     fontWeight: 600,
+  },
+  viewRecordsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  viewRecordsText: {
+    fontSize: 13,
+    fontWeight: 600,
+  },
+  pressed: {
+    opacity: 0.75,
   },
   empty: {
     fontSize: 15,

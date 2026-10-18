@@ -22,6 +22,7 @@ import {
   StaffUser,
   StudentWithRecords,
 } from "@/lib/staff-api";
+import { StudentDetailModal } from "@/components/student-detail-modal";
 import { ThemedText } from "@/components/themed-text";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -37,6 +38,8 @@ export default function AdminPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [studentDetailVisible, setStudentDetailVisible] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<StudentWithRecords | null>(null);
   const theme = useTheme();
   const isDark = theme.text === "#ffffff";
 
@@ -261,26 +264,42 @@ export default function AdminPage() {
                   <Text style={[styles.studentName, { color: theme.text }]}>
                     {student.user.username}
                   </Text>
-                  <Text style={[styles.studentEmail, { color: theme.textSecondary }]}>
-                    {student.user.email} · user_id: {student.user.user_id}
-                  </Text>
-                  {Object.entries(student.records).map(([table, records]) => (
-                    <View key={table} style={styles.studentRecordRow}>
-                      <Text style={[styles.studentRecordLabel, { color: theme.textSecondary }]}>
-                        {table}
-                      </Text>
-                      <Text style={[styles.studentRecordCount, { color: theme.text }]}>
-                        {records.length} record(s)
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              ))
-            ) : (
-              <Text style={[styles.empty, { color: theme.textSecondary }]}>
-                No student records have been synchronized yet.
-              </Text>
-            )}
+                   <Text style={[styles.studentEmail, { color: theme.textSecondary }]}>
+                     {student.user.email} · user_id: {student.user.user_id}
+                   </Text>
+                   {Object.entries(student.records).map(([table, records]) => (
+                     <View key={table} style={styles.studentRecordRow}>
+                       <Text style={[styles.studentRecordLabel, { color: theme.textSecondary }]}>
+                         {table}
+                       </Text>
+                       <Text style={[styles.studentRecordCount, { color: theme.text }]}>
+                         {records.length} record(s)
+                       </Text>
+                     </View>
+                   ))}
+                   <Pressable
+                     style={({ pressed }) => [
+                       styles.viewRecordsButton,
+                       pressed && styles.pressed,
+                       { backgroundColor: isDark ? "rgba(91, 236, 19, 0.15)" : "#e4f8d6" },
+                     ]}
+                     onPress={() => {
+                       setSelectedStudent(student);
+                       setStudentDetailVisible(true);
+                     }}
+                   >
+                     <Ionicons name="open-outline" size={16} color={isDark ? "#86efac" : "#166534"} />
+                     <Text style={[styles.viewRecordsText, { color: isDark ? "#86efac" : "#166534" }]}>
+                       View records
+                     </Text>
+                   </Pressable>
+                 </View>
+               ))
+             ) : (
+               <Text style={[styles.empty, { color: theme.textSecondary }]}>
+                 No student records have been synchronized yet.
+               </Text>
+             )}
           </>
         )}
 
@@ -464,6 +483,15 @@ export default function AdminPage() {
           </View>
         </View>
       </Modal>
+
+      <StudentDetailModal
+        visible={studentDetailVisible}
+        onClose={() => {
+          setStudentDetailVisible(false);
+          setSelectedStudent(null);
+        }}
+        student={selectedStudent}
+      />
     </View>
   );
 }
@@ -639,6 +667,20 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.75,
+  },
+  viewRecordsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  viewRecordsText: {
+    fontSize: 13,
+    fontWeight: 600,
   },
   tableCard: {
     borderRadius: 14,
