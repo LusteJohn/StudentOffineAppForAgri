@@ -1,5 +1,4 @@
 const SYNC_TABLES = [
-  { name: 'users', conflictColumn: 'user_id', requiresUserId: false, stripFields: ['password', 'password_hash'] },
   { name: 'student_info', conflictColumn: 'user_id', requiresUserId: true, stripPk: true, pkColumn: 'student_id' },
   { name: 'question_answers', conflictColumn: 'answer_id', requiresUserId: true, stripPk: false, pkColumn: 'answer_id' },
   { name: 'job_sheet_answers', conflictColumn: 'answer_id', requiresUserId: true, stripPk: false, pkColumn: 'answer_id' },
@@ -62,8 +61,8 @@ function validateRecords(table, userId, records) {
       throw new Error(`Sync payload for ${table.name} contains a record for another user.`);
     }
 
-    const stripFields = table.stripFields || [];
     const sanitized = { ...record };
+    const stripFields = table.stripFields || [];
     for (const field of stripFields) {
       delete sanitized[field];
     }
@@ -97,28 +96,72 @@ async function upsertTable(config, table, records) {
   return records.length;
 }
 
-async function checkUserIdConflict(config, userId) {
-  const users = await supabaseRequest(
-    config,
-    `users?user_id=eq.${userId}&select=role`,
-  );
-  return users && users.length > 0 ? users[0] : null;
-}
+async function createOrFindStudentUser(config, { user_id, email, username, records, ...rest }) {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const normalizedUsername = String(username || '').trim();
 
-async function findNextAvailableUserId(config, baseUserId) {
-  let candidate = Number(baseUserId);
-  const maxAttempts = 100;
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    const existing = await supabaseRequest(
+  let existingUser = null;
+
+  if (normalizedEmail) {
+    const byEmail = await supabaseRequest(
       config,
-      `users?user_id=eq.${candidate}&select=user_id`,
+      `users?select=*&email=eq.${encodeURIComponent(normalizedEmail)}&role=eq.student`,
     );
-    if (!existing || existing.length === 0) {
-      return candidate;
+    if (byEmail && byEmail.length > 0) {
+      existingUser = byEmail[0];
     }
-    candidate += 1;
   }
-  throw new Error(`Unable to find an available user_id after ${maxAttempts} attempts.`);
+
+  if (!existingUser && normalizedUsername) {
+    const byUsername = await supabaseRequest(
+      config,
+      `users?select=*&username=eq.${encodeURIComponent(normalizedUsername)}&role=eq.student`,
+    );
+    if (byUsername && byUsername.length > 0) {
+      existingUser = byUsername[0];
+    }
+  }
+
+  if (!existingUser) {
+    const stripFields = ['password', 'password_hash'];
+    const sanitizedRest = { ...rest };
+    for (const field of stripFields) {
+      delete sanitizedRest[field];
+    }
+
+    const userData = {
+      ...sanitizedRest,
+      username: normalizedUsername || `student_${Date.now()}`,
+      email: normalizedEmail || `student_${Date.now()}@example.com`,
+      password: '',
+      role: 'student',
+      created_at: new Date().toISOString(),
+    };
+    delete userData.user_id;
+
+    const response = await fetch(`${config.url}/rest/v1/users`, {
+      method: 'POST',
+      headers: {
+        ...buildSupabaseHeaders(config),
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      const details = await response.text();
+      throw new Error(`Failed to create student user (HTTP ${response.status}): ${details.slice(0, 500)}`);
+    }
+
+    const result = await response.json();
+    existingUser = result && result.length > 0 ? result[0] : null;
+  }
+
+  if (!existingUser || !existingUser.user_id) {
+    throw new Error('Failed to create or retrieve student user record.');
+  }
+
+  return Number(existingUser.user_id);
 }
 
 async function syncStudentRecords(userId, payload) {
@@ -133,28 +176,25 @@ async function syncStudentRecords(userId, payload) {
 
   const config = getSupabaseConfig();
   const synced = {};
-  let effectiveUserId = parsedUserId;
 
-  const conflictUser = await checkUserIdConflict(config, parsedUserId);
+  const supabaseUserId = await createOrFindStudentUser(config, payload);
 
-  if (conflictUser && conflictUser.role && conflictUser.role !== 'student') {
-    effectiveUserId = await findNextAvailableUserId(config, parsedUserId);
-  }
+  let remapped = supabaseUserId !== parsedUserId;
 
   for (const table of SYNC_TABLES) {
     let tablePayload = payload[table.name] || [];
-    if (effectiveUserId !== parsedUserId) {
+    if (remapped) {
       tablePayload = tablePayload.map((r) => ({
         ...r,
-        user_id: effectiveUserId,
+        user_id: supabaseUserId,
       }));
     }
-    const records = validateRecords(table, effectiveUserId, tablePayload);
+    const records = validateRecords(table, supabaseUserId, tablePayload);
     synced[table.name] = await upsertTable(config, table, records);
   }
 
-  const result = { user_id: effectiveUserId, synced };
-  if (effectiveUserId !== parsedUserId) {
+  const result = { user_id: supabaseUserId, synced };
+  if (remapped) {
     return { ...result, remapped: true, original_user_id: parsedUserId };
   }
   return result;
